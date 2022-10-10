@@ -25,7 +25,7 @@ jobs:
     - name: AWS ECR Image Build, Tag, and Push
       env:
         ECR_REGISTRY: ${{ steps.aws-ecr-login.outputs.registry }}
-        ECR_REPOSITORY: 949672515001.dkr.ecr.us-east-2.amazonaws.com/variant64
+        ECR_REPOSITORY: variant64
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG server/.
