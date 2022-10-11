@@ -35,7 +35,7 @@ jobs:
 
     - name: AWS Download Task Definition
       run: |
-        aws ecs describe-task-definition --task-definition variant64-backend:2 --query taskDefinition > task-definition.json
+        aws ecs describe-task-definition --task-definition variant64-backend-server:1 --query taskDefinition > task-definition.json
 
     - name: AWS ECS Add Image ID
       id: task-definition
