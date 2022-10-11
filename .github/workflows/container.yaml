@@ -37,7 +37,6 @@ jobs:
       id: task-download
       run: |
         aws ecs describe-task-definition --task-definition variant64-backend-server --query taskDefinition > task-definition.json
-        echo "::set-output name=revision::$(($(cat task-definition.json | jq .revision)))"
 
     - name: AWS ECS Add Image ID
       id: task-definition
@@ -51,12 +50,6 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.task-definition.outputs.task-definition }}
-        service: server
         cluster: variant64
+        service: backend
         wait-for-service-stability: true
-
-    - name: AWS ECS Deregister Previous Revision
-      if: ${{ steps.task-download.outputs.revision > 0 }}
-      run: |
-          aws ecs deregister-task-definition \
-            --task-definition  server:${{ steps.download-task.outputs.revision }}
