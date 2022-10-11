@@ -48,7 +48,7 @@ jobs:
     - name: AWS ECS Deploy
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
-        task-definition: ${{ steps.task-defintion.outputs.task-definition }}
+        task-definition: ${{ steps.task-definition.outputs.task-definition }}
         service: variant64-backend-server
         cluster: variant64
         wait-for-service-stability: true
