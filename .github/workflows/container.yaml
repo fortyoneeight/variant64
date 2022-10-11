@@ -34,3 +34,19 @@ jobs:
     - name: AWS Download Task Definition
       run: |
         aws ecs describe-task-definition --task-definition variant64-backend:2 --query taskDefinition > task-definition.json
+
+    - name: AWS ECS Add Image ID
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: variant64-backend
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: AWS ECS Deploy
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: variant64-backend-server
+        cluster: variant64
+        wait-for-service-stability: true
