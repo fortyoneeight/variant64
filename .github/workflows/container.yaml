@@ -42,7 +42,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
-        container-name: variant64-backend
+        container-name: server
         image: ${{ steps.build-image.outputs.image }}
 
     - name: AWS ECS Deploy
