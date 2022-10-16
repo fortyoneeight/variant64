@@ -5,18 +5,26 @@ import Homepage from "./Homepage";
 
 function Header() {
     return (
-        <Link to='/'>
+
+        <nav>
+
             <h1 style={{ textAlign: 'center' }}>
-                Variant64 Chess
+                <Link to='/'>
+                    Variant64 Chess
+                </Link>
             </h1>
-        </Link>
+        </nav>
     )
 }
 
 function Footer() {
-    return <aside>
-        <a href='https://github.com/izakfr/variant64'><small>Variant64 - Github Repo</small></a>
-    </aside>
+    return <div>
+        <aside>
+            <p style={{ textAlign: 'center' }}>
+                <a href='https://github.com/izakfr/variant64'>Variant64 - Github Repo</a>
+            </p>
+        </aside>
+    </div>
 }
 
 
