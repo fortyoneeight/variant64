@@ -14,4 +14,5 @@ run: build
 	docker run -p 8100:8100 -d ${DOCKER_NAME}/${DOCKER_APP_NAME_FE}
 
 stop:
-	docker stop $(DOCKER_APP_CONTAINER_BE)
+	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_FE}))
+	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_BE}))
