@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func AttachRoutes(r *mux.Router) {
+func AttachRESTRoutes(r *mux.Router) {
 	r.HandleFunc("/api/room", handlePostRoom).Methods("POST")
 	r.HandleFunc("/api/rooms", handleGetRooms).Methods("GET")
 	r.HandleFunc("/api/room/{room_name}/join", handlePostRoomJoin).Methods("POST")

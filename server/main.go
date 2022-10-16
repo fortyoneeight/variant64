@@ -1,19 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/variant64/server/api"
 )
-
-func hello(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "Hello, world! UPDATE PLACEHOLDER\n")
-}
 
 func main() {
 	r := mux.NewRouter()
-	AttachRoutes(r)
+	api.AttachRESTRoutes(r)
+	api.AttachWebsocketRoutes(r)
 
 	http.Handle("/", r)
 	http.ListenAndServe(":8000", nil)
