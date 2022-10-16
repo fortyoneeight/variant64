@@ -25,5 +25,8 @@ const snapshot = {
 
 export default function Gamepage() {
 
-    return <Gameboard board={snapshot.board}/>
+    return <div className='column'>
+        <Gameboard board={snapshot.board}/>
+    </div>
+    
 }

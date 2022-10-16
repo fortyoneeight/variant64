@@ -11,27 +11,17 @@ export default function Gameboard(snapshot: any) {
 
     return <div className='gameboard-grid'
         style={{
-            gridTemplateRows: `repeat(${snapshot.board.size.length}, 100px)`,
-            gridTemplateColumns: `repeat(${snapshot.board.size.width}, 100px)`
+            gridTemplateRows: `repeat(${snapshot.board.size.length}, 10vh)`,
+            gridTemplateColumns: `repeat(${snapshot.board.size.width}, 10vh)`
         }}>
 
-        {snapshot.board.cells.map((row: any) => {
-            {
-                return row.map((cell: any, j: any) => {
-
-                    //test indexing by y
-                    // if(j == 2){
-                    //     return <p>secret elf</p>
-                    // }
-                    
-                    
-                    return <div key={j} style={{
-                        width: '100px',
-                        height: '100px',
-                        backgroundColor: 'blue'
-                    }}></div>
-                })
-            }
+        {snapshot.board.cells.map((row: any, i: any) => {
+            {return row.map((cell: any, j: any) => {   
+                return <div key={j} className='grid-cell' style={{backgroundColor: (j + i) % 2 == 1 ? 'white' : '#21823b',
+                }}>
+                    <p style={{fontSize:'4rem'}}>{cell}</p>
+                </div>
+            })}
         })}
     </div>
 }
