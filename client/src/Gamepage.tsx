@@ -7,14 +7,7 @@ const snapshot = {
             "length": 8,
             "width" : 8
         },
-        "cells": [[0,0,0,0,0,0,0,0],
-                  [0,0,0,0,0,0,0,0],
-                  [0,0,0,0,0,0,0,0],
-                  [0,0,0,0,0,0,0,0],
-                  [0,0,0,0,0,0,0,0],
-                  [0,0,0,0,0,0,0,0],
-                  [0,0,0,0,0,0,0,0],
-                  [0,0,0,0,0,0,0,0]],
+        "cells": [{x: 1, y: 1, cellItem: {type: 'piece', data: { name: 'pawn', player: {id:'uuid', display_name: 'player1'}, moves: ['a2']}}}],
         "active_player":"ben",
         "clocks":{
             "player1": 100,
