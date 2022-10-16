@@ -9,7 +9,15 @@ import {
     useRecoilValue,
 } from 'recoil';
 
-const sampleNames = 'Henry Izak Jarron Ben'.split(' ')
+const roomsState = atom({
+    key: 'roomsState',
+    default: [
+        'Henry',
+        'Izak',
+        'Jarron',
+        'Ben',
+    ]
+})
 
 const textState = atom({
     key: 'textState', // unique ID (with respect to other atoms/selectors)
@@ -74,6 +82,9 @@ function renderRoom(data: { name: string }) {
 }
 
 function RoomList() {
+
+    const [rooms, setRooms] = useRecoilState(roomsState);
+
     return (
 
 
@@ -85,7 +96,7 @@ function RoomList() {
 
             <main>
                 {
-                    sampleNames.map((name) => {
+                    rooms.map((name) => {
                         return renderRoom({ name: name })
                     })
                 }
@@ -99,12 +110,13 @@ function RoomList() {
 export default function Homepage() {
 
     const [text, setText] = useRecoilState(textState);
+    const [rooms, setRooms] = useRecoilState(roomsState);
 
     return (<div className="grid-2-horizontal">
 
         <RoomList />
 
-        <CharacterCounter/>
+        {/* <CharacterCounter /> */}
 
         <button
             className="createRoom"
@@ -113,6 +125,8 @@ export default function Homepage() {
                     console.log('TODO Implement createThatRoom()')
 
                     setText(text + " create room clicked")
+                    var newRooms = [...rooms, 'mystery man']
+                    setRooms(newRooms)
                 }
             }>
             Create a room
