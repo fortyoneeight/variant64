@@ -1,3 +1,5 @@
+import { type } from 'os';
+
 export interface Board {
   size: {
     length: number;
@@ -7,12 +9,17 @@ export interface Board {
   clocks: BoardClocks;
 }
 
+export interface Coordinate {
+  x: number;
+  y: number;
+}
+
 export enum BoardCellItemTypes {
   PIECE = 'piece',
 }
 
 export type BoardCells = Array<BoardPiece>;
-export interface BoardCellItem {
+export interface BoardCellItem extends Coordinate {
   type: BoardCellItemTypes;
 }
 
@@ -32,10 +39,7 @@ export interface BoardPiece extends BoardCellItem {
 }
 
 export type BoardMoves = Array<BoardMove>;
-export interface BoardMove {
-  x: number;
-  y: number;
-}
+export type BoardMove = Coordinate;
 
 export interface BoardClocks {
   [key: string]: string;
