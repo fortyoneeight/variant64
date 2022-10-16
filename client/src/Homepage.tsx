@@ -4,8 +4,8 @@ import './index.css'
 
 const sampleNames = 'Henry Izak Jarron Ben'.split(' ')
 
-function renderRoom(data: { name: string }) {
-    return (<div>
+function renderRoom(data: { name: string }, i:any) {
+    return (<div key={i}>
         <Link
             to={'/chess'} //`/join/{data.name}`
             className='grid-2-horizontal-leftbias'>
@@ -26,8 +26,8 @@ function RoomList() {
 
         <main>
             {
-                sampleNames.map((name) => {
-                    return renderRoom({ name: name })
+                sampleNames.map((name, i) => {
+                    return renderRoom({ name: name }, i)
                 })
             }
         </main>
