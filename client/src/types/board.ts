@@ -4,15 +4,16 @@ export interface Board {
     width: number;
   };
   cells: BoardCells;
+  clocks: BoardClocks;
 }
 
 export enum BoardCellItemTypes {
   PIECE = 'piece',
 }
 
-export type BoardCells = Array<BoardCellItem>;
+export type BoardCells = Array<BoardPiece>;
 export interface BoardCellItem {
-  type: BoardCellItem;
+  type: BoardCellItemTypes;
 }
 
 export enum BoardPieceTypes {

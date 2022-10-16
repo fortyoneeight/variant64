@@ -1,22 +1,31 @@
-import React from "react";
+import React from 'react';
+import { Board } from '../types';
 
-export default function Gameboard(snapshot: any) {
+export default function Gameboard({ board }: { board: Board }) {
+  console.log(board);
 
-    console.log(snapshot);
+  const numCells = board.size.length * board.size.width;
 
-    const numCells = snapshot.board.size.length * snapshot.board.size.width;
-
-    return <div className='gameboard-grid' style={{
-            gridTemplateRows: `repeat(${snapshot.board.size.length}, 10vh)`,
-            gridTemplateColumns: `repeat(${snapshot.board.size.width}, 10vh)`
-        }}>
-            {[...Array(snapshot.board.size.length)].map((row: any, i: any) => {
-                return [...Array(snapshot.board.size.width)].map((cell: any, j: any) =>{
-                    const color = i % 2 + j % 2 == 1 ? 'white' : 'blue'  
-                    return <div key={i} className='grid-cell' style={{backgroundColor: color}}>
-                        
-                    </div>
-                }) 
-            })}
+  return (
+    <div
+      className='gameboard-grid'
+      style={{
+        gridTemplateRows: `repeat(${board.size.length}, 10vh)`,
+        gridTemplateColumns: `repeat(${board.size.width}, 10vh)`,
+      }}
+    >
+      {[...Array(board.size.length)].map((row: any, i: any) => {
+        return [...Array(board.size.width)].map((cell: any, j: any) => {
+          const color = (i % 2) + (j % 2) == 1 ? 'white' : 'blue';
+          return (
+            <div
+              key={i}
+              className='grid-cell'
+              style={{ backgroundColor: color }}
+            ></div>
+          );
+        });
+      })}
     </div>
+  );
 }
