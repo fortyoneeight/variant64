@@ -7,11 +7,13 @@ export const mockdataBoard: Board = {
   },
   cells: [
     {
+      x: 0,
+      y: 0,
       type: BoardCellItemTypes.PIECE,
       moves: [
         {
-          x: 0,
-          y: 0,
+          x: 1,
+          y: 1,
         },
       ],
       name: BoardPieceTypes.PAWN,
