@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './index.css';
+import { HttpContext } from './store/context';
 
 const sampleNames = 'Henry Izak Jarron Ben'.split(' ');
 
@@ -34,6 +35,9 @@ function RoomList() {
 }
 
 export default function Homepage() {
+  const context = React.useContext(HttpContext);
+  console.log(context.roomService.createRoom());
+
   return (
     <div className='grid-2-horizontal'>
       <RoomList />
