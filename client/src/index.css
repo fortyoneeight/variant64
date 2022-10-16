@@ -11,3 +11,43 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+.gameboard-grid {
+  display: grid;
+  grid-gap: 1vw;
+}
+
+.grid-2-horizontal {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  /* background-color: pink !important; */
+}
+
+.grid-2-horizontal-leftbias {
+  display: grid;
+  grid-template-columns: 80% 20%;
+  /* background-color: pink !important; */
+}
+
+.grid-3-vertical-centerbias {
+  display: grid;
+  grid-template-rows: 10% 90% 10%;
+  height: 100%;
+}
+
+.outline {
+  outline: 1px black;
+  outline-style: solid;
+}
