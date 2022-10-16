@@ -1,18 +1,19 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import './index.css'
 
 const sampleNames = 'Henry Izak Jarron Ben'.split(' ')
 
 function renderRoom(data: { name: string }) {
     return (<div>
-        <a
-            href={'/chess'} //`/join/{data.name}`
+        <Link
+            to={'/chess'} //`/join/{data.name}`
             className='grid-2-horizontal-leftbias'>
 
 
             <span>{data.name}'s room</span> <span className="outline">0/2</span>
 
-        </a>
+        </Link>
     </div>)
 }
 
