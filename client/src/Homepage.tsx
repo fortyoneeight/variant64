@@ -8,15 +8,12 @@ import {
     useRecoilState,
     useRecoilValue,
 } from 'recoil';
+import { mockdataRooms } from "./mockdata/rooms";
+import { Room } from "./types";
 
 const roomsState = atom({
     key: 'roomsState',
-    default: [
-        'Henry',
-        'Izak',
-        'Jarron',
-        'Ben',
-    ]
+    default: mockdataRooms
 })
 
 const textState = atom({
@@ -68,14 +65,14 @@ function TextInput() {
 }
 
 
-function renderRoom(data: { name: string }) {
+function renderRoom(room: Room) {
     return (<div>
         <Link
             to={'/chess'} //`/join/{data.name}`
             className='grid-2-horizontal-leftbias'>
 
 
-            <span>{data.name}'s room</span> <span className="outline">0/2</span>
+            <span>{room.room_name}</span> <span className="outline">{room.players.length}/{room.players_total}</span>
 
         </Link>
     </div>)
@@ -96,8 +93,8 @@ function RoomList() {
 
             <main>
                 {
-                    rooms.map((name) => {
-                        return renderRoom({ name: name })
+                    rooms.map((room) => {
+                        return renderRoom({ ...room })
                     })
                 }
             </main>
@@ -125,7 +122,11 @@ export default function Homepage() {
                     console.log('TODO Implement createThatRoom()')
 
                     setText(text + " create room clicked")
-                    var newRooms = [...rooms, 'mystery man']
+                    var newRooms: Array<Room> = [...rooms, {
+                        players: [],
+                        players_total: 0,
+                        room_name: "Mystery man's room"
+                    }]
                     setRooms(newRooms)
                 }
             }>
