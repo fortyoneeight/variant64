@@ -1,69 +1,13 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import './index.css'
 import {
-    RecoilRoot,
-    atom,
     selector,
     useRecoilState,
     useRecoilValue,
 } from 'recoil';
-import { mockdataRooms } from "./mockdata/rooms";
 import { Room } from "./types";
 
-const roomsState = atom({
-    key: 'roomsState',
-    default: mockdataRooms
-})
-
-const textState = atom({
-    key: 'textState', // unique ID (with respect to other atoms/selectors)
-    default: '', // default value (aka initial value)
-});
-
-const charCountState = selector({
-    key: 'charCountState', // unique ID (with respect to other atoms/selectors)
-    get: ({ get }) => {
-        const text = get(textState);
-
-        return text.length;
-    },
-});
-
-function CharacterCount() {
-    const count = useRecoilValue(charCountState);
-
-    return <>Character Count: {count}</>;
-}
-
-
-
-function CharacterCounter() {
-    return (
-        <div>
-            <TextInput />
-            <CharacterCount />
-        </div>
-    );
-}
-
-function TextInput() {
-
-    const [text, setText] = useRecoilState(textState);
-
-    const onChange = (event: any) => {
-        setText(event.target.value);
-    };
-
-    return (
-        <div>
-            <input type="text" value={text} onChange={onChange} />
-            <br />
-            Echo: {text}
-        </div>
-    );
-}
-
+import { roomsState } from "./store/atoms/rooms";
 
 function renderRoom(room: Room) {
     return (<div>
@@ -105,7 +49,6 @@ function RoomList() {
 
 export default function Homepage() {
 
-    const [text, setText] = useRecoilState(textState);
     const [rooms, setRooms] = useRecoilState(roomsState);
 
     return (<div className="grid-2-horizontal">
@@ -120,7 +63,6 @@ export default function Homepage() {
                 () => {
                     console.log('TODO Implement createThatRoom()')
 
-                    setText(text + " create room clicked")
                     var newRooms: Array<Room> = [...rooms, {
                         players: [],
                         players_total: 0,
