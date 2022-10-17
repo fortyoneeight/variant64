@@ -1,1 +1,1 @@
-export function testFunc() {}
+export * from './room-http';

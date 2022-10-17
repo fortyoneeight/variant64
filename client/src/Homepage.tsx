@@ -103,7 +103,6 @@ function RoomList() {
         </div>)
 }
 
-
 export default function Homepage() {
 
     const [text, setText] = useRecoilState(textState);

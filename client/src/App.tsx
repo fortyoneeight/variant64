@@ -4,14 +4,26 @@ import './App.css';
 import Routing from './Routing';
 import { Link } from "react-router-dom";
 import { RecoilRoot } from 'recoil';
+import { RoomHttpService } from './services';
+import { HttpContext } from './store/context';
+
+let roomHttpService = new RoomHttpService({
+  // url: 'https://1dda-24-142-141-179.ngrok.io/',
+  url: 'http://localhost:8000/',
+});
+
 function App() {
-  return <>
-    <RecoilRoot>
-      <div className='grid-3-vertical-centerbias'>
-        <Routing />
-      </div>
-    </RecoilRoot>
-  </>
+  return (
+    <>
+      <RecoilRoot>
+        <HttpContext.Provider value={{ roomService: roomHttpService }}>
+          <div className='grid-3-vertical-centerbias'>
+            <Routing />
+          </div>
+        </HttpContext.Provider>
+      </RecoilRoot>
+    </>
+  );
 }
 
 export default App;
