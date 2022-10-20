@@ -1,6 +1,7 @@
 package store
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/google/uuid"
@@ -38,6 +39,20 @@ func (i *IndexedStore[T]) GetByID(id uuid.UUID) []T {
 	}
 
 	return []T{}
+}
+
+func (i *IndexedStore[T]) Load(t *T) error {
+	if val, ok := i.DataMap[(*t).GetID()]; ok {
+		*t = val
+		return nil
+	}
+	return errors.New("not found")
+}
+
+func (i *IndexedStore[T]) LoadAll(ts *[]*T) {
+	for _, val := range i.DataMap {
+		*ts = append(*ts, &val)
+	}
 }
 
 func (i *IndexedStore[T]) Store(t T) {

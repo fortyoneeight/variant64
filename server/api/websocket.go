@@ -5,15 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{}
-
-func AttachWebsocketRoutes(r *mux.Router) {
-	r.HandleFunc("/ws", websocketHandler).Methods("GET")
-}
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)

@@ -9,8 +9,7 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	api.AttachRESTRoutes(r)
-	api.AttachWebsocketRoutes(r)
+	api.AttachRoutes(r)
 
 	http.Handle("/", r)
 	http.ListenAndServe(":8000", nil)
