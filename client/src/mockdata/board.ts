@@ -1,9 +1,4 @@
-import {
-  Board,
-  BoardCellItemTypes,
-  BoardPiece,
-  BoardPieceTypes,
-} from '../types';
+import { Board, BoardCellItemTypes, BoardPiece, BoardPieceTypes } from '../types';
 
 const boardWidth = 8;
 const boardLength = 8;
@@ -24,25 +19,15 @@ function genPawn(n: number, startingRow: number, player: string): BoardPiece {
   };
 }
 
-function genPlayerPawns(
-  startingRow: number,
-  player: string
-): Array<BoardPiece> {
+function genPlayerPawns(startingRow: number, player: string): Array<BoardPiece> {
   return Array(boardWidth)
     .fill('')
     .map((val, index) => genPawn(index, startingRow, player));
 }
 
-const pawns = [
-  ...genPlayerPawns(1, 'player1'),
-  ...genPlayerPawns(boardLength - 2, 'player2'),
-];
+const pawns = [...genPlayerPawns(1, 'player1'), ...genPlayerPawns(boardLength - 2, 'player2')];
 
-function genRook(
-  startingRow: number,
-  startingColumn: number,
-  player: string
-): BoardPiece {
+function genRook(startingRow: number, startingColumn: number, player: string): BoardPiece {
   return {
     x: startingRow,
     y: startingColumn,
@@ -58,10 +43,7 @@ function genRook(
   };
 }
 
-function genPlayerRooks(
-  startingRow: number,
-  player: string
-): Array<BoardPiece> {
+function genPlayerRooks(startingRow: number, player: string): Array<BoardPiece> {
   const columnOffset = 0;
   return [
     genRook(startingRow, columnOffset, player),
@@ -69,16 +51,9 @@ function genPlayerRooks(
   ];
 }
 
-const rooks = [
-  ...genPlayerRooks(0, 'player1'),
-  ...genPlayerRooks(boardWidth - 1, 'player2'),
-];
+const rooks = [...genPlayerRooks(0, 'player1'), ...genPlayerRooks(boardWidth - 1, 'player2')];
 
-function genKnight(
-  startingRow: number,
-  startingColumn: number,
-  player: string
-): BoardPiece {
+function genKnight(startingRow: number, startingColumn: number, player: string): BoardPiece {
   return {
     x: startingRow,
     y: startingColumn,
@@ -94,10 +69,7 @@ function genKnight(
   };
 }
 
-function genPlayerKnights(
-  startingRow: number,
-  player: string
-): Array<BoardPiece> {
+function genPlayerKnights(startingRow: number, player: string): Array<BoardPiece> {
   const columnOffset = 1;
   return [
     genKnight(startingRow, columnOffset, player),
@@ -105,16 +77,9 @@ function genPlayerKnights(
   ];
 }
 
-const knights = [
-  ...genPlayerKnights(0, 'player1'),
-  ...genPlayerKnights(boardWidth - 1, 'player2'),
-];
+const knights = [...genPlayerKnights(0, 'player1'), ...genPlayerKnights(boardWidth - 1, 'player2')];
 
-function genBishop(
-  startingRow: number,
-  startingColumn: number,
-  player: string
-): BoardPiece {
+function genBishop(startingRow: number, startingColumn: number, player: string): BoardPiece {
   return {
     x: startingRow,
     y: startingColumn,
@@ -130,10 +95,7 @@ function genBishop(
   };
 }
 
-function genPlayerBishops(
-  startingRow: number,
-  player: string
-): Array<BoardPiece> {
+function genPlayerBishops(startingRow: number, player: string): Array<BoardPiece> {
   const columnOffset = 2;
   return [
     genBishop(startingRow, columnOffset, player),
@@ -141,16 +103,9 @@ function genPlayerBishops(
   ];
 }
 
-const bishops = [
-  ...genPlayerBishops(0, 'player1'),
-  ...genPlayerBishops(boardWidth - 1, 'player2'),
-];
+const bishops = [...genPlayerBishops(0, 'player1'), ...genPlayerBishops(boardWidth - 1, 'player2')];
 
-function genQueen(
-  startingRow: number,
-  startingColumn: number,
-  player: string
-): BoardPiece {
+function genQueen(startingRow: number, startingColumn: number, player: string): BoardPiece {
   return {
     x: startingRow,
     y: startingColumn,
@@ -166,24 +121,14 @@ function genQueen(
   };
 }
 
-function genPlayerQueen(
-  startingRow: number,
-  player: string
-): Array<BoardPiece> {
+function genPlayerQueen(startingRow: number, player: string): Array<BoardPiece> {
   const columnOffset = 3;
   return [genQueen(startingRow, columnOffset, player)];
 }
 
-const queens = [
-  ...genPlayerQueen(0, 'player1'),
-  ...genPlayerQueen(boardWidth - 1, 'player2'),
-];
+const queens = [...genPlayerQueen(0, 'player1'), ...genPlayerQueen(boardWidth - 1, 'player2')];
 
-function genKing(
-  startingRow: number,
-  startingColumn: number,
-  player: string
-): BoardPiece {
+function genKing(startingRow: number, startingColumn: number, player: string): BoardPiece {
   return {
     x: startingRow,
     y: startingColumn,
@@ -204,10 +149,7 @@ function genPlayerKing(startingRow: number, player: string): Array<BoardPiece> {
   return [genKing(startingRow, columnOffset, player)];
 }
 
-const kings = [
-  ...genPlayerKing(0, 'player1'),
-  ...genPlayerKing(boardWidth - 1, 'player2'),
-];
+const kings = [...genPlayerKing(0, 'player1'), ...genPlayerKing(boardWidth - 1, 'player2')];
 
 export const mockdataBoard: Board = {
   size: {

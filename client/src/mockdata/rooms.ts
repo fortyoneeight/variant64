@@ -1,4 +1,4 @@
-import { Room } from "../types";
+import { Room } from '../types';
 
 export const mockdataRooms: Array<Room> = [
   {

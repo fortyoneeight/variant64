@@ -1,4 +1,4 @@
-import { BoardPlayer } from "./board";
+import { BoardPlayer } from './board';
 
 export type Room = {
   room_name: string;

@@ -1,6 +1,6 @@
-import React from "react";
-import Gameboard from "./components/gameboard";
-import { mockdataBoard } from "./mockdata/board";
+import React from 'react';
+import Gameboard from './components/gameboard';
+import { mockdataBoard } from './mockdata/board';
 
 export default function Gamepage() {
   return (
@@ -14,9 +14,9 @@ export default function Gamepage() {
         <p className="name">Name</p>
         <p className="clock">{mockdataBoard.clocks.player2}</p>
       </div>
-      <div className='gameplayButtonContainer'>
-        <button className='drawButton'>Offer Draw</button>
-        <button className='concedeButton'>Concede</button>
+      <div className="gameplayButtonContainer">
+        <button className="drawButton">Offer Draw</button>
+        <button className="concedeButton">Concede</button>
       </div>
     </div>
   );
