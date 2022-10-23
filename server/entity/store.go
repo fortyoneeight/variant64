@@ -9,6 +9,7 @@ import (
 
 var PlayerStore *store.IndexedStore[Player]
 var RoomStore *store.IndexedStore[Room]
+var GameStore *store.IndexedStore[Game]
 
 func GetPlayerStore() *store.IndexedStore[Player] {
 	if PlayerStore == nil {
@@ -28,4 +29,14 @@ func GetRoomStore() *store.IndexedStore[Room] {
 		}
 	}
 	return RoomStore
+}
+
+func GetGameStore() *store.IndexedStore[Game] {
+	if GameStore == nil {
+		GameStore = &store.IndexedStore[Game]{
+			DataMap: make(map[uuid.UUID]Game),
+			Mux: &sync.RWMutex{},
+		}
+	}
+	return GameStore
 }
