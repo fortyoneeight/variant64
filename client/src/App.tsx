@@ -8,8 +8,8 @@ import { RoomHttpService } from './services';
 import { HttpContext } from './store/context';
 
 let roomHttpService = new RoomHttpService({
-  // url: 'https://3fa5-24-142-141-179.ngrok.io',
-  url: 'http://localhost:8000',
+  // url: 'http://localhost:8000',
+  url: 'http://0.0.0.0:8001/0.0.0.0:8000',
 });
 
 function App() {
