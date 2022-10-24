@@ -27,10 +27,7 @@ export class RoomHttpService {
     return axios.get(this.url + '/rooms');
   }
 
-  joinRoom(
-    roomName: string,
-    body: JoinRoomRequest
-  ): PromiseLike<JoinRoomResponse> {
+  joinRoom(roomName: string, body: JoinRoomRequest): PromiseLike<JoinRoomResponse> {
     return axios.post(this.url + `/room/${roomName}/join`, body);
   }
 
