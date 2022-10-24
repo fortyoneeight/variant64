@@ -19,7 +19,7 @@ export default function Gameboard({ board }: { board: Board }) {
             <div key={i + '' + j} className="grid-cell" style={{ backgroundColor: color }}>
               {board.cells.map((piece: any, k: any) => {
                 if (piece.x === i && piece.y === j) {
-                  return <p>{piece.name}</p>;
+                  return <p key={k}>{piece.name}</p>;
                 }
               })}
             </div>

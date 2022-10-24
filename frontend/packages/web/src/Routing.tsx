@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
-import Gamepage from './Gamepage';
-import Homepage from './Homepage';
+import Gamepage from './pages/Gamepage';
+import Homepage from './pages/Homepage';
 
 function Header() {
   return (

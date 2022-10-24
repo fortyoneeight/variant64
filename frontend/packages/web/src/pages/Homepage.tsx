@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './index.css';
+import '../index.css';
 import { selector, useRecoilState, useRecoilValue } from 'recoil';
-import { Room } from './types';
+import { Room } from '../types';
 
-import { roomsState } from './store/atoms/rooms';
-import { HttpContext } from './store/context';
+import { roomsState } from '../store/atoms/rooms';
+import { HttpContext } from '../store/context';
 
 function renderRoom(room: Room) {
   return (
