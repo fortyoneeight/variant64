@@ -4,11 +4,11 @@ FROM node:18.11-alpine3.16
 
 WORKDIR /usr/src/app
 
-COPY src/package*.json ./
+COPY package*.json ./
 
 RUN npm install
 
-COPY ./src .
+COPY . .
 
 EXPOSE 8001
 
