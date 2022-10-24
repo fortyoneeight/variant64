@@ -1,3 +1,13 @@
+import axios from 'axios';
+import {
+  CreateRoomRequest,
+  CreateRoomResponse,
+  GetRoomsResponse,
+  JoinRoomRequest,
+  JoinRoomResponse,
+  StartRoomRequest,
+  StartRoomResponse,
+} from '../types';
 export interface HttpServiceParams {
   url: string;
 }
@@ -6,22 +16,25 @@ export class RoomHttpService {
   url: string;
 
   constructor(params: HttpServiceParams) {
-    this.url = params.url;
+    this.url = params.url + '/api';
   }
 
-  createRoom() {
-    console.log('created room');
+  createRoom(body: CreateRoomRequest): PromiseLike<CreateRoomResponse> {
+    return axios.post(this.url + '/room', body);
   }
 
-  getRoom() {
-    console.log('get room');
+  getRooms(): PromiseLike<GetRoomsResponse> {
+    return axios.get(this.url + '/rooms');
   }
 
-  joinRoom() {
-    console.log('join room');
+  joinRoom(
+    roomName: string,
+    body: JoinRoomRequest
+  ): PromiseLike<JoinRoomResponse> {
+    return axios.post(this.url + `/room/${roomName}/join`, body);
   }
 
-  startRoom() {
-    console.log('start room');
+  startRoom(roomName: string, body: StartRoomRequest): StartRoomResponse {
+    return axios.post(this.url + `/room/${roomName}/start`, body);
   }
 }

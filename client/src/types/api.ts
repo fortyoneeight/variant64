@@ -1,5 +1,6 @@
 import { BoardPlayer } from './board';
 
+// TODO: move this to another file
 export type Room = {
   room_name: string;
   players_total: number;
@@ -12,15 +13,12 @@ export type CreateRoomRequest = {
 
 export type CreateRoomResponse = {} & Room;
 
-export type GetRoomsRequest = {};
+export type GetRoomsRequest = Array<Room>;
 
-export type GetRoomsResponse = {
-  rooms: Array<Room>;
-};
+export type GetRoomsResponse = Array<Room>;
 
 export type JoinRoomRequest = {
-  room_name: string;
-  player_name: string;
+  player_id: string;
 };
 
 export type JoinRoomResponse = {} & Room;

@@ -23,4 +23,4 @@ jobs:
           # This part is also where you can pass other options, for example:
           prettier_options: --write client/**/*.{js,jsx,ts,tsx,json,html,css,md}
           commit_message: '[Prettier Formatter]: format code'
-          only_changed: False
+          only_changed: True
