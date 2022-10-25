@@ -18,12 +18,12 @@ type RequestNewPlayer struct {
 }
 
 func (r *RequestNewPlayer) Write(e *Entity[Player]) error {
-	player := Player{
-		ID:          uuid.New(),
+	e.store = GetPlayerStore()
+	e.Data = Player{
+		ID: uuid.New(),
 		DisplayName: r.DisplayName,
 	}
-	e.store = GetPlayerStore()
-	e.Data = &player
+
 	return nil
 }
 
@@ -32,10 +32,10 @@ type RequestGetPlayer struct {
 }
 
 func (r *RequestGetPlayer) Read(e *Entity[Player]) error {
-	player := Player{
+	e.store = GetPlayerStore()
+	e.Data = Player{
 		ID: r.ID,
 	}
-	e.store = GetPlayerStore()
-	e.Data = &player
+
 	return nil
 }

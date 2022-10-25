@@ -89,7 +89,7 @@ type RequestNewGame struct {
 	PlayerTimeMilis int64       `json:"player_time_ms"`
 }
 
-func (r *RequestNewGame) Write(e *Entity[Game]) error {
+func (r *RequestNewGame) Write(e *Entity[*Game]) error {
 	if len(r.PlayerOrder) < 2 {
 		return errors.New("invalid number of players, must be >= 2")
 	}
@@ -115,7 +115,7 @@ type RequestGetGame struct {
 	ID uuid.UUID `json:"game_id"`
 }
 
-func (r *RequestGetGame) Read(e *Entity[Game]) error {
+func (r *RequestGetGame) Read(e *Entity[*Game]) error {
 	e.store = GetGameStore()
 	e.Data = &Game{
 		id: r.ID,

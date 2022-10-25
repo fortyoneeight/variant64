@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -65,7 +64,6 @@ func (t *Timer) updateRoutine() {
 	for {
 		select {
 		case <-t.doneChan:
-			fmt.Println("hello")
 			return
 		case <-t.ticker.C:
 			if t.running {

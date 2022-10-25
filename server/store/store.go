@@ -49,9 +49,9 @@ func (i *IndexedStore[T]) Load(t *T) error {
 	return errors.New("not found")
 }
 
-func (i *IndexedStore[T]) LoadAll(ts *[]*T) {
+func (i *IndexedStore[T]) LoadAll(ts *[]T) {
 	for _, val := range i.DataMap {
-		*ts = append(*ts, &val)
+		*ts = append(*ts, val)
 	}
 }
 

@@ -2,7 +2,6 @@ package entity
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
@@ -26,12 +25,13 @@ type RequestNewRoom struct {
 
 func (r *RequestNewRoom) Write(e *Entity[Room]) error {
 	e.store = GetRoomStore()
-	e.Data = &Room{
+	e.Data = Room{
 		ID:      uuid.New(),
 		Name:    r.Name,
 		Players: make([]uuid.UUID, 0),
 		mux:     &sync.RWMutex{},
 	}
+
 	return nil
 }
 
@@ -41,7 +41,7 @@ type RequestGetRoom struct {
 
 func (r *RequestGetRoom) Read(e *Entity[Room]) error {
 	e.store = GetRoomStore()
-	e.Data = &Room{
+	e.Data = Room{
 		ID: r.ID,
 	}
 	return nil
@@ -51,8 +51,7 @@ type RequestGetRooms struct{}
 
 func (r *RequestGetRooms) Read(e *EntityList[Room]) error {
 	e.store = GetRoomStore()
-	list := make([]*Room, 0)
-	e.Data = &list
+	e.Data = make([]Room, 0)
 	return nil
 }
 
@@ -68,7 +67,6 @@ func (r *RequestRoomAddPlayer) Write(e *Entity[Room]) error {
 		return err
 	}
 	err = e.Load()
-	fmt.Println(e.Data)
 	if err != nil {
 		return err
 	}
