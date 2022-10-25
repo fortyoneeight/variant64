@@ -2,8 +2,6 @@ package entity
 
 import (
 	"errors"
-	"fmt"
-
 	"github.com/google/uuid"
 )
 
@@ -15,18 +13,15 @@ type Game struct {
 	playerTimers map[uuid.UUID]*Timer
 	playerOrder  []uuid.UUID
 
-	subscribers []GameSubscription
+	updatePub *updatePub[GameUpdate]
 }
 
 // GameUpdate represents a change in a Game's state.
 type GameUpdate struct {
-	ActivePlayer uuid.UUID           `json:"active_player"`
-	Clocks       map[uuid.UUID]int64 `json:"clocks"`
-}
+	GameID uuid.UUID `json:"game_id"`
 
-// TimerSubscription is used to subscribe to Timer updates
-type GameSubscription interface {
-	OnUpdate(u GameUpdate)
+	ActivePlayer *uuid.UUID           `json:"active_player,omitempty"`
+	Clocks       *map[uuid.UUID]int64 `json:"clocks,omitempty"`
 }
 
 // GetID returns a Game's ID.
@@ -53,18 +48,6 @@ func (g *Game) passTurn() {
 	g.playerOrder = append(g.playerOrder[1:], g.playerOrder[0])
 }
 
-// subscribe adds the subscription to the list of subscribers.
-func (g *Game) subscribe(sub GameSubscription) {
-	g.subscribers = append(g.subscribers, sub)
-}
-
-// publishUpdate sends a GameUpdate to all subscribers.
-func (g *Game) publishUpdate(update GameUpdate) {
-	for _, sub := range g.subscribers {
-		sub.OnUpdate(update)
-	}
-}
-
 // subscribeToTimers starts a subscription to each player's Timer.
 func (g *Game) subscribeToTimers() {
 	for playerID, timer := range g.playerTimers {
@@ -77,10 +60,10 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *Timer) {
 	for {
 		select {
 		case val := <-t.TimerChan:
-			fmt.Println("update")
-			g.publishUpdate(
+			g.updatePub.Publish(
 				GameUpdate{
-					Clocks: map[uuid.UUID]int64{playerID: val},
+					GameID: g.id,
+					Clocks: &map[uuid.UUID]int64{playerID: val},
 				},
 			)
 		}
@@ -99,11 +82,14 @@ func (r *RequestNewGame) Write(e *Entity[*Game]) error {
 		return errors.New("invalid number of players, must be >= 2")
 	}
 
-	e.Data.playerOrder = r.PlayerOrder
-	e.Data.playerOrder = append(e.Data.playerOrder[1:], e.Data.playerOrder[0])
-	e.Data.playerTimers = make(map[uuid.UUID]*Timer)
-	e.Data.activePlayer = r.PlayerOrder[0]
-	e.Data.subscribers = make([]GameSubscription, 0)
+	e.EntityStore = GetGameStore()
+	e.Data = &Game{
+		id:           uuid.New(),
+		playerOrder:  append(r.PlayerOrder[1:], r.PlayerOrder[0]),
+		playerTimers: make(map[uuid.UUID]*Timer),
+		activePlayer: r.PlayerOrder[0],
+	}
+	e.Data.updatePub = NewGameUpdatesPub(e.Data.id)
 
 	for _, player := range r.PlayerOrder {
 		timerRequest := RequestNewTimer{
@@ -130,14 +116,12 @@ func (r *RequestGetGame) Read(e *Entity[*Game]) error {
 	return nil
 }
 
-// RequestGameAddSubsciption is used to add a subscriber to a Game.
-type RequestGameAddSubsciption struct {
-	subscriber GameSubscription
-}
+// RequestGameStart is used to start a Game.
+type RequestGameStart struct{}
 
-// Write adds the Request's subscriber to the provided Game.
-func (r *RequestGameAddSubsciption) Write(e *Entity[Game]) error {
-	e.Data.subscribers = append(e.Data.subscribers, r.subscriber)
+// Write starts the provided Game.
+func (r *RequestGameStart) Write(e *Entity[*Game]) error {
+	e.Data.start()
 	return nil
 }
 
@@ -145,7 +129,7 @@ func (r *RequestGameAddSubsciption) Write(e *Entity[Game]) error {
 type RequestGamePassTurn struct{}
 
 // Write passes the turn to the next player of the provided Game.
-func (r *RequestGamePassTurn) Write(e *Entity[Game]) error {
+func (r *RequestGamePassTurn) Write(e *Entity[*Game]) error {
 	e.Data.passTurn()
 	return nil
 }

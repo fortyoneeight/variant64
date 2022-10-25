@@ -10,7 +10,7 @@ import (
 // Bus represents a set of topics and their subscribers.
 type Bus[T any] struct {
 	topics map[uuid.UUID]chan T
-	mux sync.RWMutex
+	mux    sync.RWMutex
 
 	subs map[uuid.UUID][]Sub[T]
 }
@@ -18,8 +18,8 @@ type Bus[T any] struct {
 func NewBus[T any](topics []uuid.UUID) *Bus[T] {
 	bus := &Bus[T]{
 		topics: make(map[uuid.UUID]chan T),
-		mux: sync.RWMutex{},
-		subs: make(map[uuid.UUID][]Sub[T]),
+		mux:    sync.RWMutex{},
+		subs:   make(map[uuid.UUID][]Sub[T]),
 	}
 	for _, t := range topics {
 		bus.topics[t] = make(chan T)
@@ -37,6 +37,11 @@ type Pub[T any] struct {
 	bus *Bus[T]
 }
 
+// NewPub creates and returns a new Pub.
+func NewPub[T any](bus *Bus[T]) *Pub[T] {
+	return &Pub[T]{bus: bus}
+}
+
 // Start starts the Bus publishing routine.
 func (b *Bus[T]) Start() {
 	for topic, c := range b.topics {
@@ -44,10 +49,24 @@ func (b *Bus[T]) Start() {
 	}
 }
 
+// NewTopic creates the requested topic.
+func (b *Bus[T]) NewTopic(topic uuid.UUID) error {
+	b.mux.Lock()
+	defer b.mux.Unlock()
+
+	if _, ok := b.topics[topic]; !ok {
+		c := make(chan T)
+		b.topics[topic] = c
+		go b.publish(topic, c)
+		return nil
+	}
+	return fmt.Errorf("topic already exists: %s", topic)
+}
+
 // publish reads messages off the topicChan and sends them to required Subs.
 func (b *Bus[T]) publish(topic uuid.UUID, topicChan chan T) {
 	for {
-		msg := <- topicChan
+		msg := <-topicChan
 		b.mux.RLock()
 		for _, s := range b.subs[topic] {
 			s.OnMessage(msg)

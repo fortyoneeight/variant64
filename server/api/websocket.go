@@ -6,10 +6,21 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/variant64/server/api/command"
 )
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
+// commandHandler represents a handler of incoming client commands.
+type commandHandler interface {
+	HandleCommand(command command.Command, message []byte) error
+}
+
+// websocketHandler upgrades and handles an incoming websocket connection request.
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -18,40 +29,23 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	handler := command.NewWSHandler(conn)
+	readAndHandleMessages(conn, handler)
+}
+
+// readAndHandleMessages continuously reads client messages and handles them.
+func readAndHandleMessages(conn *websocket.Conn, handler commandHandler) {
 	for {
-		messageType, message, err := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("error during message reading: ", err)
 			break
 		}
 
-		responses := mockResponseHandler(message)
-		for _, resp := range responses {
-			err = conn.WriteMessage(messageType, []byte(resp))
-			if err != nil {
-				log.Println("Error during message writing:", err)
-				break
-			}
+		command := &command.Command{}
+		err = json.Unmarshal(message, command)
+		if err == nil {
+			handler.HandleCommand(*command, message)
 		}
 	}
-}
-
-func mockResponseHandler(message []byte) []string {
-	messageJSON := make(map[string]string)
-	_ = json.Unmarshal(message, &messageJSON)
-
-	if val, ok := messageJSON["command"]; ok {
-		switch val {
-		case "subscribe":
-			return []string{
-				"{\"channel\":\"room\",\"room_name\":\"roomname\",\"type\":\"subscribe\"}",
-				"{\"channel\":\"room\",\"room_name\":\"roomname\",\"type\":\"snapshot\",\"data\":{\"board\": {\"size\":{\"length\":10,\"width\":10},\"cells\":[{\"x\":0,\"y\":0,\"cellItem\":{\"type\":\"piece\",\"data\":{\"name\":\"pawn\",player:{\"id\":\"uuid\",\"display_name\":\"player1\"},\"moves\":[\"a1\", \"b2\", \"c3\"]}}}]},\"active_player\":\"player_1\",\"clocks\":{\"player1\":100,\"player2\":100}}",
-			}
-		case "unsubscribe":
-			return []string{"{\"channel\":\"room\",\"room_name\":\"roomname\",\"type\":\"unsubscribe\"}"}
-		default:
-			return []string{"{\"error\":\"unknown command\"}"}
-		}
-	}
-	return []string{"{\"error\":\"unknown command\"}"}
 }
