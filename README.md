@@ -1,5 +1,5 @@
 # Variant 64
 
-this is the best chess experience of all time
-
-### Placeholder for Variant 64 README
+## Setup
+### Install pre-commit if not already installed: `pip install pre-commit` (https://pre-commit.com/)
+### Run `pre-commit install`

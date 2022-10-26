@@ -19,7 +19,7 @@ type RequestNewPlayer struct {
 
 func (r *RequestNewPlayer) Write(e *Entity[Player]) error {
 	player := Player{
-		ID: uuid.New(),
+		ID:          uuid.New(),
 		DisplayName: r.DisplayName,
 	}
 	e.store = GetPlayerStore()

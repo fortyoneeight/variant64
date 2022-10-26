@@ -85,8 +85,8 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *Timer) {
 }
 
 type RequestNewGame struct {
-	PlayerOrder []uuid.UUID `json:"player_order"`
-	PlayerTimeMilis int64 `json:"player_time_ms"`
+	PlayerOrder     []uuid.UUID `json:"player_order"`
+	PlayerTimeMilis int64       `json:"player_time_ms"`
 }
 
 func (r *RequestNewGame) Write(e *Entity[Game]) error {
@@ -94,7 +94,8 @@ func (r *RequestNewGame) Write(e *Entity[Game]) error {
 		return errors.New("invalid number of players, must be >= 2")
 	}
 
-	e.Data.playerOrder = append(r.PlayerOrder[1:], r.PlayerOrder[0])
+	e.Data.playerOrder = r.PlayerOrder
+	e.Data.playerOrder = append(e.Data.playerOrder[1:], e.Data.playerOrder[0])
 	e.Data.playerTimers = make(map[uuid.UUID]*Timer)
 	e.Data.activePlayer = r.PlayerOrder[0]
 	e.Data.subscribers = make([]GameSubscription, 0)
@@ -102,7 +103,7 @@ func (r *RequestNewGame) Write(e *Entity[Game]) error {
 	for _, player := range r.PlayerOrder {
 		timerRequest := RequestNewTimer{
 			StartingTimeMilis: r.PlayerTimeMilis,
-			DecrementMilis: 1_000,
+			DecrementMilis:    1_000,
 		}
 		e.Data.playerTimers[player] = NewTimer(timerRequest)
 	}
@@ -131,7 +132,7 @@ func (r *RequestGameAddSubsciption) Write(e *Entity[Game]) error {
 	return nil
 }
 
-type RequestGamePassTurn struct {}
+type RequestGamePassTurn struct{}
 
 func (r *RequestGamePassTurn) Write(e *Entity[Game]) error {
 	e.Data.passTurn()

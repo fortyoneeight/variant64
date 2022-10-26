@@ -8,7 +8,7 @@ import (
 	"github.com/variant64/server/store"
 )
 
-func handleReadEntity[T store.Indexable] (
+func handleReadEntity[T store.Indexable](
 	w http.ResponseWriter, req *http.Request, entityReq entity.EntityReadRequest[T],
 ) {
 	entity := &entity.Entity[T]{}
@@ -28,7 +28,7 @@ func handleReadEntity[T store.Indexable] (
 	w.Write(serialized)
 }
 
-func handleReadEntities[T store.Indexable] (
+func handleReadEntities[T store.Indexable](
 	w http.ResponseWriter, req *http.Request, entityReq entity.EntityListReadRequest[T],
 ) {
 	entity := &entity.EntityList[T]{}
@@ -44,7 +44,7 @@ func handleReadEntities[T store.Indexable] (
 	w.Write(serialized)
 }
 
-func handleWriteEntity[T store.Indexable] (
+func handleWriteEntity[T store.Indexable](
 	w http.ResponseWriter, req *http.Request, entityReq entity.EntityWriteRequest[T],
 ) {
 	err := json.NewDecoder(req.Body).Decode(entityReq)

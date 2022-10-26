@@ -6,12 +6,12 @@ import (
 
 type Entity[T store.Indexable] struct {
 	store *store.IndexedStore[T]
-	Data *T
+	Data  *T
 }
 
 type EntityList[T store.Indexable] struct {
 	store *store.IndexedStore[T]
-	Data *[]*T
+	Data  *[]*T
 }
 
 type EntityReadRequest[T store.Indexable] interface {
