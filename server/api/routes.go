@@ -7,27 +7,28 @@ import (
 )
 
 type route struct {
-	path    string
-	handler func(w http.ResponseWriter, req *http.Request)
-	methods []string
+	path        string
+	description string
+	handler     func(w http.ResponseWriter, req *http.Request)
+	methods     []string
 }
 
 var httpRoutes = []route{
-	{"/api/player", handlePostPlayer, []string{"POST"}},
-	{"/api/player", handlePostPlayer, []string{"POST"}},
-	{"/api/player/{id}", handleGetPlayerByID, []string{"GET"}},
-	{"/api/room", handlePostRoom, []string{"POST"}},
-	{"/api/rooms", handleGetRooms, []string{"GET"}},
-	{"/api/room/{id}", handleGetRoomByID, []string{"GET"}},
-	{"/api/room/{id}/join", handlePostRoomJoin, []string{"POST"}},
-	{"/api/room/{id}/leave", handlePostRoomLeave, []string{"POST"}},
-	{"/api/room/{id}/start", handlePostRoomStart, []string{"POST"}},
+	{"/api/player", "Create a Player.", handlePostPlayer, []string{"POST"}},
+	{"/api/player/{id}", "Get a Player by ID.", handleGetPlayerByID, []string{"GET"}},
+	{"/api/room", "Create a Room.", handlePostRoom, []string{"POST"}},
+	{"/api/rooms", "Get all Rooms.", handleGetRooms, []string{"GET"}},
+	{"/api/room/{id}", "Get a Room by ID.", handleGetRoomByID, []string{"GET"}},
+	{"/api/room/{id}/join", "Add a Player to a Room.", handlePostRoomJoin, []string{"POST"}},
+	{"/api/room/{id}/leave", "Remove a Player from a Room.", handlePostRoomLeave, []string{"POST"}},
+	{"/api/room/{id}/start", "Start the Game in a Room.", handlePostRoomStart, []string{"POST"}},
 }
 
 var websocketRoutes = []route{
-	{"/ws", websocketHandler, []string{"GET"}},
+	{"/ws", "Open a bi-directional websocket connection.", websocketHandler, []string{"GET"}},
 }
 
+// AttachRoutes adds all server routes to the provided mux.Router.
 func AttachRoutes(r *mux.Router) {
 	for _, routeList := range [][]route{httpRoutes, websocketRoutes} {
 		for _, route := range routeList {

@@ -9,6 +9,8 @@ import (
 )
 
 func handleReadEntity[T store.Indexable](
+// handleReadEntity performs a generic entity.EntityReadRequest
+// the result of the read is serialized and returned via the http.Request.
 	w http.ResponseWriter, req *http.Request, entityReq entity.EntityReadRequest[T],
 ) {
 	entity := &entity.Entity[T]{}
@@ -28,6 +30,8 @@ func handleReadEntity[T store.Indexable](
 	w.Write(serialized)
 }
 
+// handleReadEntities performs a generic entity.EntityListReadRequest
+// the results of the read are serialized and returned via the http.Request.
 func handleReadEntities[T store.Indexable](
 	w http.ResponseWriter, req *http.Request, entityReq entity.EntityListReadRequest[T],
 ) {
@@ -44,6 +48,8 @@ func handleReadEntities[T store.Indexable](
 	w.Write(serialized)
 }
 
+// handleReadEntitiy performs a generic entity.EntityWriteRequest
+// the resulting entity is serialized and returned via the http.Request.
 func handleWriteEntity[T store.Indexable](
 	w http.ResponseWriter, req *http.Request, entityReq entity.EntityWriteRequest[T],
 ) {

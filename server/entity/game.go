@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Game represents an on-going game between a list of players.
 type Game struct {
 	id uuid.UUID
 
@@ -17,6 +18,7 @@ type Game struct {
 	subscribers []GameSubscription
 }
 
+// GameUpdate represents a change in a Game's state.
 type GameUpdate struct {
 	ActivePlayer uuid.UUID           `json:"active_player"`
 	Clocks       map[uuid.UUID]int64 `json:"clocks"`
@@ -27,11 +29,12 @@ type GameSubscription interface {
 	OnUpdate(u GameUpdate)
 }
 
+// GetID returns a Game's ID.
 func (g Game) GetID() uuid.UUID {
 	return g.id
 }
 
-// start initializes the game and starts it
+// start initializes the game and starts it.
 func (g *Game) start() {
 	g.subscribeToTimers()
 	for _, timer := range g.playerTimers {
@@ -41,7 +44,7 @@ func (g *Game) start() {
 }
 
 // passTurn passes the turn to the next player
-// the active player's clock pauses and the next player's clock unpauses
+// the active player's clock pauses and the next player's clock unpauses.
 func (g *Game) passTurn() {
 	g.playerTimers[g.activePlayer].Pause()
 	g.playerTimers[g.playerOrder[0]].Unpause()
@@ -50,26 +53,26 @@ func (g *Game) passTurn() {
 	g.playerOrder = append(g.playerOrder[1:], g.playerOrder[0])
 }
 
-// subscribe adds the subscription to the list of subscribers
+// subscribe adds the subscription to the list of subscribers.
 func (g *Game) subscribe(sub GameSubscription) {
 	g.subscribers = append(g.subscribers, sub)
 }
 
-// publishUpdate sends a GameUpdate to all subscribers
+// publishUpdate sends a GameUpdate to all subscribers.
 func (g *Game) publishUpdate(update GameUpdate) {
 	for _, sub := range g.subscribers {
 		sub.OnUpdate(update)
 	}
 }
 
-// subscribeToTimers starts a subscription to each player's Timer
+// subscribeToTimers starts a subscription to each player's Timer.
 func (g *Game) subscribeToTimers() {
 	for playerID, timer := range g.playerTimers {
 		go g.handleTimerUpdate(playerID, timer)
 	}
 }
 
-// handleTimerUpdate publishes a GameUpdate every time a player's Timer updates
+// handleTimerUpdate publishes a GameUpdate every time a player's Timer updates.
 func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *Timer) {
 	for {
 		select {
@@ -84,11 +87,13 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *Timer) {
 	}
 }
 
+// RequestNewGame is a used to create a new Game.
 type RequestNewGame struct {
 	PlayerOrder     []uuid.UUID `json:"player_order"`
 	PlayerTimeMilis int64       `json:"player_time_ms"`
 }
 
+// Write initializes all fields of the provided Game.
 func (r *RequestNewGame) Write(e *Entity[*Game]) error {
 	if len(r.PlayerOrder) < 2 {
 		return errors.New("invalid number of players, must be >= 2")
@@ -111,10 +116,12 @@ func (r *RequestNewGame) Write(e *Entity[*Game]) error {
 	return nil
 }
 
+// RequestGetGame is used to get a Game by its ID.
 type RequestGetGame struct {
 	ID uuid.UUID `json:"game_id"`
 }
 
+// Read intializes the ID field of the provided Game.
 func (r *RequestGetGame) Read(e *Entity[*Game]) error {
 	e.store = GetGameStore()
 	e.Data = &Game{
@@ -123,17 +130,21 @@ func (r *RequestGetGame) Read(e *Entity[*Game]) error {
 	return nil
 }
 
+// RequestGameAddSubsciption is used to add a subscriber to a Game.
 type RequestGameAddSubsciption struct {
 	subscriber GameSubscription
 }
 
+// Write adds the Request's subscriber to the provided Game.
 func (r *RequestGameAddSubsciption) Write(e *Entity[Game]) error {
 	e.Data.subscribers = append(e.Data.subscribers, r.subscriber)
 	return nil
 }
 
+// RequestGamePassTurn is used to pass the turn in a Game.
 type RequestGamePassTurn struct{}
 
+// Write passes the turn to the next player of the provided Game.
 func (r *RequestGamePassTurn) Write(e *Entity[Game]) error {
 	e.Data.passTurn()
 	return nil
