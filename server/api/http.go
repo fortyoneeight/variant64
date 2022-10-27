@@ -17,14 +17,13 @@ func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 }
 
 func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	id, err := uuid.Parse(vars["id"])
-	if err != nil {
+	id := parseIDFromVars(req)
+	if !id.Valid {
 		w.Write([]byte(InvalidBodyResponse))
 		return
 	}
 
-	request := &entity.RequestGetPlayer{ID: id}
+	request := &entity.RequestGetPlayer{ID: id.UUID}
 	handleReadEntity[entity.Player](w, req, request)
 }
 
@@ -39,38 +38,35 @@ func handleGetRooms(w http.ResponseWriter, req *http.Request) {
 }
 
 func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	id, err := uuid.Parse(vars["id"])
-	if err != nil {
+	id := parseIDFromVars(req)
+	if !id.Valid {
 		w.Write([]byte(InvalidBodyResponse))
 		return
 	}
 
-	request := &entity.RequestGetRoom{ID: id}
+	request := &entity.RequestGetRoom{ID: id.UUID}
 	handleReadEntity[entity.Room](w, req, request)
 }
 
 func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	id, err := uuid.Parse(vars["id"])
-	if err != nil {
+	id := parseIDFromVars(req)
+	if !id.Valid {
 		w.Write([]byte(InvalidBodyResponse))
 		return
 	}
 
-	request := &entity.RequestRoomAddPlayer{RoomID: id}
+	request := &entity.RequestRoomAddPlayer{RoomID: id.UUID}
 	handleWriteEntity[entity.Room](w, req, request)
 }
 
 func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	id, err := uuid.Parse(vars["id"])
-	if err != nil {
+	id := parseIDFromVars(req)
+	if !id.Valid {
 		w.Write([]byte(InvalidBodyResponse))
 		return
 	}
 
-	request := &entity.RequestRoomRemovePlayer{RoomID: id}
+	request := &entity.RequestRoomRemovePlayer{RoomID: id.UUID}
 	handleWriteEntity[entity.Room](w, req, request)
 }
 
@@ -79,4 +75,13 @@ func handlePostRoomStart(w http.ResponseWriter, req *http.Request) {
 	serialized, _ := json.Marshal(response)
 
 	w.Write(serialized)
+}
+
+func parseIDFromVars(req *http.Request) uuid.NullUUID {
+	vars := mux.Vars(req)
+	id, err := uuid.Parse(vars["id"])
+	if err != nil {
+		return uuid.NullUUID{Valid: false}
+	}
+	return uuid.NullUUID{UUID: id, Valid: true}
 }

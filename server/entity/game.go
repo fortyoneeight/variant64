@@ -123,7 +123,7 @@ type RequestGetGame struct {
 
 // Read intializes the ID field of the provided Game.
 func (r *RequestGetGame) Read(e *Entity[*Game]) error {
-	e.store = GetGameStore()
+	e.EntityStore = GetGameStore()
 	e.Data = &Game{
 		id: r.ID,
 	}

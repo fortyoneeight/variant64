@@ -22,7 +22,7 @@ type RequestNewPlayer struct {
 
 // Write initializes all fields of the provided Player.
 func (r *RequestNewPlayer) Write(e *Entity[Player]) error {
-	e.store = GetPlayerStore()
+	e.EntityStore = GetPlayerStore()
 	e.Data = Player{
 		ID: uuid.New(),
 		DisplayName: r.DisplayName,
@@ -38,7 +38,7 @@ type RequestGetPlayer struct {
 
 // Read intializes the ID field of the provided Player.
 func (r *RequestGetPlayer) Read(e *Entity[Player]) error {
-	e.store = GetPlayerStore()
+	e.EntityStore = GetPlayerStore()
 	e.Data = Player{
 		ID: r.ID,
 	}

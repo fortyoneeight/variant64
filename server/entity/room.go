@@ -28,14 +28,13 @@ type RequestNewRoom struct {
 
 // Write initializes all fields of the provided Room.
 func (r *RequestNewRoom) Write(e *Entity[Room]) error {
-	e.store = GetRoomStore()
+	e.EntityStore = GetRoomStore()
 	e.Data = Room{
 		ID:      uuid.New(),
 		Name:    r.Name,
 		Players: make([]uuid.UUID, 0),
 		mux:     &sync.RWMutex{},
 	}
-
 	return nil
 }
 
@@ -46,7 +45,7 @@ type RequestGetRoom struct {
 
 // Read intializes the ID field of the provided Room.
 func (r *RequestGetRoom) Read(e *Entity[Room]) error {
-	e.store = GetRoomStore()
+	e.EntityStore = GetRoomStore()
 	e.Data = Room{
 		ID: r.ID,
 	}
@@ -58,7 +57,7 @@ type RequestGetRooms struct{}
 
 // Read adds all Rooms to the provided RoomList.
 func (r *RequestGetRooms) Read(e *EntityList[Room]) error {
-	e.store = GetRoomStore()
+	e.EntityStore = GetRoomStore()
 	e.Data = make([]Room, 0)
 	return nil
 }
@@ -71,27 +70,6 @@ type RequestRoomAddPlayer struct {
 
 // Write adds the Request's Player to the provided Room.
 func (r *RequestRoomAddPlayer) Write(e *Entity[Room]) error {
-	getRoomReq := &RequestGetRoom{ID: r.RoomID}
-	err := getRoomReq.Read(e)
-	if err != nil {
-		return err
-	}
-	err = e.Load()
-	if err != nil {
-		return err
-	}
-
-	player := &Entity[Player]{}
-	getPlayerReq := &RequestGetPlayer{ID: r.PlayerID}
-	err = getPlayerReq.Read(player)
-	if err != nil {
-		return err
-	}
-	err = player.Load()
-	if err != nil {
-		return err
-	}
-
 	e.Data.mux.Lock()
 	defer e.Data.mux.Unlock()
 
@@ -112,27 +90,6 @@ type RequestRoomRemovePlayer struct {
 
 // Write removes the Request's Player from the provided Room.
 func (r *RequestRoomRemovePlayer) Write(e *Entity[Room]) error {
-	getRoomReq := &RequestGetRoom{ID: r.RoomID}
-	err := getRoomReq.Read(e)
-	if err != nil {
-		return err
-	}
-	err = e.Load()
-	if err != nil {
-		return err
-	}
-
-	player := &Entity[Player]{}
-	getPlayerReq := &RequestGetPlayer{ID: r.PlayerID}
-	err = getPlayerReq.Read(player)
-	if err != nil {
-		return err
-	}
-	err = player.Load()
-	if err != nil {
-		return err
-	}
-
 	e.Data.mux.Lock()
 	defer e.Data.mux.Unlock()
 

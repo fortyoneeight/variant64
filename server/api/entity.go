@@ -16,11 +16,13 @@ func handleReadEntity[T store.Indexable](
 	entity := &entity.Entity[T]{}
 	err := entityReq.Read(entity)
 	if err != nil {
+		w.Write([]byte{})
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = entity.Load()
 	if err != nil {
+		w.Write([]byte{})
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -38,6 +40,7 @@ func handleReadEntities[T store.Indexable](
 	entity := &entity.EntityList[T]{}
 	err := entityReq.Read(entity)
 	if err != nil {
+		w.Write([]byte{})
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -56,12 +59,14 @@ func handleWriteEntity[T store.Indexable](
 	err := json.NewDecoder(req.Body).Decode(entityReq)
 	if err != nil {
 		w.Write([]byte(InvalidBodyResponse))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	entity := &entity.Entity[T]{}
 	err = entityReq.Write(entity)
 	if err != nil {
+		w.Write([]byte{})
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

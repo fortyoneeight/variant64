@@ -4,15 +4,23 @@ import (
 	"github.com/variant64/server/store"
 )
 
+type entityStore[T store.Indexable] interface {
+	Lock()
+	Unlock()
+	Store(t T)
+	Load(t *T) error
+	LoadAll(ts *[]T)
+}
+
 // Entity wraps an Indexable struct and manages its access patterns.
 type Entity[T store.Indexable] struct {
-	store *store.IndexedStore[T]
+	EntityStore entityStore[T]
 	Data T
 }
 
 // Entity wraps a list of Indexable structs and manages their access patterns.
 type EntityList[T store.Indexable] struct {
-	store *store.IndexedStore[T]
+	EntityStore entityStore[T]
 	Data []T
 }
 
@@ -33,24 +41,24 @@ type EntityListReadRequest[T store.Indexable] interface {
 
 // Load loads the Data field for an Entity.
 func (e *Entity[T]) Load() error {
-	e.store.Lock()
-	defer e.store.Unlock()
+	e.EntityStore.Lock()
+	defer e.EntityStore.Unlock()
 
-	return e.store.Load(&e.Data)
+	return e.EntityStore.Load(&e.Data)
 }
 
 // Load loads the Data field for an EntityList.
 func (e *EntityList[T]) Load() {
-	e.store.Lock()
-	defer e.store.Unlock()
+	e.EntityStore.Lock()
+	defer e.EntityStore.Unlock()
 
-	e.store.LoadAll(&e.Data)
+	e.EntityStore.LoadAll(&e.Data)
 }
 
 // Store saves the Entity reference to the store.
 func (e *Entity[T]) Store() {
-	e.store.Lock()
-	defer e.store.Unlock()
+	e.EntityStore.Lock()
+	defer e.EntityStore.Unlock()
 
-	e.store.Store(e.Data)
+	e.EntityStore.Store(e.Data)
 }
