@@ -14,6 +14,7 @@ type route struct {
 }
 
 var httpRoutes = []route{
+	{"/", "Return status.", handleStatus, []string{"GET"}},
 	{"/api/player", "Create a Player.", handlePostPlayer, []string{"POST"}},
 	{"/api/player/{id}", "Get a Player by ID.", handleGetPlayerByID, []string{"GET"}},
 	{"/api/room", "Create a Room.", handlePostRoom, []string{"POST"}},

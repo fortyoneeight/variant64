@@ -9,8 +9,8 @@ import (
 )
 
 func handleReadEntity[T store.Indexable](
-// handleReadEntity performs a generic entity.EntityReadRequest
-// the result of the read is serialized and returned via the http.Request.
+	// handleReadEntity performs a generic entity.EntityReadRequest
+	// the result of the read is serialized and returned via the http.Request.
 	w http.ResponseWriter, req *http.Request, entityReq entity.EntityReadRequest[T],
 ) {
 	entity := &entity.Entity[T]{}
@@ -58,7 +58,7 @@ func handleWriteEntity[T store.Indexable](
 ) {
 	err := json.NewDecoder(req.Body).Decode(entityReq)
 	if err != nil {
-		w.Write([]byte(InvalidBodyResponse))
+		w.Write([]byte(invalidBodyResponse))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

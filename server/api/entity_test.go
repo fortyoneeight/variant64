@@ -117,7 +117,7 @@ func TestHandleWriteEntity(t *testing.T) {
 			writeRequest:         &entity.MockEntityWriteRequestSuccess{},
 			requestBody:          "",
 			expectedStatusCode:   400,
-			expectedResponseBody: InvalidBodyResponse,
+			expectedResponseBody: invalidBodyResponse,
 		},
 	}
 

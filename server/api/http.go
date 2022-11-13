@@ -9,7 +9,14 @@ import (
 	"github.com/variant64/server/entity"
 )
 
-const InvalidBodyResponse = "{\"error\":\"invalid request body\"}"
+const (
+	invalidBodyResponse = "{\"error\":\"invalid request body\"}"
+	healthyResponse     = "{\"healthy\":\"true\"}"
+)
+
+func handleStatus(w http.ResponseWriter, req *http.Request) {
+	w.Write([]byte(healthyResponse))
+}
 
 func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 	request := &entity.RequestNewPlayer{}
@@ -19,7 +26,7 @@ func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
 	id := parseIDFromVars(req)
 	if !id.Valid {
-		w.Write([]byte(InvalidBodyResponse))
+		w.Write([]byte(invalidBodyResponse))
 		return
 	}
 
@@ -40,7 +47,7 @@ func handleGetRooms(w http.ResponseWriter, req *http.Request) {
 func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
 	id := parseIDFromVars(req)
 	if !id.Valid {
-		w.Write([]byte(InvalidBodyResponse))
+		w.Write([]byte(invalidBodyResponse))
 		return
 	}
 
@@ -51,7 +58,7 @@ func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
 func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
 	id := parseIDFromVars(req)
 	if !id.Valid {
-		w.Write([]byte(InvalidBodyResponse))
+		w.Write([]byte(invalidBodyResponse))
 		return
 	}
 
@@ -62,7 +69,7 @@ func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
 func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
 	id := parseIDFromVars(req)
 	if !id.Valid {
-		w.Write([]byte(InvalidBodyResponse))
+		w.Write([]byte(invalidBodyResponse))
 		return
 	}
 
