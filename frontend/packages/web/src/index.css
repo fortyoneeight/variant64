@@ -6,38 +6,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
 
-html {
-  height: 100%;
-}
-
-body {
-  height: 100%;
-}
-
-#root {
-  height: 100%;
-}
-
-.gameboard-grid {
-  display: grid;
-  grid-gap: 0.3vh;
-  background-color: black;
-  border: 0.3vh solid black;
-}
-
-.grid-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.name {
-  font-size: 2rem;
-}
 
 .clock {
   font-size: 2rem;
