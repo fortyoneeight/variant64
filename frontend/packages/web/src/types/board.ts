@@ -46,6 +46,6 @@ export interface BoardClocks {
 }
 
 export interface BoardPlayer {
-  player_id: string;
+  id: string;
   display_name: string;
 }

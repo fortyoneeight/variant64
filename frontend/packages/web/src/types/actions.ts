@@ -1,0 +1,13 @@
+export enum AppActions {
+  // rooms
+  CREATE_ROOM = 'CREATE_ROOM',
+  GET_ROOM = 'GET_ROOM',
+  JOIN_ROOM = 'JOIN_ROOM',
+  LEAVE_ROOM = 'LEAVE_ROOM',
+  START_ROOM = 'START_ROOM',
+  GET_ROOMS = 'GET_ROOMS',
+
+  // player
+  CREATE_PLAYER = 'CREATE_PLAYER',
+  GET_PLAYER = 'GET_PLAYER',
+}

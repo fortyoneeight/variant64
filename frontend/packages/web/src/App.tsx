@@ -1,15 +1,14 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import Routing from './Routing';
-import { Link } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
-import { RoomHttpService } from './services';
 import { HttpContext } from './store/context';
+import { RoomAPIRoutesConfig } from './services';
+import { HttpService } from './services/http';
 
-let roomHttpService = new RoomHttpService({
-  // url: 'http://localhost:8000',
-  url: 'http://0.0.0.0:8001/0.0.0.0:8000',
+let roomHttpService = new HttpService({
+  url: 'http://0.0.0.0:8001/0.0.0.0:8000/api',
+  routesConfig: RoomAPIRoutesConfig,
 });
 
 function App() {

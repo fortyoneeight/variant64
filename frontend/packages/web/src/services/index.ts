@@ -1,1 +1,2 @@
-export * from './room-http';
+export * from './http';
+export * from './config';
