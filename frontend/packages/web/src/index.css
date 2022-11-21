@@ -80,25 +80,20 @@ body {
   padding: 0.5rem;
 }
 
-.grid-2-horizontal {
-  display: grid;
-  grid-template-columns: 50% 50%;
-  /* background-color: pink !important; */
-}
-
-.grid-2-horizontal-leftbias {
-  display: grid;
-  grid-template-columns: 80% 20%;
-  /* background-color: pink !important; */
-}
-
-.grid-3-vertical-centerbias {
-  display: grid;
-  grid-template-rows: 10% 80% 10%;
-  height: 100%;
-}
-
 .outline {
   outline: 1px black;
   outline-style: solid;
+}
+
+.hompage_room-list {
+  max-width: 50%;
+}
+
+.hompage_room-link {
+  text-decoration: none;
+  display: block;
+}
+
+.hompage_room-link:visited {
+  color: black;
 }

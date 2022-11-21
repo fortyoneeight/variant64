@@ -2,8 +2,6 @@ import React from 'react';
 import { Board, BoardPiece } from '../types';
 
 export default function Gameboard({ board }: { board: Board }) {
-  console.log(board);
-
   return (
     <div
       className="gameboard-grid"

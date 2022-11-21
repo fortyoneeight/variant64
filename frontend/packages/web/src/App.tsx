@@ -3,7 +3,7 @@ import './App.css';
 import Routing from './Routing';
 import { RecoilRoot } from 'recoil';
 import { HttpContext } from './store/context';
-import { RoomAPIRoutesConfig } from './services';
+import { RoomAPIRoutesConfig } from './services/config';
 import { HttpService } from './services/http';
 
 let roomHttpService = new HttpService({
@@ -16,7 +16,7 @@ function App() {
     <>
       <RecoilRoot>
         <HttpContext.Provider value={{ roomService: roomHttpService }}>
-          <div className="grid-3-vertical-centerbias">
+          <div>
             <Routing />
           </div>
         </HttpContext.Provider>
