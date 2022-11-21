@@ -7,6 +7,13 @@ FRONTEND_PKG_DIR_PATH = "frontend/packages"
 
 all: build
 
+install:
+	pipenv install -r requirements.txt
+
+	for dir in "." "packages/proxy-server" "packages/web" ; do \
+			(cd ./frontend/$${dir} && npm install) ; \
+	done
+
 build:
 	docker build -t ${DOCKER_NAME}/${DOCKER_APP_NAME_BE} ${DOCKER_APP_NAME_BE}/.
 	# docker build -t ${DOCKER_NAME}/${DOCKER_APP_NAME_PS} ${FRONTEND_PKG_DIR_PATH}/${DOCKER_APP_NAME_PS}/.
