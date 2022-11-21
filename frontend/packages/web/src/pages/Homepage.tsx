@@ -1,48 +1,54 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import '../index.css';
-import { useRecoilState } from 'recoil';
-import { Room } from '../types';
-import { roomsState } from '../store/atoms/rooms';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { roomsState, playerState, roomState } from '../store/atoms';
 import { HttpContext } from '../store/context';
 import { HomepageService } from './hompage-service';
-
-function renderRoom(room: Room) {
-  return (
-    <div>
-      <Link
-        to={'/chess'} //`/join/{data.name}`
-        className="grid-2-horizontal-leftbias"
-      >
-        <span>{room.room_name}</span>{' '}
-        <span className="outline">
-          {room.players.length}/{room.players_total}
-        </span>
-      </Link>
-    </div>
-  );
-}
+import { PlayerForm, RoomForm } from '../components';
 
 function RoomList() {
-  const [rooms, setRooms] = useRecoilState(roomsState);
+  const rooms = useRecoilValue(roomsState);
+  const [_, setRoom] = useRecoilState(roomState);
 
   return (
-    <div className="roomList">
+    <div className="hompage_room-list">
       <aside>
         <h1>Existing Rooms</h1>
       </aside>
 
       <main>
         {rooms.map((room) => {
-          return renderRoom({ ...room });
+          return (
+            <Link
+              key={room.id}
+              className="hompage_room-link outline"
+              to={`/room/${room.id}`}
+              onClick={() => setRoom(room)}
+            >
+              <p>Room: {room.name}</p>
+              <span>Players: {room.players.length}</span>
+            </Link>
+          );
         })}
       </main>
     </div>
   );
 }
 
+function PlayerDetails() {
+  const [player, _] = useRecoilState(playerState);
+  return (
+    <div>
+      <p>Player ID: {player.id}</p>
+      <p>Player Name: {player.display_name}</p>
+    </div>
+  );
+}
 export default function Homepage() {
   const [rooms, setRooms] = useRecoilState(roomsState);
+  const [player, setPlayer] = useRecoilState(playerState);
+
   const context = React.useContext(HttpContext);
   const homepageService = useMemo(
     () => new HomepageService(context.roomService),
@@ -50,47 +56,42 @@ export default function Homepage() {
   );
 
   // Test api calls.
-  homepageService.getRooms();
+  useEffect(() => {
+    homepageService.getRooms().then((rooms) => setRooms(rooms));
+  }, []);
 
-  homepageService
-    .createRoom(crypto.randomUUID())
-    .then((room) => homepageService.getRoom(room.id))
-    .then((room) => {
-      homepageService
-        .createPlayer('player_' + Math.floor(Math.random() * 10))
-        .then((player) => homepageService.getPlayer(player.id))
-        .then((player) => {
-          homepageService
-            .joinRoom(room.id, player.id)
-            .then(() => homepageService.leaveRoom(room.id, player.id));
-        });
+  const handleRoomSubmit = (homepageService: HomepageService, roomName: string) => {
+    homepageService.createRoom(roomName).then((room) => {
+      setRooms([...rooms, room]);
     });
+  };
 
+  const handlePlayerSubmit = (homepageService: HomepageService, displayName: string) => {
+    homepageService.createPlayer(displayName).then((playerResponse) => {
+      setPlayer({ ...player, ...playerResponse });
+    });
+  };
+
+  const playerSection = () =>
+    player.id ? (
+      <PlayerDetails />
+    ) : (
+      <PlayerForm
+        submitForm={(displayName: string) => handlePlayerSubmit(homepageService, displayName)}
+      />
+    );
   return (
-    <div className="grid-2-horizontal">
-      <RoomList />
+    <>
+      <div>
+        {playerSection()}
 
-      {/* <CharacterCounter /> */}
+        <RoomForm submitForm={(roomName: string) => handleRoomSubmit(homepageService, roomName)} />
+      </div>
+      <div>
+        <RoomList />
 
-      <button
-        className="createRoom"
-        onClick={() => {
-          console.log('TODO Implement createThatRoom()');
-
-          var newRooms: Array<Room> = [
-            ...rooms,
-            {
-              id: '1',
-              players: [],
-              players_total: 0,
-              room_name: "Mystery man's room",
-            },
-          ];
-          setRooms(newRooms);
-        }}
-      >
-        Create a room
-      </button>
-    </div>
+        {/* <CharacterCounter /> */}
+      </div>
+    </>
   );
 }

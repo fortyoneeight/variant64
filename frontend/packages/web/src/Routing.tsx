@@ -33,7 +33,7 @@ export default function Routing() {
 
         <Routes>
           <Route path="/" element={<Homepage />}></Route>
-          <Route path="/chess" element={<Gamepage />}></Route>
+          <Route path="/room/:id" element={<Gamepage />}></Route>
           <Route
             path={'*'} //match all routes - for http 404
             element={<div>404!!! ahh!!!</div>}

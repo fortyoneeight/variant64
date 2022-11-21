@@ -1,7 +1,7 @@
-import { Board, BoardClocks, BoardPlayer } from './board';
+import { Board, BoardClocks, Player } from './board';
 
 export interface BoardState {
   board: Board;
-  active_player: BoardPlayer;
+  active_player: Player;
   clocks: BoardClocks;
 }

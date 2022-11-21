@@ -1,16 +1,15 @@
-import { BoardPlayer as Player } from './board';
+import { Player } from './board';
 import { AppActions } from './actions';
 
 // TODO: move this to another file
 export type Room = {
   id: string;
-  room_name: string;
-  players_total: number;
-  players: Array<Player>;
+  name: string;
+  players: Array<string>;
 };
 
 export enum RoutesParams {
-  ROOM_NAME = 'name',
+  ROOM_NAME = 'room_name',
   ROOM_ID = 'room_id',
   PLAYER_ID = 'player_id',
   PLAYER_DISPLAY_NAME = 'display_name',
