@@ -2,12 +2,16 @@ import React from 'react';
 import './App.css';
 import Routing from './Routing';
 import { RecoilRoot } from 'recoil';
-import { HttpContext } from './store/context';
-import { RoomAPIRoutesConfig } from './services/config';
-import { HttpService } from './services/http';
+import { ServicesContext } from './store/context';
+import { RoomAPIRoutesConfig, HttpService, WebSocketService } from './services';
 
 let roomHttpService = new HttpService({
   url: 'http://0.0.0.0:8001/0.0.0.0:8000/api',
+  routesConfig: RoomAPIRoutesConfig,
+});
+
+let roomWebSocketService = new WebSocketService({
+  url: 'ws://0.0.0.0:8000/ws',
   routesConfig: RoomAPIRoutesConfig,
 });
 
@@ -15,11 +19,13 @@ function App() {
   return (
     <>
       <RecoilRoot>
-        <HttpContext.Provider value={{ roomService: roomHttpService }}>
+        <ServicesContext.Provider
+          value={{ roomHttpService: roomHttpService, roomWebSocketService: roomWebSocketService }}
+        >
           <div>
             <Routing />
           </div>
-        </HttpContext.Provider>
+        </ServicesContext.Provider>
       </RecoilRoot>
     </>
   );
