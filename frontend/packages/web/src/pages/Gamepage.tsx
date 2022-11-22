@@ -3,16 +3,16 @@ import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import Gameboard from '../components/gameboard';
 import { playerState, roomState } from '../store/atoms';
-import { HttpContext } from '../store/context';
+import { ServicesContext } from '../store/context';
 import { mockdataBoard } from '../store/mockdata/board';
 import { HomepageService } from './hompage-service';
 
 export default function Gamepage() {
   const { id } = useParams();
-  const context = React.useContext(HttpContext);
+  const context = React.useContext(ServicesContext);
   const homepageService = useMemo(
-    () => new HomepageService(context.roomService),
-    [context.roomService]
+    () => new HomepageService(context.roomHttpService),
+    [context.roomHttpService]
   );
 
   const [room, setRoom] = useRecoilState(roomState);

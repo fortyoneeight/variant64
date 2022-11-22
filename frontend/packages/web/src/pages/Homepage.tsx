@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import '../index.css';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { roomsState, playerState, roomState } from '../store/atoms';
-import { HttpContext } from '../store/context';
+import { ServicesContext } from '../store/context';
 import { HomepageService } from './hompage-service';
 import { PlayerForm, RoomForm } from '../components';
 
@@ -49,10 +49,10 @@ export default function Homepage() {
   const [rooms, setRooms] = useRecoilState(roomsState);
   const [player, setPlayer] = useRecoilState(playerState);
 
-  const context = React.useContext(HttpContext);
+  const context = React.useContext(ServicesContext);
   const homepageService = useMemo(
-    () => new HomepageService(context.roomService),
-    [context.roomService]
+    () => new HomepageService(context.roomHttpService),
+    [context.roomHttpService]
   );
 
   // Test api calls.
