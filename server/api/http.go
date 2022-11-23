@@ -261,6 +261,15 @@ func handlePostRoomStart(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	requestAddGame := &entity.RequestRoomAddGame{RoomID: room.Data.GetID(), GameID: game.Data.GetID()}
+	err = requestAddGame.Write(room)
+	if err != nil {
+		writeServerErrorResponse(w, fmt.Errorf("Failed to write entity: %s", err))
+		return
+	}
+
+	room.Store()
+
 	requestGameStart := &entity.RequestGameStart{}
 	err = requestGameStart.Write(game)
 	if err != nil {

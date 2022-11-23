@@ -12,6 +12,7 @@ type Room struct {
 	ID      uuid.UUID   `json:"id"`
 	Name    string      `json:"name"`
 	Players []uuid.UUID `json:"players"`
+	GameID  *uuid.UUID  `json:"game_id"`
 
 	mux *sync.RWMutex
 }
@@ -103,5 +104,20 @@ func (r *RequestRoomRemovePlayer) Write(e *Entity[Room]) error {
 			return nil
 		}
 	}
+	return nil
+}
+
+// RequestRoomAddGame is used to add a Game to a Room.
+type RequestRoomAddGame struct {
+	RoomID uuid.UUID `json:"room_id"`
+	GameID uuid.UUID `json:"game_id"`
+}
+
+// Write adds the Request's Game to the provided Room.
+func (r *RequestRoomAddGame) Write(e *Entity[Room]) error {
+	e.Data.mux.Lock()
+	defer e.Data.mux.Unlock()
+
+	e.Data.GameID = &r.GameID
 	return nil
 }

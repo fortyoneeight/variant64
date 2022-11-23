@@ -1,8 +1,6 @@
 package entity
 
 import (
-	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -177,19 +175,57 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 	}
 }
 
-func TestSample(t *testing.T) {
+func TestRequestRoomAddGame(t *testing.T) {
+	gameID1 := uuid.New()
+	gameID2 := uuid.New()
 
-	type A struct {
-		Val string `json:"val"`
+	testcases := []struct {
+		name           string
+		requests       []RequestRoomAddGame
+		expectGame     bool
+		expectedGameID *uuid.UUID
+	}{
+		{
+			name:           "No GameID.",
+			requests:       []RequestRoomAddGame{},
+			expectGame:     false,
+			expectedGameID: nil,
+		},
+		{
+			name: "Add GameID.",
+			requests: []RequestRoomAddGame{
+				{RoomID: uuid.New(), GameID: gameID1},
+			},
+			expectGame:     true,
+			expectedGameID: &gameID1,
+		},
+		{
+			name: "Add GameID twice.",
+			requests: []RequestRoomAddGame{
+				{RoomID: uuid.New(), GameID: gameID1},
+				{RoomID: uuid.New(), GameID: gameID2},
+			},
+			expectGame:     true,
+			expectedGameID: &gameID2,
+		},
 	}
 
-	type B struct {
-		A
-		Another string `json:"another"`
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			room := &Entity[Room]{}
+			requestNewRoom := RequestNewRoom{Name: "room1"}
+			requestNewRoom.Write(room)
+
+			for _, r := range tc.requests {
+				r.Write(room)
+			}
+
+			if tc.expectGame {
+				assert.NotNil(t, room.Data.GameID)
+				assert.Equal(t, tc.expectedGameID, room.Data.GameID)
+			} else {
+				assert.Nil(t, room.Data.GameID)
+			}
+		})
 	}
-
-	b := &B{}
-	json.Unmarshal([]byte("{\"val\":\"val\",\"another\":\"another\"}"), b)
-
-	fmt.Println(b)
 }
