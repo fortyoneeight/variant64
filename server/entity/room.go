@@ -28,6 +28,10 @@ type RequestNewRoom struct {
 
 // Write initializes all fields of the provided Room.
 func (r *RequestNewRoom) Write(e *Entity[Room]) error {
+	if r.Name == "" {
+		return errors.New("Name cannot be empty")
+	}
+
 	e.EntityStore = GetRoomStore()
 	e.Data = Room{
 		ID:      uuid.New(),

@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"errors"
+
 	"github.com/google/uuid"
 )
 
@@ -22,9 +24,13 @@ type RequestNewPlayer struct {
 
 // Write initializes all fields of the provided Player.
 func (r *RequestNewPlayer) Write(e *Entity[Player]) error {
+	if r.DisplayName == "" {
+		return errors.New("DisplayName cannot be empty")
+	}
+
 	e.EntityStore = GetPlayerStore()
 	e.Data = Player{
-		ID: uuid.New(),
+		ID:          uuid.New(),
 		DisplayName: r.DisplayName,
 	}
 
