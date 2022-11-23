@@ -1,7 +1,7 @@
 package store
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
@@ -46,7 +46,7 @@ func (i *IndexedStore[T]) Load(t *T) error {
 		*t = val
 		return nil
 	}
-	return errors.New("not found")
+	return fmt.Errorf("not found %T", t)
 }
 
 func (i *IndexedStore[T]) LoadAll(ts *[]T) {
