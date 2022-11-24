@@ -14,24 +14,54 @@ ECS_SERVICE_WEB = web
 
 all: build
 
-install:
+# Help Command
+help: # Show help for each of the Makefile recipes.
+	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
+
+# Setup Related Commands
+install: # Install all dependencies for project.
 	pipenv install -r requirements.txt
 
 	(cd ./frontend/ && npm run bootstrap)
 
-build:
+# Build Related Commands
+build: build-server build-proxy build-client # Build all component's images.
+
+build-server: # Build the server image.
 	docker build -t ${DOCKER_NAME}/${DOCKER_APP_NAME_BE} ${DOCKER_APP_NAME_BE}/.
+
+build-proxy: # Build the proxy image.
+	docker build -t ${DOCKER_NAME}/${DOCKER_APP_NAME_PS} ${FRONTEND_PKG_DIR_PATH}/${DOCKER_APP_NAME_PS}/.
+
+build-client: # Build the client image.
 	docker build -t ${DOCKER_NAME}/${DOCKER_APP_NAME_FE} ${FRONTEND_PKG_DIR_PATH}/${DOCKER_APP_NAME_FE}/.
 
-run: stop build
+# Run Related Comamnds
+run: run-server run-proxy run-client # Run all the component's containers.
+
+run-server: stop-server build-server # Build and run the server.
 	docker run -p 8000:8000 -d ${DOCKER_NAME}/${DOCKER_APP_NAME_BE}
+
+run-proxy: stop-proxy build-proxy # Build and run the proxy.
+	docker run -p 8001:8001 -d ${DOCKER_NAME}/${DOCKER_APP_NAME_PS}
+
+run-client: stop-client build-client # Build and run the client.
 	docker run -p 3000:3000 -d ${DOCKER_NAME}/${DOCKER_APP_NAME_FE}
 
-stop:
+# Stop Related Commands
+stop: stop-server stop-proxy stop-client # Stop all the component's containers.
+
+stop-server: # Stop the server container.
 	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_FE})) || true
+
+stop-proxy: # Stop the proxy container.
+	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_PS})) || true
+
+stop-client: # Stop the client container.
 	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_BE})) || true
 
-test:
+# Test Related Comands
+test: # Run all tests.
 	cd server/ && go test ./...
 
 # Deployment Related Commands
@@ -56,4 +86,4 @@ deploy-refresh-task:
 	aws ecs update-service --region $(ECS_REGION) --cluster ${ECS_CLUSTER} --service $(ECS_SERVICE_SERVER) --force-new-deployment
 	aws ecs update-service --region $(ECS_REGION) --cluster ${ECS_CLUSTER} --service $(ECS_SERVICE_WEB) --force-new-deployment
 
-deploy: build deploy-login deploy-tag deploy-push-image deploy-refresh-task
+deploy: build deploy-login deploy-tag deploy-push-image deploy-refresh-task # Deploy all the components.
