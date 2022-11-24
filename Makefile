@@ -17,9 +17,7 @@ all: build
 install:
 	pipenv install -r requirements.txt
 
-	for dir in "." "packages/proxy-server" "packages/web" ; do \
-			(cd ./frontend/$${dir} && npm install) ; \
-	done
+	(cd ./frontend/ && npm run bootstrap)
 
 build:
 	docker build -t ${DOCKER_NAME}/${DOCKER_APP_NAME_BE} ${DOCKER_APP_NAME_BE}/.

@@ -5,6 +5,7 @@
     "packages/*"
   ],
   "scripts": {
+    "bootstrap": "npx lerna bootstrap",
     "start": "npx lerna run start"
   },
   "devDependencies": {
