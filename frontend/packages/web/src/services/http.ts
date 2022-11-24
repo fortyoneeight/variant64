@@ -15,7 +15,7 @@ export class HttpService {
     this.routesConfig = params.routesConfig;
   }
 
-  fetchRequest<T>(eventName: string, method: string, path: string, body?: any): PromiseLike<T> {
+  fetchRequest<T>(eventName: string, method: string, path: string, body?: any): Promise<T> {
     return axios
       .request({
         method: method,
@@ -27,12 +27,13 @@ export class HttpService {
         return res.data;
       })
       .catch((err) => {
+        err['isError'] = true;
         console.error(`[${this.routesConfig.name}_${eventName}] error: `, err);
-        return err;
+        throw err;
       });
   }
 
-  request<T>(event: requestEvent) {
+  request<T>(event: requestEvent): Promise<T> {
     const { action, params } = event;
     const { path, method } = this.routesConfig?.routes[action];
 
