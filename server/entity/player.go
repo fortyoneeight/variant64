@@ -49,5 +49,10 @@ func (r *RequestGetPlayer) Read(e *Entity[Player]) error {
 		ID: r.ID,
 	}
 
+	err := e.Load()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -15,6 +15,8 @@ import (
 	"github.com/variant64/server/store"
 )
 
+var requestHandler = entity.RequestHandler{}
+
 func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -22,21 +24,18 @@ func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	player := &entity.Entity[entity.Player]{}
-
 	requestNewPlayer := &entity.RequestNewPlayer{}
 	err = json.Unmarshal(body, requestNewPlayer)
 	if err != nil {
 		writeBadRequestResponse(w, errors.Wrap(err, "failed to unmarshal request body"))
 		return
 	}
-	err = requestNewPlayer.Write(player)
+
+	player, err := requestHandler.HandleNewPlayer(requestNewPlayer)
 	if err != nil {
 		writeBadRequestResponse(w, err)
 		return
 	}
-
-	player.Store()
 
 	writeEntityResponse(w, player)
 }
@@ -48,15 +47,8 @@ func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	player := &entity.Entity[entity.Player]{}
 	requestGetPlayer := &entity.RequestGetPlayer{ID: id}
-	err = requestGetPlayer.Read(player)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-		return
-	}
-
-	err = player.Load()
+	player, err := requestHandler.HandleGetPlayer(requestGetPlayer)
 	if err != nil {
 		writeNotFoundResponse(w, err)
 		return
@@ -72,36 +64,25 @@ func handlePostRoom(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	room := &entity.Entity[entity.Room]{}
-
 	requestNewRoom := &entity.RequestNewRoom{}
 	err = json.Unmarshal(body, requestNewRoom)
 	if err != nil {
 		writeBadRequestResponse(w, errors.Wrap(err, "failed to unmarshal request body"))
 		return
 	}
-	err = requestNewRoom.Write(room)
+
+	room, err := requestHandler.HandleNewRoom(requestNewRoom)
 	if err != nil {
 		writeBadRequestResponse(w, err)
 		return
 	}
-
-	room.Store()
 
 	writeEntityResponse(w, room)
 }
 
 func handleGetRooms(w http.ResponseWriter, req *http.Request) {
-	rooms := &entity.EntityList[entity.Room]{}
-
 	requestGetRooms := &entity.RequestGetRooms{}
-	err := requestGetRooms.Read(rooms)
-	if err != nil {
-		writeBadRequestResponse(w, err)
-		return
-	}
-
-	rooms.Load()
+	rooms := requestHandler.HandleGetRooms(requestGetRooms)
 
 	writeEntityListResponse(w, rooms)
 }
@@ -113,16 +94,8 @@ func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	room := &entity.Entity[entity.Room]{}
-
 	requestGetRoom := &entity.RequestGetRoom{ID: id}
-	err = requestGetRoom.Read(room)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-		return
-	}
-
-	err = room.Load()
+	room, err := requestHandler.HandleGetRoom(requestGetRoom)
 	if err != nil {
 		writeNotFoundResponse(w, err)
 		return
@@ -144,34 +117,18 @@ func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	room := &entity.Entity[entity.Room]{}
-
-	requestGetRoom := &entity.RequestGetRoom{ID: id}
-	err = requestGetRoom.Read(room)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-		return
-	}
-
-	err = room.Load()
-	if err != nil {
-		writeNotFoundResponse(w, err)
-		return
-	}
-
 	requestAddPlayer := &entity.RequestRoomAddPlayer{RoomID: id}
 	err = json.Unmarshal(body, requestAddPlayer)
 	if err != nil {
 		writeBadRequestResponse(w, errors.Wrap(err, "failed to unmarshal request body"))
 		return
 	}
-	err = requestAddPlayer.Write(room)
+
+	room, err := requestHandler.HandleRoomAddPlayer(requestAddPlayer)
 	if err != nil {
-		writeServerErrorResponse(w, err)
+		writeNotFoundResponse(w, err)
 		return
 	}
-
-	room.Store()
 
 	writeEntityResponse(w, room)
 }
@@ -189,34 +146,18 @@ func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	room := &entity.Entity[entity.Room]{}
-
-	requestGetRoom := &entity.RequestGetRoom{ID: id}
-	err = requestGetRoom.Read(room)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-		return
-	}
-
-	err = room.Load()
-	if err != nil {
-		writeNotFoundResponse(w, err)
-		return
-	}
-
 	requestRemovePlayer := &entity.RequestRoomRemovePlayer{RoomID: id}
 	err = json.Unmarshal(body, requestRemovePlayer)
 	if err != nil {
 		writeBadRequestResponse(w, errors.Wrap(err, "failed to unmarshal request body"))
 		return
 	}
-	err = requestRemovePlayer.Write(room)
+
+	room, err := requestHandler.HandleRoomRemovePlayer(requestRemovePlayer)
 	if err != nil {
-		writeServerErrorResponse(w, err)
+		writeNotFoundResponse(w, err)
 		return
 	}
-
-	room.Store()
 
 	writeEntityResponse(w, room)
 }
@@ -234,43 +175,18 @@ func handlePostRoomStart(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	room := &entity.Entity[entity.Room]{}
-
-	requestGetRoom := &entity.RequestGetRoom{ID: id}
-	err = requestGetRoom.Read(room)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-		return
-	}
-
-	err = room.Load()
-	if err != nil {
-		writeNotFoundResponse(w, err)
-		return
-	}
-
-	game := &entity.Entity[*entity.Game]{}
-
-	requestNewGame := &entity.RequestNewGame{PlayerOrder: room.Data.Players}
-	err = json.Unmarshal(body, requestNewGame)
+	requestRoomStartGame := &entity.RequestRoomStartGame{RoomID: id}
+	err = json.Unmarshal(body, requestRoomStartGame)
 	if err != nil {
 		writeBadRequestResponse(w, errors.Wrap(err, "failed to unmarshal request body"))
 		return
 	}
-	err = requestNewGame.Write(game)
+
+	room, err := requestHandler.HandleRoomStartGame(requestRoomStartGame)
 	if err != nil {
-		writeServerErrorResponse(w, err)
+		writeBadRequestResponse(w, err)
 		return
 	}
-
-	requestGameStart := &entity.RequestGameStart{}
-	err = requestGameStart.Write(game)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-		return
-	}
-
-	game.Store()
 
 	writeEntityResponse(w, room)
 }

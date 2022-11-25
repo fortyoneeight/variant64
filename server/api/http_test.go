@@ -58,10 +58,9 @@ func TestPlayerPost(t *testing.T) {
 
 func TestPlayerGetByID(t *testing.T) {
 	playerName1 := "player1"
-	player1 := &entity.Entity[entity.Player]{}
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer1.Write(player1)
-	player1.Store()
+	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	assert.Nil(t, err)
 
 	testcases := []struct {
 		description              string
@@ -126,6 +125,7 @@ func TestRoomPost(t *testing.T) {
 			[]string{
 				"\"name\":\"test\"",
 				"\"players\":[]",
+				"\"game_id\":null",
 			},
 			200,
 		},
@@ -165,14 +165,12 @@ func TestRoomPost(t *testing.T) {
 func TestRoomsGet(t *testing.T) {
 	roomName1 := "room1"
 	roomName2 := "room2"
-	room1 := &entity.Entity[entity.Room]{}
-	room2 := &entity.Entity[entity.Room]{}
-	requestNewRoom1 := entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := entity.RequestNewRoom{Name: roomName2}
-	requestNewRoom1.Write(room1)
-	requestNewRoom2.Write(room2)
-	room1.Store()
-	room2.Store()
+	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
+	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	assert.Nil(t, err)
+	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
+	assert.Nil(t, err)
 
 	testcases := []struct {
 		description              string
@@ -186,6 +184,7 @@ func TestRoomsGet(t *testing.T) {
 				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
 				fmt.Sprintf("\"name\":\"%s\"", roomName2),
 				fmt.Sprintf("\"id\":\"%s\"", room2.Data.GetID()),
+				"\"game_id\":null",
 			},
 			200,
 		},
@@ -210,10 +209,9 @@ func TestRoomsGet(t *testing.T) {
 
 func TestRoomGetByID(t *testing.T) {
 	roomName1 := "room1"
-	room1 := &entity.Entity[entity.Room]{}
-	requestNewRoom1 := entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom1.Write(room1)
-	room1.Store()
+	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
+	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	assert.Nil(t, err)
 
 	testcases := []struct {
 		description              string
@@ -227,6 +225,7 @@ func TestRoomGetByID(t *testing.T) {
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
 				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
+				"\"game_id\":null",
 			},
 			200,
 		},
@@ -267,16 +266,14 @@ func TestRoomGetByID(t *testing.T) {
 
 func TestRoomAddPlayer(t *testing.T) {
 	playerName1 := "player1"
-	player1 := &entity.Entity[entity.Player]{}
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer1.Write(player1)
-	player1.Store()
+	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	assert.Nil(t, err)
 
 	roomName1 := "room1"
-	room1 := &entity.Entity[entity.Room]{}
-	requestNewRoom1 := entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom1.Write(room1)
-	room1.Store()
+	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
+	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	assert.Nil(t, err)
 
 	testcases := []struct {
 		description              string
@@ -293,6 +290,7 @@ func TestRoomAddPlayer(t *testing.T) {
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
 				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
 				fmt.Sprintf("\"players\":[\"%s\"]", player1.Data.GetID()),
+				"\"game_id\":null",
 			},
 			200,
 		},
@@ -347,43 +345,38 @@ func TestRoomAddPlayer(t *testing.T) {
 func TestRoomRemovePlayer(t *testing.T) {
 	playerName1 := "player1"
 	playerName2 := "player2"
-	player1 := &entity.Entity[entity.Player]{}
-	player2 := &entity.Entity[entity.Player]{}
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
 	requestNewPlayer2 := entity.RequestNewPlayer{DisplayName: playerName2}
-	requestNewPlayer1.Write(player1)
-	requestNewPlayer2.Write(player2)
-	player1.Store()
-	player2.Store()
+	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	assert.Nil(t, err)
+	player2, err := requestHandler.HandleNewPlayer(&requestNewPlayer2)
+	assert.Nil(t, err)
 
 	roomName1 := "room1"
 	roomName2 := "room2"
-	room1 := &entity.Entity[entity.Room]{}
-	room2 := &entity.Entity[entity.Room]{}
-	requestNewRoom1 := entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := entity.RequestNewRoom{Name: roomName2}
-	requestNewRoom1.Write(room1)
-	requestNewRoom2.Write(room2)
+	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
+	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	assert.Nil(t, err)
+	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
+	assert.Nil(t, err)
 
 	requestAddPlayer1 := &entity.RequestRoomAddPlayer{
 		PlayerID: player1.Data.GetID(),
 	}
 
 	requestAddPlayer1.RoomID = room1.Data.GetID()
-	requestAddPlayer1.Write(room1)
+	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
 
 	requestAddPlayer1.RoomID = room2.Data.GetID()
-	requestAddPlayer1.Write(room2)
+	room2, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
 
 	requestAddPlayer2 := &entity.RequestRoomAddPlayer{
 		PlayerID: player2.Data.GetID(),
 	}
 
-	requestAddPlayer1.RoomID = room1.Data.GetID()
-	requestAddPlayer2.Write(room1)
-
-	room1.Store()
-	room2.Store()
+	requestAddPlayer2.RoomID = room1.Data.GetID()
+	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer2)
 
 	testcases := []struct {
 		description              string
@@ -400,6 +393,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
 				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
 				fmt.Sprintf("\"players\":[\"%s\"]", player2.Data.GetID()),
+				"\"game_id\":null",
 			},
 			200,
 		},
@@ -411,6 +405,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 				fmt.Sprintf("\"name\":\"%s\"", roomName2),
 				fmt.Sprintf("\"id\":\"%s\"", room2.Data.GetID()),
 				fmt.Sprintf("\"players\":[\"%s\"]", player1.Data.GetID()),
+				"\"game_id\":null",
 			},
 			200,
 		},
@@ -465,43 +460,38 @@ func TestRoomRemovePlayer(t *testing.T) {
 func TestRoomStartGame(t *testing.T) {
 	playerName1 := "player1"
 	playerName2 := "player2"
-	player1 := &entity.Entity[entity.Player]{}
-	player2 := &entity.Entity[entity.Player]{}
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
 	requestNewPlayer2 := entity.RequestNewPlayer{DisplayName: playerName2}
-	requestNewPlayer1.Write(player1)
-	requestNewPlayer2.Write(player2)
-	player1.Store()
-	player2.Store()
+	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	assert.Nil(t, err)
+	player2, err := requestHandler.HandleNewPlayer(&requestNewPlayer2)
+	assert.Nil(t, err)
 
 	roomName1 := "room1"
 	roomName2 := "room2"
-	room1 := &entity.Entity[entity.Room]{}
-	room2 := &entity.Entity[entity.Room]{}
-	requestNewRoom1 := entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := entity.RequestNewRoom{Name: roomName2}
-	requestNewRoom1.Write(room1)
-	requestNewRoom2.Write(room2)
+	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
+	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	assert.Nil(t, err)
+	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
+	assert.Nil(t, err)
 
 	requestAddPlayer1 := &entity.RequestRoomAddPlayer{
 		PlayerID: player1.Data.GetID(),
 	}
 
 	requestAddPlayer1.RoomID = room1.Data.GetID()
-	requestAddPlayer1.Write(room1)
+	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
 
 	requestAddPlayer1.RoomID = room2.Data.GetID()
-	requestAddPlayer1.Write(room2)
+	room2, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
 
 	requestAddPlayer2 := &entity.RequestRoomAddPlayer{
 		PlayerID: player2.Data.GetID(),
 	}
 
-	requestAddPlayer1.RoomID = room1.Data.GetID()
-	requestAddPlayer2.Write(room1)
-
-	room1.Store()
-	room2.Store()
+	requestAddPlayer2.RoomID = room1.Data.GetID()
+	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer2)
 
 	testcases := []struct {
 		description              string
@@ -517,6 +507,7 @@ func TestRoomStartGame(t *testing.T) {
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
 				fmt.Sprintf("\"players\":[\"%s\",\"%s\"]", player1.Data.GetID(), player2.Data.GetID()),
+				fmt.Sprintf("\"game_id\""),
 			},
 			200,
 		},
@@ -527,7 +518,7 @@ func TestRoomStartGame(t *testing.T) {
 			[]string{
 				"invalid number of players",
 			},
-			500,
+			400,
 		},
 		{
 			"Invalid body.",
@@ -552,7 +543,7 @@ func TestRoomStartGame(t *testing.T) {
 			[]string{
 				"not found",
 			},
-			404,
+			400,
 		},
 	}
 

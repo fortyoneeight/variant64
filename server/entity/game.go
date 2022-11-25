@@ -113,15 +113,12 @@ func (r *RequestGetGame) Read(e *Entity[*Game]) error {
 	e.Data = &Game{
 		id: r.ID,
 	}
-	return nil
-}
 
-// RequestGameStart is used to start a Game.
-type RequestGameStart struct{}
+	err := e.Load()
+	if err != nil {
+		return err
+	}
 
-// Write starts the provided Game.
-func (r *RequestGameStart) Write(e *Entity[*Game]) error {
-	e.Data.start()
 	return nil
 }
 

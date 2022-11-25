@@ -12,6 +12,7 @@ type Room struct {
 	ID      uuid.UUID   `json:"id"`
 	Name    string      `json:"name"`
 	Players []uuid.UUID `json:"players"`
+	GameID  *uuid.UUID  `json:"game_id"`
 
 	mux *sync.RWMutex
 }
@@ -53,6 +54,12 @@ func (r *RequestGetRoom) Read(e *Entity[Room]) error {
 	e.Data = Room{
 		ID: r.ID,
 	}
+
+	err := e.Load()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -60,48 +67,8 @@ func (r *RequestGetRoom) Read(e *Entity[Room]) error {
 type RequestGetRooms struct{}
 
 // Read adds all Rooms to the provided RoomList.
-func (r *RequestGetRooms) Read(e *EntityList[Room]) error {
+func (r *RequestGetRooms) Read(e *EntityList[Room]) {
 	e.EntityStore = GetRoomStore()
 	e.Data = make([]Room, 0)
-	return nil
-}
-
-// RequestRoomAddPlayer is used to add a Player to a Room.
-type RequestRoomAddPlayer struct {
-	RoomID   uuid.UUID `json:"room_id"`
-	PlayerID uuid.UUID `json:"player_id"`
-}
-
-// Write adds the Request's Player to the provided Room.
-func (r *RequestRoomAddPlayer) Write(e *Entity[Room]) error {
-	e.Data.mux.Lock()
-	defer e.Data.mux.Unlock()
-
-	for _, p := range e.Data.Players {
-		if p == r.PlayerID {
-			return errors.New("player cannot be duplicate")
-		}
-	}
-	e.Data.Players = append(e.Data.Players, r.PlayerID)
-	return nil
-}
-
-// RequestRoomRemovePlayer is used to remove a Player from a Room.
-type RequestRoomRemovePlayer struct {
-	RoomID   uuid.UUID `json:"room_id"`
-	PlayerID uuid.UUID `json:"player_id"`
-}
-
-// Write removes the Request's Player from the provided Room.
-func (r *RequestRoomRemovePlayer) Write(e *Entity[Room]) error {
-	e.Data.mux.Lock()
-	defer e.Data.mux.Unlock()
-
-	for i, p := range e.Data.Players {
-		if p == r.PlayerID {
-			e.Data.Players = append(e.Data.Players[:i], e.Data.Players[i+1:]...)
-			return nil
-		}
-	}
-	return nil
+	e.Load()
 }
