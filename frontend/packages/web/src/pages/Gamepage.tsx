@@ -17,6 +17,7 @@ export default function Gamepage() {
 
   const [room, setRoom] = useRecoilState(roomState);
   const [player, setPlayer] = useRecoilState(playerState);
+  const defaultClockMillis = 600000;
 
   if (!room.id && id) {
     homepageService.getRoom(id).then((roomResponse) => {
@@ -46,6 +47,15 @@ export default function Gamepage() {
     });
   };
 
+  const handleStartClick = () => {
+    homepageService.startRoom(room.id, defaultClockMillis).then((roomResponse) => {
+      setRoom({
+        ...room,
+        ...roomResponse,
+      });
+    });
+  };
+
   const joinLeaveButton = isPlayerPlaying ? (
     <button className="drawButton" onClick={() => handleLeaveClick()}>
       Quit Game
@@ -68,6 +78,9 @@ export default function Gamepage() {
         <p className="clock">{mockdataBoard.clocks.player2}</p>
       </div>
       <div className="gameplayButtonContainer">
+        <button className="startButton" onClick={() => handleStartClick()}>
+          Start Game
+        </button>
         {joinLeaveButton}
         <button className="drawButton">Offer Draw</button>
         <button className="concedeButton">Concede</button>
