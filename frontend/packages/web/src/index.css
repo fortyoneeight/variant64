@@ -79,6 +79,10 @@ body {
   font-size: 1.5rem;
   padding: 0.5rem;
 }
+.startButton {
+  font-size: 1.5rem;
+  padding: 0.5rem;
+}
 
 .outline {
   outline: 1px black;

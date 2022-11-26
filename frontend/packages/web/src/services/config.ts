@@ -14,6 +14,10 @@ export const RoomAPIRoutesConfig = {
       (params) => `/room/${params[RoutesParams.ROOM_ID]}/leave`,
       'post'
     ),
+    [AppActions.START_ROOM]: NewRoute(
+      (params) => `/room/${params[RoutesParams.ROOM_ID]}/start`,
+      'post'
+    ),
     [AppActions.GET_ROOMS]: NewRoute(() => '/rooms', 'get'),
 
     // player

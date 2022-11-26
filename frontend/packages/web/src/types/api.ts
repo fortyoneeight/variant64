@@ -13,6 +13,7 @@ export enum RoutesParams {
   ROOM_ID = 'room_id',
   PLAYER_ID = 'player_id',
   PLAYER_DISPLAY_NAME = 'display_name',
+  PLAYER_TIME_MILLIS = 'player_time_ms',
 }
 
 export type CreateRoomRequest = {

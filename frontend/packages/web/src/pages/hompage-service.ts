@@ -8,6 +8,7 @@ import {
   GetRoomsResponse,
   JoinRoomResponse,
   LeaveRoomResponse,
+  StartRoomResponse,
   RoutesParams,
 } from '../types';
 
@@ -59,6 +60,18 @@ export class HomepageService {
       },
       body: {
         [RoutesParams.PLAYER_ID]: playerID,
+      },
+    });
+  }
+
+  startRoom(roomID: string, clockMillis: number) {
+    return this.httpservice.request<StartRoomResponse>({
+      action: AppActions.START_ROOM,
+      params: {
+        [RoutesParams.ROOM_ID]: roomID,
+      },
+      body: {
+        [RoutesParams.PLAYER_TIME_MILLIS]: clockMillis,
       },
     });
   }
