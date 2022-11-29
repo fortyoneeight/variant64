@@ -361,22 +361,22 @@ func TestRoomRemovePlayer(t *testing.T) {
 	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
 	assert.Nil(t, err)
 
-	requestAddPlayer1 := &entity.RequestRoomAddPlayer{
+	requestAddPlayer1 := &entity.RequestJoinRoom{
 		PlayerID: player1.Data.GetID(),
 	}
 
 	requestAddPlayer1.RoomID = room1.Data.GetID()
-	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
+	room1, err = requestAddPlayer1.PerformAction()
 
 	requestAddPlayer1.RoomID = room2.Data.GetID()
-	room2, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
+	room2, err = requestAddPlayer1.PerformAction()
 
-	requestAddPlayer2 := &entity.RequestRoomAddPlayer{
+	requestAddPlayer2 := &entity.RequestJoinRoom{
 		PlayerID: player2.Data.GetID(),
 	}
 
 	requestAddPlayer2.RoomID = room1.Data.GetID()
-	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer2)
+	room1, err = requestAddPlayer2.PerformAction()
 
 	testcases := []struct {
 		description              string
@@ -476,22 +476,22 @@ func TestRoomStartGame(t *testing.T) {
 	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
 	assert.Nil(t, err)
 
-	requestAddPlayer1 := &entity.RequestRoomAddPlayer{
+	requestAddPlayer1 := &entity.RequestJoinRoom{
 		PlayerID: player1.Data.GetID(),
 	}
 
 	requestAddPlayer1.RoomID = room1.Data.GetID()
-	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
+	room1, err = requestAddPlayer1.PerformAction()
 
 	requestAddPlayer1.RoomID = room2.Data.GetID()
-	room2, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer1)
+	room2, err = requestAddPlayer1.PerformAction()
 
-	requestAddPlayer2 := &entity.RequestRoomAddPlayer{
+	requestAddPlayer2 := &entity.RequestJoinRoom{
 		PlayerID: player2.Data.GetID(),
 	}
 
 	requestAddPlayer2.RoomID = room1.Data.GetID()
-	room1, err = requestHandler.HandleRoomAddPlayer(requestAddPlayer2)
+	room1, err = requestAddPlayer2.PerformAction()
 
 	testcases := []struct {
 		description              string
@@ -518,7 +518,7 @@ func TestRoomStartGame(t *testing.T) {
 			[]string{
 				"invalid number of players",
 			},
-			400,
+			404,
 		},
 		{
 			"Invalid body.",
@@ -543,7 +543,7 @@ func TestRoomStartGame(t *testing.T) {
 			[]string{
 				"not found",
 			},
-			400,
+			404,
 		},
 	}
 

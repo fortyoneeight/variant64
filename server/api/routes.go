@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -28,11 +29,28 @@ var websocketRoutes = []route{
 	{"/ws", "Open a bi-directional websocket connection.", websocketHandler, []string{"GET"}},
 }
 
+func logRequest(w http.ResponseWriter, req *http.Request) {
+	logger.Info(fmt.Sprintf("[HANDLING_ROUTE] %s %s %s\n", req.RemoteAddr, req.Method, req.URL))
+}
+
+func createHandler(handler http.HandlerFunc) http.HandlerFunc {
+	handlers := []http.HandlerFunc{
+		logRequest,
+		handler,
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		for _, call := range handlers {
+			call(w, r)
+		}
+	}
+}
+
 // AttachRoutes adds all server routes to the provided mux.Router.
 func AttachRoutes(r *mux.Router) {
 	for _, routeList := range [][]route{httpRoutes, websocketRoutes} {
 		for _, route := range routeList {
-			r.HandleFunc(route.path, route.handler).Methods(route.methods...)
+			r.HandleFunc(route.path, createHandler(route.handler)).Methods(route.methods...)
 		}
 	}
 }
