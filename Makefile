@@ -52,13 +52,13 @@ run-client: stop-client build-client # Build and run the client.
 stop: stop-server stop-proxy stop-client # Stop all the component's containers.
 
 stop-server: # Stop the server container.
-	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_FE})) || true
+	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_BE})) || true
 
 stop-proxy: # Stop the proxy container.
 	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_PS})) || true
 
-stop-client: # Stop the client container.
-	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_BE})) || true
+stop-client: # Stop the web container.
+	docker rm $$(docker stop $$(docker ps -aq --filter ancestor=${DOCKER_NAME}/${DOCKER_APP_NAME_FE})) || true
 
 # Test Related Comands
 test: # Run all tests.
