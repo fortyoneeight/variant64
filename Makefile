@@ -24,6 +24,12 @@ install: # Install all dependencies for project.
 
 	(cd ./frontend/ && npm run bootstrap)
 
+# Documentation Related Commands
+docs: docs-swagger # Generate documentation.
+
+docs-swagger: # Generate the server Swagger docs.
+	cd server/ && swag init
+
 # Build Related Commands
 build: build-server build-proxy build-client # Build all component's images.
 

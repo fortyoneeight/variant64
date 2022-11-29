@@ -72,7 +72,7 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *Timer) {
 
 // RequestNewGame is a used to create a new Game.
 type RequestNewGame struct {
-	PlayerOrder     []uuid.UUID `json:"player_order"`
+	PlayerOrder     []uuid.UUID `json:"player_order" swaggerignore:"true"`
 	PlayerTimeMilis int64       `json:"player_time_ms"`
 }
 

@@ -43,3 +43,12 @@ make stop
 ```
 make test
 ```
+
+- Generate API docs
+```
+make docs
+```
+
+## View API Docs
+- Run server
+- Go to http://localhost:8000/swagger/index.html

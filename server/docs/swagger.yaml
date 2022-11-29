@@ -1,0 +1,285 @@
+definitions:
+  api.errorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  entity.Player:
+    properties:
+      display_name:
+        type: string
+      id:
+        type: string
+    type: object
+  entity.RequestJoinRoom:
+    properties:
+      player_id:
+        type: string
+      room_id:
+        type: string
+    type: object
+  entity.RequestLeaveRoom:
+    properties:
+      player_id:
+        type: string
+      room_id:
+        type: string
+    type: object
+  entity.RequestNewGame:
+    properties:
+      player_time_ms:
+        type: integer
+    type: object
+  entity.RequestNewPlayer:
+    properties:
+      display_name:
+        type: string
+    type: object
+  entity.RequestNewRoom:
+    properties:
+      room_name:
+        type: string
+    type: object
+  entity.Room:
+    properties:
+      game_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      players:
+        items:
+          type: string
+        type: array
+    type: object
+info:
+  contact: {}
+paths:
+  /api/player:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RequestNewPlayer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Player'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Create a new player.
+  /api/player/{player_id}:
+    get:
+      parameters:
+      - description: player id
+        in: path
+        name: player_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Player'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Get player by id.
+  /api/room:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RequestNewRoom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Create a new room.
+  /api/room/{room_id}:
+    get:
+      parameters:
+      - description: room id
+        in: path
+        name: room_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Get room by id.
+  /api/room/{room_id}/join:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: room id
+        in: path
+        name: room_id
+        required: true
+        type: string
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RequestJoinRoom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Add player to a room.
+  /api/room/{room_id}/leave:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: room id
+        in: path
+        name: room_id
+        required: true
+        type: string
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RequestLeaveRoom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Remove player from a room.
+  /api/room/{room_id}/start:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: room id
+        in: path
+        name: room_id
+        required: true
+        type: string
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RequestNewGame'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Start game in a room.
+  /api/rooms:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Room'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Get all rooms.
+swagger: "2.0"
