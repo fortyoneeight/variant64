@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/gorilla/websocket"
-	"github.com/variant64/server/entity"
+	"github.com/variant64/server/game"
 )
 
 // WSHandler handles incoming WS messages from a client.
@@ -37,7 +37,7 @@ func (w *WSHandler) HandleCommand(command Command, message []byte) error {
 
 // handleSubscribe handles a CommandSubscribe from a client.
 func (w *WSHandler) handleSubscribe(command *CommandSubscribe) error {
-	gameUpdateBus := entity.GetGameUpdateBus()
+	gameUpdateBus := game.GetGameUpdateBus()
 	gameUpdateBus.Subscribe(command.GameID, &gameUpdateSubscriber{conn: w.conn})
 	return nil
 }
@@ -48,7 +48,7 @@ type gameUpdateSubscriber struct {
 }
 
 // OnMessage forwards entity.GameUpdates to the associated websocket.Conn.
-func (g *gameUpdateSubscriber) OnMessage(update entity.GameUpdate) error {
+func (g *gameUpdateSubscriber) OnMessage(update game.GameUpdate) error {
 	message, err := json.Marshal(update)
 	if err != nil {
 		return nil

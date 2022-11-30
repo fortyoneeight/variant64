@@ -1,4 +1,4 @@
-package entity
+package game
 
 import (
 	"github.com/google/uuid"

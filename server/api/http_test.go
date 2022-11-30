@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
-	"github.com/variant64/server/entity"
+	"github.com/variant64/server/player"
+	"github.com/variant64/server/room"
 )
 
 func TestPlayerPost(t *testing.T) {
@@ -59,7 +59,7 @@ func TestPlayerPost(t *testing.T) {
 
 func TestPlayerGetByID(t *testing.T) {
 	playerName1 := "player1"
-	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
+	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
 	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
 
@@ -166,8 +166,8 @@ func TestRoomPost(t *testing.T) {
 func TestRoomsGet(t *testing.T) {
 	roomName1 := "room1"
 	roomName2 := "room2"
-	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
 	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
 	room2, err := requestNewRoom2.PerformAction()
@@ -210,7 +210,7 @@ func TestRoomsGet(t *testing.T) {
 
 func TestRoomGetByID(t *testing.T) {
 	roomName1 := "room1"
-	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
 	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
 
@@ -267,12 +267,12 @@ func TestRoomGetByID(t *testing.T) {
 
 func TestRoomAddPlayer(t *testing.T) {
 	playerName1 := "player1"
-	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
+	requestNewPlayer1 := &player.RequestNewPlayer{DisplayName: playerName1}
 	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
 
 	roomName1 := "room1"
-	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
 	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
 
@@ -346,8 +346,8 @@ func TestRoomAddPlayer(t *testing.T) {
 func TestRoomRemovePlayer(t *testing.T) {
 	playerName1 := "player1"
 	playerName2 := "player2"
-	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer2 := entity.RequestNewPlayer{DisplayName: playerName2}
+	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
+	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
 	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
 	player2, err := requestNewPlayer2.PerformAction()
@@ -355,14 +355,14 @@ func TestRoomRemovePlayer(t *testing.T) {
 
 	roomName1 := "room1"
 	roomName2 := "room2"
-	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
 	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
 	room2, err := requestNewRoom2.PerformAction()
 	assert.Nil(t, err)
 
-	requestAddPlayer1 := &entity.RequestJoinRoom{
+	requestAddPlayer1 := &room.RequestJoinRoom{
 		PlayerID: player1.Data.GetID(),
 	}
 
@@ -372,7 +372,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 	requestAddPlayer1.RoomID = room2.Data.GetID()
 	room2, err = requestAddPlayer1.PerformAction()
 
-	requestAddPlayer2 := &entity.RequestJoinRoom{
+	requestAddPlayer2 := &room.RequestJoinRoom{
 		PlayerID: player2.Data.GetID(),
 	}
 
@@ -461,8 +461,8 @@ func TestRoomRemovePlayer(t *testing.T) {
 func TestRoomStartGame(t *testing.T) {
 	playerName1 := "player1"
 	playerName2 := "player2"
-	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer2 := entity.RequestNewPlayer{DisplayName: playerName2}
+	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
+	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
 	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
 	player2, err := requestNewPlayer2.PerformAction()
@@ -470,14 +470,14 @@ func TestRoomStartGame(t *testing.T) {
 
 	roomName1 := "room1"
 	roomName2 := "room2"
-	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
 	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
 	room2, err := requestNewRoom2.PerformAction()
 	assert.Nil(t, err)
 
-	requestAddPlayer1 := &entity.RequestJoinRoom{
+	requestAddPlayer1 := &room.RequestJoinRoom{
 		PlayerID: player1.Data.GetID(),
 	}
 
@@ -487,7 +487,7 @@ func TestRoomStartGame(t *testing.T) {
 	requestAddPlayer1.RoomID = room2.Data.GetID()
 	room2, err = requestAddPlayer1.PerformAction()
 
-	requestAddPlayer2 := &entity.RequestJoinRoom{
+	requestAddPlayer2 := &room.RequestJoinRoom{
 		PlayerID: player2.Data.GetID(),
 	}
 

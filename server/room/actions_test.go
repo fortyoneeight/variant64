@@ -1,10 +1,11 @@
-package entity
+package room
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/variant64/server/entity"
 )
 
 func TestRequestRoomAddPlayer(t *testing.T) {
@@ -21,7 +22,7 @@ func TestRequestRoomAddPlayer(t *testing.T) {
 
 	testcases := []struct {
 		name            string
-		room            *Entity[Room]
+		room            *entity.Entity[Room]
 		requests        []*RequestJoinRoom
 		expectedPlayers []uuid.UUID
 	}{
@@ -75,7 +76,7 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 
 	testcases := []struct {
 		name                  string
-		room                  *Entity[Room]
+		room                  *entity.Entity[Room]
 		addRequests           []*RequestJoinRoom
 		removeRequests        []*RequestLeaveRoom
 		expectedPlayersBefore []uuid.UUID

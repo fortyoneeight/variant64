@@ -14,10 +14,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/variant64/server/entity"
+	"github.com/variant64/server/room"
 	"github.com/variant64/server/store"
 )
 
-var requestHandler = entity.RequestHandler{}
+var requestHandler = room.RequestHandler{}
 
 type actionHandler[T store.Indexable] interface {
 	PerformAction() (*entity.Entity[T], error)
