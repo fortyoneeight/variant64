@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/variant64/server/entity"
 )
 
 func TestRequestRoomAddPlayer(t *testing.T) {
@@ -22,7 +21,7 @@ func TestRequestRoomAddPlayer(t *testing.T) {
 
 	testcases := []struct {
 		name            string
-		room            *entity.Entity[Room]
+		room            *Room
 		requests        []*RequestJoinRoom
 		expectedPlayers []uuid.UUID
 	}{
@@ -30,7 +29,7 @@ func TestRequestRoomAddPlayer(t *testing.T) {
 			name: "Add one player.",
 			room: room1,
 			requests: []*RequestJoinRoom{
-				{RoomID: room1.Data.GetID(), PlayerID: playerID1},
+				{RoomID: room1.GetID(), PlayerID: playerID1},
 			},
 			expectedPlayers: []uuid.UUID{playerID1},
 		},
@@ -38,8 +37,8 @@ func TestRequestRoomAddPlayer(t *testing.T) {
 			name: "Add multiple players.",
 			room: room2,
 			requests: []*RequestJoinRoom{
-				{RoomID: room2.Data.GetID(), PlayerID: playerID1},
-				{RoomID: room2.Data.GetID(), PlayerID: playerID2},
+				{RoomID: room2.GetID(), PlayerID: playerID1},
+				{RoomID: room2.GetID(), PlayerID: playerID2},
 			},
 			expectedPlayers: []uuid.UUID{playerID1, playerID2},
 		},
@@ -53,7 +52,7 @@ func TestRequestRoomAddPlayer(t *testing.T) {
 				tc.room = room
 			}
 
-			assert.Equal(t, tc.expectedPlayers, tc.room.Data.Players)
+			assert.Equal(t, tc.expectedPlayers, tc.room.Players)
 		})
 	}
 }
@@ -76,7 +75,7 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 
 	testcases := []struct {
 		name                  string
-		room                  *entity.Entity[Room]
+		room                  *Room
 		addRequests           []*RequestJoinRoom
 		removeRequests        []*RequestLeaveRoom
 		expectedPlayersBefore []uuid.UUID
@@ -86,10 +85,10 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 			name: "Remove one player.",
 			room: room1,
 			addRequests: []*RequestJoinRoom{
-				{RoomID: room1.Data.GetID(), PlayerID: playerID1},
+				{RoomID: room1.GetID(), PlayerID: playerID1},
 			},
 			removeRequests: []*RequestLeaveRoom{
-				{RoomID: room1.Data.GetID(), PlayerID: playerID1},
+				{RoomID: room1.GetID(), PlayerID: playerID1},
 			},
 			expectedPlayersBefore: []uuid.UUID{playerID1},
 			expectedPlayersAfter:  []uuid.UUID{},
@@ -98,11 +97,11 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 			name: "Remove one player with remaining.",
 			room: room2,
 			addRequests: []*RequestJoinRoom{
-				{RoomID: room2.Data.GetID(), PlayerID: playerID1},
-				{RoomID: room2.Data.GetID(), PlayerID: playerID2},
+				{RoomID: room2.GetID(), PlayerID: playerID1},
+				{RoomID: room2.GetID(), PlayerID: playerID2},
 			},
 			removeRequests: []*RequestLeaveRoom{
-				{RoomID: room2.Data.GetID(), PlayerID: playerID1},
+				{RoomID: room2.GetID(), PlayerID: playerID1},
 			},
 			expectedPlayersBefore: []uuid.UUID{playerID1, playerID2},
 			expectedPlayersAfter:  []uuid.UUID{playerID2},
@@ -111,12 +110,12 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 			name: "Remove multiple players.",
 			room: room3,
 			addRequests: []*RequestJoinRoom{
-				{RoomID: room3.Data.GetID(), PlayerID: playerID1},
-				{RoomID: room3.Data.GetID(), PlayerID: playerID2},
+				{RoomID: room3.GetID(), PlayerID: playerID1},
+				{RoomID: room3.GetID(), PlayerID: playerID2},
 			},
 			removeRequests: []*RequestLeaveRoom{
-				{RoomID: room3.Data.GetID(), PlayerID: playerID1},
-				{RoomID: room3.Data.GetID(), PlayerID: playerID2},
+				{RoomID: room3.GetID(), PlayerID: playerID1},
+				{RoomID: room3.GetID(), PlayerID: playerID2},
 			},
 			expectedPlayersBefore: []uuid.UUID{playerID1, playerID2},
 			expectedPlayersAfter:  []uuid.UUID{},
@@ -130,14 +129,14 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 				assert.Nil(t, err)
 				tc.room = room
 			}
-			assert.Equal(t, tc.expectedPlayersBefore, tc.room.Data.Players)
+			assert.Equal(t, tc.expectedPlayersBefore, tc.room.Players)
 
 			for _, r := range tc.removeRequests {
 				room, err := r.PerformAction()
 				assert.Nil(t, err)
 				tc.room = room
 			}
-			assert.Equal(t, tc.expectedPlayersAfter, tc.room.Data.Players)
+			assert.Equal(t, tc.expectedPlayersAfter, tc.room.Players)
 		})
 	}
 }
@@ -147,7 +146,7 @@ func TestRequestRoomStartGame(t *testing.T) {
 	assert.Nil(t, err)
 
 	request := &RequestJoinRoom{
-		RoomID:   room.Data.GetID(),
+		RoomID:   room.GetID(),
 		PlayerID: uuid.New(),
 	}
 
@@ -156,7 +155,7 @@ func TestRequestRoomStartGame(t *testing.T) {
 	assert.Nil(t, err)
 
 	request = &RequestJoinRoom{
-		RoomID:   room.Data.GetID(),
+		RoomID:   room.GetID(),
 		PlayerID: uuid.New(),
 	}
 
@@ -177,7 +176,7 @@ func TestRequestRoomStartGame(t *testing.T) {
 		{
 			name: "Add GameID.",
 			requests: []*RequestStartGame{
-				{RoomID: room.Data.GetID(), PlayerTimeMilis: 1_000},
+				{RoomID: room.GetID(), PlayerTimeMilis: 1_000},
 			},
 			expectGame: true,
 		},
@@ -190,9 +189,9 @@ func TestRequestRoomStartGame(t *testing.T) {
 				assert.Nil(t, err)
 
 				if tc.expectGame {
-					assert.NotNil(t, room.Data.GameID)
+					assert.NotNil(t, room.GameID)
 				} else {
-					assert.Nil(t, room.Data.GameID)
+					assert.Nil(t, room.GameID)
 				}
 			}
 		})

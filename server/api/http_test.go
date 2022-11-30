@@ -71,10 +71,10 @@ func TestPlayerGetByID(t *testing.T) {
 	}{
 		{
 			"Valid playerID.",
-			player1.Data.GetID().String(),
+			player1.GetID().String(),
 			[]string{
 				fmt.Sprintf("\"display_name\":\"%s\"", playerName1),
-				fmt.Sprintf("\"id\":\"%s\"", player1.Data.GetID()),
+				fmt.Sprintf("\"id\":\"%s\"", player1.GetID()),
 			},
 			200,
 		},
@@ -182,9 +182,9 @@ func TestRoomsGet(t *testing.T) {
 			"Multiple rooms.",
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
+				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
 				fmt.Sprintf("\"name\":\"%s\"", roomName2),
-				fmt.Sprintf("\"id\":\"%s\"", room2.Data.GetID()),
+				fmt.Sprintf("\"id\":\"%s\"", room2.GetID()),
 				"\"game_id\":null",
 			},
 			200,
@@ -222,10 +222,10 @@ func TestRoomGetByID(t *testing.T) {
 	}{
 		{
 			"Valid room ID.",
-			room1.Data.ID.String(),
+			room1.ID.String(),
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
+				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
 				"\"game_id\":null",
 			},
 			200,
@@ -285,19 +285,19 @@ func TestRoomAddPlayer(t *testing.T) {
 	}{
 		{
 			"Valid room ID.",
-			room1.Data.ID.String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
+			room1.ID.String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", player1.Data.GetID()),
+				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
+				fmt.Sprintf("\"players\":[\"%s\"]", player1.GetID()),
 				"\"game_id\":null",
 			},
 			200,
 		},
 		{
 			"Invalid body.",
-			room1.Data.ID.String(),
+			room1.ID.String(),
 			"{",
 			[]string{"failed to unmarshal request body"},
 			400,
@@ -305,7 +305,7 @@ func TestRoomAddPlayer(t *testing.T) {
 		{
 			"Invalid UUID.",
 			"1234",
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
 			[]string{
 				"failed to decode",
 			},
@@ -314,7 +314,7 @@ func TestRoomAddPlayer(t *testing.T) {
 		{
 			"Invalid room ID.",
 			uuid.New().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
 			[]string{
 				"not found",
 			},
@@ -363,20 +363,20 @@ func TestRoomRemovePlayer(t *testing.T) {
 	assert.Nil(t, err)
 
 	requestAddPlayer1 := &room.RequestJoinRoom{
-		PlayerID: player1.Data.GetID(),
+		PlayerID: player1.GetID(),
 	}
 
-	requestAddPlayer1.RoomID = room1.Data.GetID()
+	requestAddPlayer1.RoomID = room1.GetID()
 	room1, err = requestAddPlayer1.PerformAction()
 
-	requestAddPlayer1.RoomID = room2.Data.GetID()
+	requestAddPlayer1.RoomID = room2.GetID()
 	room2, err = requestAddPlayer1.PerformAction()
 
 	requestAddPlayer2 := &room.RequestJoinRoom{
-		PlayerID: player2.Data.GetID(),
+		PlayerID: player2.GetID(),
 	}
 
-	requestAddPlayer2.RoomID = room1.Data.GetID()
+	requestAddPlayer2.RoomID = room1.GetID()
 	room1, err = requestAddPlayer2.PerformAction()
 
 	testcases := []struct {
@@ -388,31 +388,31 @@ func TestRoomRemovePlayer(t *testing.T) {
 	}{
 		{
 			"Valid room ID and playerID.",
-			room1.Data.ID.String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
+			room1.ID.String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.Data.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", player2.Data.GetID()),
+				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
+				fmt.Sprintf("\"players\":[\"%s\"]", player2.GetID()),
 				"\"game_id\":null",
 			},
 			200,
 		},
 		{
 			"Valid room ID and invalid playerID.",
-			room2.Data.ID.String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.Data.GetID()),
+			room2.ID.String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName2),
-				fmt.Sprintf("\"id\":\"%s\"", room2.Data.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", player1.Data.GetID()),
+				fmt.Sprintf("\"id\":\"%s\"", room2.GetID()),
+				fmt.Sprintf("\"players\":[\"%s\"]", player1.GetID()),
 				"\"game_id\":null",
 			},
 			200,
 		},
 		{
 			"Invalid body.",
-			room1.Data.ID.String(),
+			room1.ID.String(),
 			"{",
 			[]string{"failed to unmarshal request body"},
 			400,
@@ -420,7 +420,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 		{
 			"Invalid UUID.",
 			"1234",
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
 			[]string{
 				"failed to decode",
 			},
@@ -429,7 +429,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 		{
 			"Invalid room ID.",
 			uuid.New().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
 			[]string{
 				"not found",
 			},
@@ -478,20 +478,20 @@ func TestRoomStartGame(t *testing.T) {
 	assert.Nil(t, err)
 
 	requestAddPlayer1 := &room.RequestJoinRoom{
-		PlayerID: player1.Data.GetID(),
+		PlayerID: player1.GetID(),
 	}
 
-	requestAddPlayer1.RoomID = room1.Data.GetID()
+	requestAddPlayer1.RoomID = room1.GetID()
 	room1, err = requestAddPlayer1.PerformAction()
 
-	requestAddPlayer1.RoomID = room2.Data.GetID()
+	requestAddPlayer1.RoomID = room2.GetID()
 	room2, err = requestAddPlayer1.PerformAction()
 
 	requestAddPlayer2 := &room.RequestJoinRoom{
-		PlayerID: player2.Data.GetID(),
+		PlayerID: player2.GetID(),
 	}
 
-	requestAddPlayer2.RoomID = room1.Data.GetID()
+	requestAddPlayer2.RoomID = room1.GetID()
 	room1, err = requestAddPlayer2.PerformAction()
 
 	testcases := []struct {
@@ -503,18 +503,18 @@ func TestRoomStartGame(t *testing.T) {
 	}{
 		{
 			"Valid room ID and playerID.",
-			room1.Data.ID.String(),
+			room1.ID.String(),
 			"{\"player_time_ms\":1000000}",
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"players\":[\"%s\",\"%s\"]", player1.Data.GetID(), player2.Data.GetID()),
+				fmt.Sprintf("\"players\":[\"%s\",\"%s\"]", player1.GetID(), player2.GetID()),
 				fmt.Sprintf("\"game_id\""),
 			},
 			200,
 		},
 		{
 			"Valid room ID not enough players.",
-			room2.Data.ID.String(),
+			room2.ID.String(),
 			"{\"player_time_ms\":1000000}",
 			[]string{
 				"invalid number of players",
@@ -523,7 +523,7 @@ func TestRoomStartGame(t *testing.T) {
 		},
 		{
 			"Invalid body.",
-			room1.Data.ID.String(),
+			room1.ID.String(),
 			"{",
 			[]string{"failed to unmarshal request body"},
 			400,

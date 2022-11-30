@@ -13,18 +13,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/variant64/server/entity"
-	"github.com/variant64/server/room"
-	"github.com/variant64/server/store"
 )
 
-var requestHandler = room.RequestHandler{}
-
-type actionHandler[T store.Indexable] interface {
-	PerformAction() (*entity.Entity[T], error)
+type actionHandler[T any] interface {
+	PerformAction() (T, error)
 }
 
-func handleActionRoute[T store.Indexable](w http.ResponseWriter, req *http.Request, handler actionHandler[T]) {
+func handleActionRoute[T any](w http.ResponseWriter, req *http.Request, handler actionHandler[T]) {
 	err := parseRequestParameters(req, handler)
 	if err != nil {
 		writeBadRequestResponse(w, err)
@@ -130,20 +125,8 @@ func writeServerErrorResponse(w http.ResponseWriter, err error) {
 }
 
 // writeEntityResponse writes the provided entity back to the client.
-func writeEntityResponse[T store.Indexable](w http.ResponseWriter, e *entity.Entity[T]) {
-	serialized, err := json.Marshal(e.Data)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-	}
-	_, err = w.Write(serialized)
-	if err != nil {
-		writeServerErrorResponse(w, err)
-	}
-}
-
-// writeEntityListResponse writes the provided entityList back to the client.
-func writeEntityListResponse[T store.Indexable](w http.ResponseWriter, e *entity.EntityList[T]) {
-	serialized, err := json.Marshal(e.Data)
+func writeEntityResponse[T any](w http.ResponseWriter, e T) {
+	serialized, err := json.Marshal(e)
 	if err != nil {
 		writeServerErrorResponse(w, err)
 	}

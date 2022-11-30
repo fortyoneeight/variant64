@@ -27,9 +27,7 @@ func TestRequestNewPlayer(t *testing.T) {
 			entity, err := tc.request.PerformAction()
 
 			assert.Nil(t, err)
-			assert.NotNil(t, entity.EntityStore)
-			assert.NotNil(t, entity.Data)
-			assert.Equal(t, tc.expectedDisplayName, entity.Data.DisplayName)
+			assert.Equal(t, tc.expectedDisplayName, entity.DisplayName)
 		})
 	}
 }
@@ -47,9 +45,9 @@ func TestRequestGetPlayer(t *testing.T) {
 		{
 			name: "Get player.",
 			request: RequestGetPlayer{
-				PlayerID: player.Data.GetID(),
+				PlayerID: player.GetID(),
 			},
-			expectedID: player.Data.GetID(),
+			expectedID: player.GetID(),
 		},
 	}
 
@@ -58,9 +56,7 @@ func TestRequestGetPlayer(t *testing.T) {
 			entity, err := tc.request.PerformAction()
 
 			assert.Nil(t, err)
-			assert.NotNil(t, entity.EntityStore)
-			assert.NotNil(t, entity.Data)
-			assert.Equal(t, tc.expectedID, entity.Data.ID)
+			assert.Equal(t, tc.expectedID, entity.ID)
 		})
 	}
 }

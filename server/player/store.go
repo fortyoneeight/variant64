@@ -7,13 +7,13 @@ import (
 	"github.com/variant64/server/store"
 )
 
-var playerStore *store.IndexedStore[Player]
+var playerStore *store.IndexedStore[*Player]
 
 // getPlayerStore returns the global store for Player entities.
-func getPlayerStore() *store.IndexedStore[Player] {
+func getPlayerStore() *store.IndexedStore[*Player] {
 	if playerStore == nil {
-		playerStore = &store.IndexedStore[Player]{
-			DataMap: make(map[uuid.UUID]Player),
+		playerStore = &store.IndexedStore[*Player]{
+			DataMap: make(map[uuid.UUID]*Player),
 			Mux:     &sync.RWMutex{},
 		}
 	}

@@ -17,6 +17,6 @@ type Room struct {
 }
 
 // GetID returns a Room's ID.
-func (r Room) GetID() uuid.UUID {
+func (r *Room) GetID() uuid.UUID {
 	return r.ID
 }

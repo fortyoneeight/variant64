@@ -9,6 +9,6 @@ type Player struct {
 }
 
 // GetID returns a Player's ID.
-func (p Player) GetID() uuid.UUID {
+func (p *Player) GetID() uuid.UUID {
 	return p.ID
 }

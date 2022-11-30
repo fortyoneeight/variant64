@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
@@ -13,8 +12,7 @@ type Indexable interface {
 
 type IndexedStore[T Indexable] struct {
 	DataMap map[uuid.UUID]T
-
-	Mux *sync.RWMutex
+	Mux     *sync.RWMutex
 }
 
 func (i *IndexedStore[T]) Lock() {
@@ -33,26 +31,12 @@ func (i *IndexedStore[T]) GetAll() []T {
 	return list
 }
 
-func (i *IndexedStore[T]) GetByID(id uuid.UUID) []T {
+func (i *IndexedStore[T]) GetByID(id uuid.UUID) T {
+	var result T
 	if val, ok := i.DataMap[id]; ok {
-		return []T{val}
+		result = val
 	}
-
-	return []T{}
-}
-
-func (i *IndexedStore[T]) Load(t *T) error {
-	if val, ok := i.DataMap[(*t).GetID()]; ok {
-		*t = val
-		return nil
-	}
-	return fmt.Errorf("not found %T", t)
-}
-
-func (i *IndexedStore[T]) LoadAll(ts *[]T) {
-	for _, val := range i.DataMap {
-		*ts = append(*ts, val)
-	}
+	return result
 }
 
 func (i *IndexedStore[T]) Store(t T) {

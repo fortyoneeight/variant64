@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/entity"
 )
 
 // RequestNewPlayer is used to create a new Player.
@@ -13,21 +12,23 @@ type RequestNewPlayer struct {
 }
 
 // PerformAction creates a new Player.
-func (r *RequestNewPlayer) PerformAction() (*entity.Entity[Player], error) {
-	e := &entity.Entity[Player]{}
+func (r *RequestNewPlayer) PerformAction() (*Player, error) {
 	if r.DisplayName == "" {
 		return nil, errors.New("display_name cannot be empty")
 	}
 
-	e.EntityStore = getPlayerStore()
-	e.Data = Player{
+	player := &Player{
 		ID:          uuid.New(),
 		DisplayName: r.DisplayName,
 	}
 
-	e.Store()
+	playerStore := getPlayerStore()
+	playerStore.Lock()
+	defer playerStore.Unlock()
 
-	return e, nil
+	playerStore.Store(player)
+
+	return player, nil
 }
 
 // RequestGetPlayer is used to get a Player by its ID.
@@ -36,17 +37,15 @@ type RequestGetPlayer struct {
 }
 
 // PerformAction loads a Player.
-func (r *RequestGetPlayer) PerformAction() (*entity.Entity[Player], error) {
-	e := &entity.Entity[Player]{}
-	e.EntityStore = getPlayerStore()
-	e.Data = Player{
-		ID: r.PlayerID,
+func (r *RequestGetPlayer) PerformAction() (*Player, error) {
+	playerStore := getPlayerStore()
+	playerStore.Lock()
+	defer playerStore.Unlock()
+
+	player := playerStore.GetByID(r.PlayerID)
+	if player == nil {
+		return nil, errors.New("not found")
 	}
 
-	err := e.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	return e, nil
+	return player, nil
 }

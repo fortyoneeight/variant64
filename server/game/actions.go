@@ -3,7 +3,6 @@ package game
 import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/variant64/server/entity"
 	"github.com/variant64/server/timer"
 )
 
@@ -14,32 +13,34 @@ type RequestNewGame struct {
 }
 
 // PerformAction creates a new Game.
-func (r *RequestNewGame) PerformAction() (*entity.Entity[*Game], error) {
+func (r *RequestNewGame) PerformAction() (*Game, error) {
 	if len(r.PlayerOrder) < 2 {
 		return nil, errors.New("invalid number of players, must be >= 2")
 	}
 
-	e := &entity.Entity[*Game]{}
-	e.EntityStore = getGameStore()
-	e.Data = &Game{
+	game := &Game{
 		id:           uuid.New(),
 		playerOrder:  append(r.PlayerOrder[1:], r.PlayerOrder[0]),
 		playerTimers: make(map[uuid.UUID]*timer.Timer),
 		activePlayer: r.PlayerOrder[0],
 	}
-	e.Data.updatePub = NewGameUpdatesPub(e.Data.id)
+	game.updatePub = NewGameUpdatesPub(game.GetID())
 
 	for _, player := range r.PlayerOrder {
 		timerRequest := timer.RequestNewTimer{
 			StartingTimeMilis: r.PlayerTimeMilis,
 			DecrementMilis:    1_000,
 		}
-		e.Data.playerTimers[player] = timer.NewTimer(timerRequest)
+		game.playerTimers[player] = timer.NewTimer(timerRequest)
 	}
 
-	e.Store()
+	gameStore := getGameStore()
+	gameStore.Lock()
+	defer gameStore.Unlock()
 
-	return e, nil
+	gameStore.Store(game)
+
+	return game, nil
 }
 
 // RequestGetGame is used to get a Game by its ID.
@@ -48,43 +49,32 @@ type RequestGetGame struct {
 }
 
 // PerformAction loads a Game.
-func (r *RequestGetGame) PerformAction() (*entity.Entity[*Game], error) {
-	e := &entity.Entity[*Game]{}
-	e.EntityStore = getGameStore()
-	e.Data = &Game{
-		id: r.GameID,
+func (r *RequestGetGame) PerformAction() (*Game, error) {
+	gameStore := getGameStore()
+	gameStore.Lock()
+	defer gameStore.Unlock()
+
+	game := gameStore.GetByID(r.GameID)
+	if game == nil {
+		return nil, errors.New("not found")
 	}
 
-	err := e.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	return e, nil
+	return game, nil
 }
 
-// RequestGamePassTurn is used to pass the turn in a Game.
+// RequestStartGame is used to start a Game.
 type RequestStartGame struct {
 	GameID uuid.UUID `json:"game_id"`
 }
 
 // PerformAction starts a Game.
-func (r *RequestStartGame) PerformAction() (*entity.Entity[*Game], error) {
+func (r *RequestStartGame) PerformAction() (*Game, error) {
 	e, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
 	if err != nil {
 		return nil, err
 	}
 
-	e.Data.start()
+	e.start()
 
 	return e, nil
-}
-
-// RequestGamePassTurn is used to pass the turn in a Game.
-type RequestGamePassTurn struct{}
-
-// Write passes the turn to the next player of the provided Game.
-func (r *RequestGamePassTurn) Write(e *entity.Entity[*Game]) error {
-	e.Data.passTurn()
-	return nil
 }
