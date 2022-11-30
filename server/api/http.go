@@ -3,7 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/variant64/server/entity"
+	"github.com/variant64/server/player"
+	"github.com/variant64/server/room"
 )
 
 type errorResponse struct {
@@ -18,7 +19,7 @@ type errorResponse struct {
 // @Success	200		{object}	entity.Player
 // @Failure	400		{object}	errorResponse
 func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[entity.Player](w, req, &entity.RequestNewPlayer{})
+	handleActionRoute[player.Player](w, req, &player.RequestNewPlayer{})
 }
 
 // @Summary	Get player by id.
@@ -29,7 +30,7 @@ func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[entity.Player](w, req, &entity.RequestGetPlayer{})
+	handleActionRoute[player.Player](w, req, &player.RequestGetPlayer{})
 }
 
 // @Summary	Create a new room.
@@ -40,7 +41,7 @@ func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
 // @Success	200		{object}	entity.Room
 // @Failure	400		{object}	errorResponse
 func handlePostRoom(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[entity.Room](w, req, &entity.RequestNewRoom{})
+	handleActionRoute[room.Room](w, req, &room.RequestNewRoom{})
 }
 
 // @Summary	Get all rooms.
@@ -50,7 +51,7 @@ func handlePostRoom(w http.ResponseWriter, req *http.Request) {
 // @Failure	404	{object}	errorResponse
 // @Failure	500	{object}	errorResponse
 func handleGetRooms(w http.ResponseWriter, req *http.Request) {
-	requestGetRooms := &entity.RequestGetRooms{}
+	requestGetRooms := &room.RequestGetRooms{}
 	rooms := requestHandler.HandleGetRooms(requestGetRooms)
 
 	writeEntityListResponse(w, rooms)
@@ -65,7 +66,7 @@ func handleGetRooms(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[entity.Room](w, req, &entity.RequestGetRoom{})
+	handleActionRoute[room.Room](w, req, &room.RequestGetRoom{})
 }
 
 // @Summary	Add player to a room.
@@ -79,7 +80,7 @@ func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[entity.Room](w, req, &entity.RequestJoinRoom{})
+	handleActionRoute[room.Room](w, req, &room.RequestJoinRoom{})
 }
 
 // @Summary	Remove player from a room.
@@ -93,7 +94,7 @@ func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[entity.Room](w, req, &entity.RequestLeaveRoom{})
+	handleActionRoute[room.Room](w, req, &room.RequestLeaveRoom{})
 }
 
 // @Summary	Start game in a room.
@@ -107,5 +108,5 @@ func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handlePostRoomStart(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[entity.Room](w, req, &entity.RequestStartGame{})
+	handleActionRoute[room.Room](w, req, &room.RequestStartGame{})
 }
