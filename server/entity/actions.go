@@ -1,8 +1,6 @@
 package entity
 
 import (
-	"encoding/json"
-
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/variant64/server/store"
@@ -18,44 +16,6 @@ type entityReader[T store.Indexable] interface {
 	Read(*Entity[T]) error
 }
 
-// HandleNew handles a new entity request.
-func HandleNew[T store.Indexable](r entityWriter[T]) (*Entity[T], error) {
-	entity := &Entity[T]{}
-	err := r.Write(entity)
-	if err != nil {
-		return nil, err
-	}
-
-	entity.Store()
-
-	return entity, nil
-}
-
-// HandleGet handles an get entity request.
-func HandleGet[T store.Indexable](r entityReader[T]) (*Entity[T], error) {
-	entity := &Entity[T]{}
-	err := r.Read(entity)
-	if err != nil {
-		return nil, err
-	}
-	return entity, nil
-}
-
-// HandleNewPlayer handles a RequestNewPlayer.
-func (h *RequestHandler) HandleNewPlayer(r *RequestNewPlayer) (*Entity[Player], error) {
-	return HandleNew[Player](r)
-}
-
-// HandleGetPlayer handles a RequestGetPlayer.
-func (h *RequestHandler) HandleGetPlayer(r *RequestGetPlayer) (*Entity[Player], error) {
-	return HandleGet[Player](r)
-}
-
-// HandleNewRoom handles a RequestNewRoom.
-func (h *RequestHandler) HandleNewRoom(r *RequestNewRoom) (*Entity[Room], error) {
-	return HandleNew[Room](r)
-}
-
 // HandleGetRooms handles a RequestGetRooms.
 func (h *RequestHandler) HandleGetRooms(r *RequestGetRooms) *EntityList[Room] {
 	rooms := &EntityList[Room]{}
@@ -65,12 +25,12 @@ func (h *RequestHandler) HandleGetRooms(r *RequestGetRooms) *EntityList[Room] {
 
 // RequestJoinRoom is used to add a Player to a Room.
 type RequestJoinRoom struct {
-	RoomID   uuid.UUID `json:"room_id"`
+	RoomID   uuid.UUID `json:"room_id" mapstructure:"room_id"`
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
 func (r *RequestJoinRoom) PerformAction() (*Entity[Room], error) {
-	room, err := HandleGet[Room](&RequestGetRoom{ID: r.RoomID})
+	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
 	}
@@ -87,19 +47,15 @@ func (r *RequestJoinRoom) PerformAction() (*Entity[Room], error) {
 	return room, nil
 }
 
-func (r *RequestJoinRoom) Unmarshal(data []byte) error {
-	return json.Unmarshal(data, r)
-}
-
 // RequestLeaveRoom is used to remove a Player from a Room.
 type RequestLeaveRoom struct {
-	RoomID   uuid.UUID `json:"room_id"`
+	RoomID   uuid.UUID `json:"room_id" mapstructure:"room_id"`
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
 // RequestLeaveRoom handles a RequestRoomAddPlayer.
 func (r *RequestLeaveRoom) PerformAction() (*Entity[Room], error) {
-	room, err := HandleGet[Room](&RequestGetRoom{ID: r.RoomID})
+	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
 	}
@@ -115,24 +71,15 @@ func (r *RequestLeaveRoom) PerformAction() (*Entity[Room], error) {
 	return room, nil
 }
 
-func (r *RequestLeaveRoom) Unmarshal(data []byte) error {
-	return json.Unmarshal(data, r)
-}
-
-// HandleNewGame handles a RequestNewGame.
-func (h *RequestHandler) HandleNewGame(r *RequestNewGame) (*Entity[*Game], error) {
-	return HandleNew[*Game](r)
-}
-
 // RequestStartGame is used to start a new Game in a Room.
 type RequestStartGame struct {
-	RoomID          uuid.UUID `json:"room_id"`
+	RoomID          uuid.UUID `json:"room_id" mapstructure:"room_id"`
 	PlayerTimeMilis int64     `json:"player_time_ms"`
 }
 
 // HandleRequestGameStart handles a RequestGameStart.
 func (r *RequestStartGame) PerformAction() (*Entity[Room], error) {
-	room, err := HandleGet[Room](&RequestGetRoom{ID: r.RoomID})
+	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
 	}
@@ -142,7 +89,7 @@ func (r *RequestStartGame) PerformAction() (*Entity[Room], error) {
 		PlayerTimeMilis: r.PlayerTimeMilis,
 	}
 
-	game, err := HandleNew[*Game](requestNewGame)
+	game, err := requestNewGame.PerformAction()
 	if err != nil || game == nil {
 		return nil, err
 	}
@@ -156,8 +103,4 @@ func (r *RequestStartGame) PerformAction() (*Entity[Room], error) {
 	game.Store()
 
 	return room, nil
-}
-
-func (r *RequestStartGame) Unmarshal(data []byte) error {
-	return json.Unmarshal(data, r)
 }

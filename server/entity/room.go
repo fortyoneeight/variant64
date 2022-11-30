@@ -24,15 +24,16 @@ func (r Room) GetID() uuid.UUID {
 
 // RequestNewRoom is used to create a new Room.
 type RequestNewRoom struct {
-	Name string `json:"room_name"`
+	Name string `json:"room_name" mapstructure:"room_name"`
 }
 
-// Write initializes all fields of the provided Room.
-func (r *RequestNewRoom) Write(e *Entity[Room]) error {
+// PerformAction creates a new Room.
+func (r *RequestNewRoom) PerformAction() (*Entity[Room], error) {
 	if r.Name == "" {
-		return errors.New("room_name cannot be empty")
+		return nil, errors.New("room_name cannot be empty")
 	}
 
+	e := &Entity[Room]{}
 	e.EntityStore = GetRoomStore()
 	e.Data = Room{
 		ID:      uuid.New(),
@@ -40,27 +41,31 @@ func (r *RequestNewRoom) Write(e *Entity[Room]) error {
 		Players: make([]uuid.UUID, 0),
 		mux:     &sync.RWMutex{},
 	}
-	return nil
+
+	e.Store()
+
+	return e, nil
 }
 
 // RequestGetRoom is used to get a Room by its ID.
 type RequestGetRoom struct {
-	ID uuid.UUID `json:"room_id"`
+	RoomID uuid.UUID `json:"room_id" mapstructure:"room_id"`
 }
 
-// Read intializes the ID field of the provided Room.
-func (r *RequestGetRoom) Read(e *Entity[Room]) error {
+// PerformAction loads a Room.
+func (r *RequestGetRoom) PerformAction() (*Entity[Room], error) {
+	e := &Entity[Room]{}
 	e.EntityStore = GetRoomStore()
 	e.Data = Room{
-		ID: r.ID,
+		ID: r.RoomID,
 	}
 
 	err := e.Load()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return e, nil
 }
 
 // RequestGetRooms is used to get all Rooms.

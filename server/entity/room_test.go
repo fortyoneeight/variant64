@@ -24,9 +24,9 @@ func TestRequestNewRoom(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			entity := &Entity[Room]{}
-			tc.request.Write(entity)
+			entity, err := tc.request.PerformAction()
 
+			assert.Nil(t, err)
 			assert.NotNil(t, entity.EntityStore)
 			assert.NotNil(t, entity.Data)
 			assert.Equal(t, tc.expectedName, entity.Data.Name)
@@ -36,7 +36,7 @@ func TestRequestNewRoom(t *testing.T) {
 }
 
 func TestRequestGetRoom(t *testing.T) {
-	roomID := uuid.New()
+	room, _ := (&RequestNewRoom{Name: "room1"}).PerformAction()
 
 	testcases := []struct {
 		name       string
@@ -46,17 +46,17 @@ func TestRequestGetRoom(t *testing.T) {
 		{
 			name: "New empty room.",
 			request: RequestGetRoom{
-				ID: roomID,
+				RoomID: room.Data.GetID(),
 			},
-			expectedID: roomID,
+			expectedID: room.Data.GetID(),
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			entity := &Entity[Room]{}
-			tc.request.Read(entity)
+			entity, err := tc.request.PerformAction()
 
+			assert.Nil(t, err)
 			assert.NotNil(t, entity.EntityStore)
 			assert.NotNil(t, entity.Data)
 			assert.Equal(t, tc.expectedID, entity.Data.ID)

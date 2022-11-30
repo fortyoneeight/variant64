@@ -24,9 +24,9 @@ func TestRequestNewPlayer(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			entity := &Entity[Player]{}
-			tc.request.Write(entity)
+			entity, err := tc.request.PerformAction()
 
+			assert.Nil(t, err)
 			assert.NotNil(t, entity.EntityStore)
 			assert.NotNil(t, entity.Data)
 			assert.Equal(t, tc.expectedDisplayName, entity.Data.DisplayName)
@@ -35,7 +35,9 @@ func TestRequestNewPlayer(t *testing.T) {
 }
 
 func TestRequestGetPlayer(t *testing.T) {
-	id := uuid.New()
+	player, _ := (&RequestNewPlayer{
+		DisplayName: "player1",
+	}).PerformAction()
 
 	testcases := []struct {
 		name       string
@@ -45,17 +47,17 @@ func TestRequestGetPlayer(t *testing.T) {
 		{
 			name: "Get player.",
 			request: RequestGetPlayer{
-				ID: id,
+				PlayerID: player.Data.GetID(),
 			},
-			expectedID: id,
+			expectedID: player.Data.GetID(),
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			entity := &Entity[Player]{}
-			tc.request.Read(entity)
+			entity, err := tc.request.PerformAction()
 
+			assert.Nil(t, err)
 			assert.NotNil(t, entity.EntityStore)
 			assert.NotNil(t, entity.Data)
 			assert.Equal(t, tc.expectedID, entity.Data.ID)

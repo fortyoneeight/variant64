@@ -8,14 +8,12 @@ import (
 )
 
 func TestRequestRoomAddPlayer(t *testing.T) {
-	requestHandler := RequestHandler{}
-
 	newRoomRequest1 := &RequestNewRoom{Name: "room1"}
-	room1, err := requestHandler.HandleNewRoom(newRoomRequest1)
+	room1, err := newRoomRequest1.PerformAction()
 	assert.Nil(t, err)
 
 	newRoomRequest2 := &RequestNewRoom{Name: "room2"}
-	room2, err := requestHandler.HandleNewRoom(newRoomRequest2)
+	room2, err := newRoomRequest2.PerformAction()
 	assert.Nil(t, err)
 
 	playerID1 := uuid.New()
@@ -60,18 +58,16 @@ func TestRequestRoomAddPlayer(t *testing.T) {
 }
 
 func TestRequestRoomRemovePlayer(t *testing.T) {
-	requestHandler := RequestHandler{}
-
 	newRoomRequest1 := &RequestNewRoom{Name: "room1"}
-	room1, err := requestHandler.HandleNewRoom(newRoomRequest1)
+	room1, err := newRoomRequest1.PerformAction()
 	assert.Nil(t, err)
 
 	newRoomRequest2 := &RequestNewRoom{Name: "room2"}
-	room2, err := requestHandler.HandleNewRoom(newRoomRequest2)
+	room2, err := newRoomRequest2.PerformAction()
 	assert.Nil(t, err)
 
 	newRoomRequest3 := &RequestNewRoom{Name: "room3"}
-	room3, err := requestHandler.HandleNewRoom(newRoomRequest3)
+	room3, err := newRoomRequest3.PerformAction()
 	assert.Nil(t, err)
 
 	playerID1 := uuid.New()
@@ -146,8 +142,7 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 }
 
 func TestRequestRoomStartGame(t *testing.T) {
-	requestHandler := RequestHandler{}
-	room, err := requestHandler.HandleNewRoom(&RequestNewRoom{Name: "name"})
+	room, err := (&RequestNewRoom{Name: "name"}).PerformAction()
 	assert.Nil(t, err)
 
 	request := &RequestJoinRoom{
