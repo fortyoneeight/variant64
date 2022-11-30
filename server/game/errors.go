@@ -13,7 +13,7 @@ func (e errGameNotFound) GetType() errortypes.Type {
 }
 
 func (e errGameNotFound) Error() string {
-	return "Player error: not found"
+	return "Game error: not found"
 }
 
 type errInvalidPlayersNumber struct {
@@ -25,5 +25,35 @@ func (i errInvalidPlayersNumber) GetType() errortypes.Type {
 }
 
 func (i errInvalidPlayersNumber) Error() string {
-	return fmt.Sprintf("Player error: invalid number of players: %d", i.number)
+	return fmt.Sprintf("Game error: invalid number of players: %d", i.number)
+}
+
+type errPlayerNotInGame struct{}
+
+func (e errPlayerNotInGame) GetType() errortypes.Type {
+	return errortypes.NotFound
+}
+
+func (e errPlayerNotInGame) Error() string {
+	return "Game error: player not found in game"
+}
+
+type errGameFinsished struct{}
+
+func (e errGameFinsished) GetType() errortypes.Type {
+	return errortypes.BadRequest
+}
+
+func (e errGameFinsished) Error() string {
+	return "Game error: game already finished"
+}
+
+type errGameStarted struct{}
+
+func (e errGameStarted) GetType() errortypes.Type {
+	return errortypes.BadRequest
+}
+
+func (e errGameStarted) Error() string {
+	return "Game error: game already started"
 }

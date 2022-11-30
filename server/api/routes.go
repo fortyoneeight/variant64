@@ -22,7 +22,8 @@ var httpRoutes = []route{
 	{"/api/room/{room_id}", "Get a Room by ID.", handleGetRoomByID, []string{"GET"}},
 	{"/api/room/{room_id}/join", "Add a Player to a Room.", handlePostRoomJoin, []string{"POST"}},
 	{"/api/room/{room_id}/leave", "Remove a Player from a Room.", handlePostRoomLeave, []string{"POST"}},
-	{"/api/room/{room_id}/start", "Start the Game in a Room.", handlePostRoomStart, []string{"POST"}},
+	{"/api/game", "Start the Game.", handlePostGame, []string{"POST"}},
+	{"/api/game/{game_id}/concede", "Player concedes a Game.", handlePostGamePlayerConcede, []string{"POST"}},
 }
 
 var websocketRoutes = []route{

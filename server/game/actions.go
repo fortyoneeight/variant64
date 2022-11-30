@@ -1,6 +1,8 @@
 package game
 
 import (
+	"sync"
+
 	"github.com/google/uuid"
 	"github.com/variant64/server/errortypes"
 	"github.com/variant64/server/timer"
@@ -19,10 +21,15 @@ func (r *RequestNewGame) PerformAction() (*Game, errortypes.TypedError) {
 	}
 
 	game := &Game{
-		id:           uuid.New(),
+		ID:           uuid.New(),
+		ActivePlayer: r.PlayerOrder[0],
 		playerOrder:  append(r.PlayerOrder[1:], r.PlayerOrder[0]),
 		playerTimers: make(map[uuid.UUID]*timer.Timer),
-		activePlayer: r.PlayerOrder[0],
+		Winners:      []uuid.UUID{},
+		Losers:       []uuid.UUID{},
+		Drawn:        []uuid.UUID{},
+		State:        StateNotStarted,
+		mux:          &sync.Mutex{},
 	}
 	game.updatePub = NewGameUpdatesPub(game.GetID())
 
@@ -74,7 +81,30 @@ func (r *RequestStartGame) PerformAction() (*Game, errortypes.TypedError) {
 		return nil, err
 	}
 
-	e.start()
+	err = e.start()
+	if err != nil {
+		return nil, err
+	}
 
 	return e, nil
+}
+
+// RequestConcedeGame is used to concede a Game.
+type RequestConcedeGame struct {
+	GameID   uuid.UUID `json:"game_id" mapstructure:"game_id" swaggerignore:"true"`
+	PlayerID uuid.UUID `json:"player_id"`
+}
+
+func (r *RequestConcedeGame) PerformAction() (*Game, errortypes.TypedError) {
+	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
+	if err != nil {
+		return nil, err
+	}
+
+	err = game.declareLoser(r.PlayerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
 }

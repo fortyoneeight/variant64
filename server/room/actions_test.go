@@ -185,13 +185,13 @@ func TestRequestRoomStartGame(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, r := range tc.requests {
-				room, err := r.PerformAction()
+				game, err := r.PerformAction()
 				assert.Nil(t, err)
 
 				if tc.expectGame {
-					assert.NotNil(t, room.GameID)
+					assert.NotNil(t, game)
 				} else {
-					assert.Nil(t, room.GameID)
+					assert.Nil(t, game)
 				}
 			}
 		})

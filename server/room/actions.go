@@ -73,7 +73,7 @@ func (r *RequestGetRooms) PerformAction() ([]*Room, errortypes.TypedError) {
 
 // RequestJoinRoom is used to add a Player to a Room.
 type RequestJoinRoom struct {
-	RoomID   uuid.UUID `json:"room_id" mapstructure:"room_id"`
+	RoomID   uuid.UUID `json:"room_id" mapstructure:"room_id" swaggerignore:"true"`
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
@@ -101,7 +101,7 @@ func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 // RequestLeaveRoom is used to remove a Player from a Room.
 type RequestLeaveRoom struct {
-	RoomID   uuid.UUID `json:"room_id" mapstructure:"room_id"`
+	RoomID   uuid.UUID `json:"room_id" mapstructure:"room_id" swaggerignore:"true"`
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
@@ -134,7 +134,7 @@ type RequestStartGame struct {
 }
 
 // PerformAction starts a game.Game in a Room.
-func (r *RequestStartGame) PerformAction() (*Room, errortypes.TypedError) {
+func (r *RequestStartGame) PerformAction() (*game.Game, errortypes.TypedError) {
 	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
@@ -164,5 +164,5 @@ func (r *RequestStartGame) PerformAction() (*Room, errortypes.TypedError) {
 
 	roomStore.Store(room)
 
-	return room, nil
+	return gameEntity, nil
 }

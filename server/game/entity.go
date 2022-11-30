@@ -1,19 +1,38 @@
 package game
 
 import (
+	"sync"
+
 	"github.com/google/uuid"
+	"github.com/variant64/server/errortypes"
 	"github.com/variant64/server/timer"
+)
+
+type gameState string
+
+const (
+	StateNotStarted gameState = "not_started"
+	StateStarted    gameState = "started"
+	StateFinished   gameState = "finished"
 )
 
 // Game represents an on-going game between a list of players.
 type Game struct {
-	id uuid.UUID
+	ID uuid.UUID `json:"id"`
 
-	activePlayer uuid.UUID
+	ActivePlayer uuid.UUID `json:"active_player"`
 	playerTimers map[uuid.UUID]*timer.Timer
 	playerOrder  []uuid.UUID
 
+	Winners []uuid.UUID `json:"winning_players"`
+	Losers  []uuid.UUID `json:"losing_players"`
+	Drawn   []uuid.UUID `json:"drawn_players"`
+
+	State gameState `json:"state"`
+
 	updatePub *updatePub[GameUpdate]
+
+	mux *sync.Mutex
 }
 
 // GameUpdate represents a change in a Game's state.
@@ -26,26 +45,96 @@ type GameUpdate struct {
 
 // GetID returns a Game's ID.
 func (g Game) GetID() uuid.UUID {
-	return g.id
+	return g.ID
 }
 
 // start initializes the game and starts it.
-func (g *Game) start() {
+func (g *Game) start() errortypes.TypedError {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+
+	if g.State != StateNotStarted {
+		return errGameStarted{}
+	}
+
 	g.subscribeToTimers()
 	for _, timer := range g.playerTimers {
 		timer.Start()
 	}
-	g.playerTimers[g.activePlayer].Unpause()
+	g.playerTimers[g.ActivePlayer].Unpause()
+	g.State = StateStarted
+
+	return nil
 }
 
 // passTurn passes the turn to the next player
 // the active player's clock pauses and the next player's clock unpauses.
 func (g *Game) passTurn() {
-	g.playerTimers[g.activePlayer].Pause()
+	g.playerTimers[g.ActivePlayer].Pause()
 	g.playerTimers[g.playerOrder[0]].Unpause()
 
-	g.activePlayer = g.playerOrder[0]
+	g.ActivePlayer = g.playerOrder[0]
 	g.playerOrder = append(g.playerOrder[1:], g.playerOrder[0])
+}
+
+// declareLoser sets one player as the winner and all other players as losers.
+func (g *Game) declareWinner(playerID uuid.UUID) error {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+
+	if g.State != StateStarted {
+		return errGameFinsished{}
+	}
+
+	winners := make([]uuid.UUID, 0)
+	losers := make([]uuid.UUID, 0)
+	for _, p := range g.playerOrder {
+		if p == playerID {
+			winners = append(winners, p)
+		} else {
+			losers = append(losers, p)
+		}
+	}
+
+	if len(winners) == 0 {
+		return errPlayerNotInGame{}
+	}
+
+	g.Winners = winners
+	g.Losers = losers
+	g.State = StateFinished
+
+	return nil
+}
+
+// declareLoser sets one player as the loser and all other players as winners.
+func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+
+	if g.State != StateStarted {
+		return errGameFinsished{}
+	}
+
+	winners := make([]uuid.UUID, 0)
+	losers := make([]uuid.UUID, 0)
+	for _, p := range g.playerOrder {
+		if p == playerID {
+			losers = append(losers, p)
+		} else {
+			winners = append(winners, p)
+		}
+	}
+
+	if len(losers) == 0 {
+		return errPlayerNotInGame{}
+	}
+
+	g.Winners = winners
+	g.Losers = losers
+	g.State = StateFinished
+
+	return nil
 }
 
 // subscribeToTimers starts a subscription to each player's Timer.
@@ -62,7 +151,7 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *timer.Timer) {
 		case val := <-t.TimerChan:
 			g.updatePub.Publish(
 				GameUpdate{
-					GameID: g.id,
+					GameID: g.ID,
 					Clocks: &map[uuid.UUID]int64{playerID: val},
 				},
 			)
