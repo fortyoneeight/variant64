@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
+	"github.com/variant64/server/errortypes"
 	"github.com/variant64/server/game"
 )
 
@@ -14,9 +14,9 @@ type RequestNewRoom struct {
 }
 
 // PerformAction creates a new Room.
-func (r *RequestNewRoom) PerformAction() (*Room, error) {
+func (r *RequestNewRoom) PerformAction() (*Room, errortypes.TypedError) {
 	if r.Name == "" {
-		return nil, errors.New("room_name cannot be empty")
+		return nil, errMissingName{}
 	}
 
 	room := &Room{
@@ -41,14 +41,14 @@ type RequestGetRoom struct {
 }
 
 // PerformAction loads a Room.
-func (r *RequestGetRoom) PerformAction() (*Room, error) {
+func (r *RequestGetRoom) PerformAction() (*Room, errortypes.TypedError) {
 	roomStore := getRoomStore()
 	roomStore.Lock()
 	defer roomStore.Unlock()
 
 	room := roomStore.GetByID(r.RoomID)
 	if room == nil {
-		return nil, errors.New("not found")
+		return nil, errRoomNotFound{}
 	}
 
 	return room, nil
@@ -58,14 +58,14 @@ func (r *RequestGetRoom) PerformAction() (*Room, error) {
 type RequestGetRooms struct{}
 
 // PerformAction gets all rooms.
-func (r *RequestGetRooms) PerformAction() ([]*Room, error) {
+func (r *RequestGetRooms) PerformAction() ([]*Room, errortypes.TypedError) {
 	roomStore := getRoomStore()
 	roomStore.Lock()
 	defer roomStore.Unlock()
 
 	rooms := roomStore.GetAll()
 	if rooms == nil {
-		return nil, errors.New("not found")
+		return nil, errRoomNotFound{}
 	}
 
 	return rooms, nil
@@ -77,7 +77,7 @@ type RequestJoinRoom struct {
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
-func (r *RequestJoinRoom) PerformAction() (*Room, error) {
+func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
 	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (r *RequestJoinRoom) PerformAction() (*Room, error) {
 
 	for _, p := range room.Players {
 		if p == r.PlayerID {
-			return nil, errors.New("player cannot be duplicate")
+			return nil, errDuplicatePlayer{playerID: r.PlayerID}
 		}
 	}
 	room.Players = append(room.Players, r.PlayerID)
@@ -106,7 +106,7 @@ type RequestLeaveRoom struct {
 }
 
 // RequestLeaveRoom handles a RequestRoomAddPlayer.
-func (r *RequestLeaveRoom) PerformAction() (*Room, error) {
+func (r *RequestLeaveRoom) PerformAction() (*Room, errortypes.TypedError) {
 	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
@@ -134,7 +134,7 @@ type RequestStartGame struct {
 }
 
 // PerformAction starts a game.Game in a Room.
-func (r *RequestStartGame) PerformAction() (*Room, error) {
+func (r *RequestStartGame) PerformAction() (*Room, errortypes.TypedError) {
 	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err

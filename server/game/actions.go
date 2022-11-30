@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
+	"github.com/variant64/server/errortypes"
 	"github.com/variant64/server/timer"
 )
 
@@ -13,9 +13,9 @@ type RequestNewGame struct {
 }
 
 // PerformAction creates a new Game.
-func (r *RequestNewGame) PerformAction() (*Game, error) {
+func (r *RequestNewGame) PerformAction() (*Game, errortypes.TypedError) {
 	if len(r.PlayerOrder) < 2 {
-		return nil, errors.New("invalid number of players, must be >= 2")
+		return nil, errInvalidPlayersNumber{number: len(r.PlayerOrder)}
 	}
 
 	game := &Game{
@@ -49,14 +49,14 @@ type RequestGetGame struct {
 }
 
 // PerformAction loads a Game.
-func (r *RequestGetGame) PerformAction() (*Game, error) {
+func (r *RequestGetGame) PerformAction() (*Game, errortypes.TypedError) {
 	gameStore := getGameStore()
 	gameStore.Lock()
 	defer gameStore.Unlock()
 
 	game := gameStore.GetByID(r.GameID)
 	if game == nil {
-		return nil, errors.New("not found")
+		return nil, errGameNotFound{}
 	}
 
 	return game, nil
@@ -68,7 +68,7 @@ type RequestStartGame struct {
 }
 
 // PerformAction starts a Game.
-func (r *RequestStartGame) PerformAction() (*Game, error) {
+func (r *RequestStartGame) PerformAction() (*Game, errortypes.TypedError) {
 	e, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
 	if err != nil {
 		return nil, err

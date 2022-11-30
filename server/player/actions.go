@@ -1,9 +1,8 @@
 package player
 
 import (
-	"errors"
-
 	"github.com/google/uuid"
+	"github.com/variant64/server/errortypes"
 )
 
 // RequestNewPlayer is used to create a new Player.
@@ -12,9 +11,9 @@ type RequestNewPlayer struct {
 }
 
 // PerformAction creates a new Player.
-func (r *RequestNewPlayer) PerformAction() (*Player, error) {
+func (r *RequestNewPlayer) PerformAction() (*Player, errortypes.TypedError) {
 	if r.DisplayName == "" {
-		return nil, errors.New("display_name cannot be empty")
+		return nil, missingDisplayName{}
 	}
 
 	player := &Player{
@@ -37,14 +36,14 @@ type RequestGetPlayer struct {
 }
 
 // PerformAction loads a Player.
-func (r *RequestGetPlayer) PerformAction() (*Player, error) {
+func (r *RequestGetPlayer) PerformAction() (*Player, errortypes.TypedError) {
 	playerStore := getPlayerStore()
 	playerStore.Lock()
 	defer playerStore.Unlock()
 
 	player := playerStore.GetByID(r.PlayerID)
 	if player == nil {
-		return nil, errors.New("not found")
+		return nil, errPlayerNotFound{}
 	}
 
 	return player, nil

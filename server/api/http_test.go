@@ -29,8 +29,8 @@ func TestPlayerPost(t *testing.T) {
 		{
 			"Invalid user.",
 			"{}",
-			[]string{"display_name cannot be empty"},
-			404,
+			[]string{"missing display_name"},
+			400,
 		},
 		{
 			"Invalid body.",
@@ -134,9 +134,9 @@ func TestRoomPost(t *testing.T) {
 			"Invalid room.",
 			"{}",
 			[]string{
-				"room_name cannot be empty",
+				"room_name is required",
 			},
-			404,
+			400,
 		},
 		{
 			"Invalid body.",
@@ -519,7 +519,7 @@ func TestRoomStartGame(t *testing.T) {
 			[]string{
 				"invalid number of players",
 			},
-			404,
+			400,
 		},
 		{
 			"Invalid body.",

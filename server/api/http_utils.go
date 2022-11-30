@@ -9,6 +9,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/variant64/server/errortypes"
 	"go.uber.org/zap"
 
 	"github.com/google/uuid"
@@ -16,20 +17,29 @@ import (
 )
 
 type actionHandler[T any] interface {
-	PerformAction() (T, error)
+	PerformAction() (T, errortypes.TypedError)
 }
 
 func handleActionRoute[T any](w http.ResponseWriter, req *http.Request, handler actionHandler[T]) {
 	err := parseRequestParameters(req, handler)
 	if err != nil {
-		writeBadRequestResponse(w, err)
+		writeStatusCode(w, http.StatusBadRequest, err)
 		return
 	}
 
-	entity, err := handler.PerformAction()
-	if err != nil {
-		// TODO: Return a typed error from PerformAction to determine status code.
-		writeNotFoundResponse(w, err)
+	entity, actionErr := handler.PerformAction()
+	if actionErr != nil {
+		switch actionErr.GetType() {
+		case errortypes.NotFound:
+			writeStatusCode(w, http.StatusNotFound, actionErr)
+			return
+		case errortypes.BadRequest:
+			writeStatusCode(w, http.StatusBadRequest, actionErr)
+			return
+		case errortypes.InternalError:
+			writeStatusCode(w, http.StatusInternalServerError, actionErr)
+			return
+		}
 		return
 	}
 
@@ -79,48 +89,17 @@ func parseRequestParameters(req *http.Request, i interface{}) error {
 	return nil
 }
 
-// writeBadRequestResponse writes an http.StatusBadRequest back to the client.
-func writeBadRequestResponse(w http.ResponseWriter, err error) {
+// writeStatusCode writes a status code back to the client.
+func writeStatusCode(w http.ResponseWriter, statusCode int, err error) {
 	logger.Error(
-		"bad request",
-		plainError(err),
-		zap.Int("status_code", http.StatusInternalServerError),
+		err.Error(),
+		zap.Int("status_code", statusCode),
 	)
 
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(statusCode)
 	_, err = w.Write([]byte(fmt.Sprintf("{\"error\":\"%s\"}", err.Error())))
 	if err != nil {
-		logger.Error("failed to write response to client", plainError(err))
-	}
-}
-
-// writeNotFoundResponse writes an http.StatusNotFound back to the client.
-func writeNotFoundResponse(w http.ResponseWriter, err error) {
-	logger.Error(
-		"not found",
-		plainError(err),
-		zap.Int("status_code", http.StatusInternalServerError),
-	)
-
-	w.WriteHeader(http.StatusNotFound)
-	_, err = w.Write([]byte(fmt.Sprintf("{\"error\":\"%s\"}", err.Error())))
-	if err != nil {
-		logger.Error("failed to write response to client", plainError(err))
-	}
-}
-
-// writeServerErrorResponse writes an http.StatusInternalServerError back to the client.
-func writeServerErrorResponse(w http.ResponseWriter, err error) {
-	logger.Error(
-		"internal server error",
-		plainError(err),
-		zap.Int("status_code", http.StatusInternalServerError),
-	)
-
-	w.WriteHeader(http.StatusInternalServerError)
-	_, err = w.Write([]byte(fmt.Sprintf("{\"error\":\"%s\"}", err.Error())))
-	if err != nil {
-		logger.Error("failed to write response to client", plainError(err))
+		logger.Error("failed to write response to client", zap.Error(err))
 	}
 }
 
@@ -128,10 +107,10 @@ func writeServerErrorResponse(w http.ResponseWriter, err error) {
 func writeEntityResponse[T any](w http.ResponseWriter, e T) {
 	serialized, err := json.Marshal(e)
 	if err != nil {
-		writeServerErrorResponse(w, err)
+		writeStatusCode(w, http.StatusInternalServerError, err)
 	}
 	_, err = w.Write(serialized)
 	if err != nil {
-		writeServerErrorResponse(w, err)
+		writeStatusCode(w, http.StatusInternalServerError, err)
 	}
 }
