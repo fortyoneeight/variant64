@@ -18,7 +18,7 @@ type errorResponse struct {
 // @Success	200		{object}	entity.Player
 // @Failure	400		{object}	errorResponse
 func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
-	handleNewEntity[entity.Player](w, req, &entity.RequestNewPlayer{})
+	handleActionRoute[entity.Player](w, req, &entity.RequestNewPlayer{})
 }
 
 // @Summary	Get player by id.
@@ -29,13 +29,7 @@ func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
-	id, err := parseIDFromVars(req)
-	if err != nil {
-		writeBadRequestResponse(w, err)
-		return
-	}
-
-	handleGetEntity[entity.Player](w, req, &entity.RequestGetPlayer{ID: id})
+	handleActionRoute[entity.Player](w, req, &entity.RequestGetPlayer{})
 }
 
 // @Summary	Create a new room.
@@ -46,7 +40,7 @@ func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
 // @Success	200		{object}	entity.Room
 // @Failure	400		{object}	errorResponse
 func handlePostRoom(w http.ResponseWriter, req *http.Request) {
-	handleNewEntity[entity.Room](w, req, &entity.RequestNewRoom{})
+	handleActionRoute[entity.Room](w, req, &entity.RequestNewRoom{})
 }
 
 // @Summary	Get all rooms.
@@ -71,13 +65,7 @@ func handleGetRooms(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
-	id, err := parseIDFromVars(req)
-	if err != nil {
-		writeBadRequestResponse(w, err)
-		return
-	}
-
-	handleGetEntity[entity.Room](w, req, &entity.RequestGetRoom{ID: id})
+	handleActionRoute[entity.Room](w, req, &entity.RequestGetRoom{})
 }
 
 // @Summary	Add player to a room.
@@ -91,13 +79,7 @@ func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
-	id, err := parseIDFromVars(req)
-	if err != nil {
-		writeBadRequestResponse(w, err)
-		return
-	}
-
-	handleActionRouteByID[entity.Room](w, req, &entity.RequestJoinRoom{RoomID: id})
+	handleActionRoute[entity.Room](w, req, &entity.RequestJoinRoom{})
 }
 
 // @Summary	Remove player from a room.
@@ -111,13 +93,7 @@ func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
-	id, err := parseIDFromVars(req)
-	if err != nil {
-		writeBadRequestResponse(w, err)
-		return
-	}
-
-	handleActionRouteByID[entity.Room](w, req, &entity.RequestLeaveRoom{RoomID: id})
+	handleActionRoute[entity.Room](w, req, &entity.RequestLeaveRoom{})
 }
 
 // @Summary	Start game in a room.
@@ -131,11 +107,5 @@ func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handlePostRoomStart(w http.ResponseWriter, req *http.Request) {
-	id, err := parseIDFromVars(req)
-	if err != nil {
-		writeBadRequestResponse(w, err)
-		return
-	}
-
-	handleActionRouteByID[entity.Room](w, req, &entity.RequestStartGame{RoomID: id})
+	handleActionRoute[entity.Room](w, req, &entity.RequestStartGame{})
 }

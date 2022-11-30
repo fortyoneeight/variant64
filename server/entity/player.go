@@ -19,13 +19,14 @@ func (p Player) GetID() uuid.UUID {
 
 // RequestNewPlayer is used to create a new Player.
 type RequestNewPlayer struct {
-	DisplayName string `json:"display_name"`
+	DisplayName string `json:"display_name" mapstructure:"display_name"`
 }
 
-// Write initializes all fields of the provided Player.
-func (r *RequestNewPlayer) Write(e *Entity[Player]) error {
+// PerformAction creates a new Player.
+func (r *RequestNewPlayer) PerformAction() (*Entity[Player], error) {
+	e := &Entity[Player]{}
 	if r.DisplayName == "" {
-		return errors.New("display_name cannot be empty")
+		return nil, errors.New("display_name cannot be empty")
 	}
 
 	e.EntityStore = GetPlayerStore()
@@ -34,25 +35,28 @@ func (r *RequestNewPlayer) Write(e *Entity[Player]) error {
 		DisplayName: r.DisplayName,
 	}
 
-	return nil
+	e.Store()
+
+	return e, nil
 }
 
 // RequestGetPlayer is used to get a Player by its ID.
 type RequestGetPlayer struct {
-	ID uuid.UUID `json:"id"`
+	PlayerID uuid.UUID `json:"player_id" mapstructure:"player_id"`
 }
 
-// Read intializes the ID field of the provided Player.
-func (r *RequestGetPlayer) Read(e *Entity[Player]) error {
+// PerformAction loads a Player.
+func (r *RequestGetPlayer) PerformAction() (*Entity[Player], error) {
+	e := &Entity[Player]{}
 	e.EntityStore = GetPlayerStore()
 	e.Data = Player{
-		ID: r.ID,
+		ID: r.PlayerID,
 	}
 
 	err := e.Load()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return e, nil
 }

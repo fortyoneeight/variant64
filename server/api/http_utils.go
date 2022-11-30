@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -17,66 +19,20 @@ import (
 
 var requestHandler = entity.RequestHandler{}
 
-type entityWriter[T store.Indexable] interface {
-	Write(*entity.Entity[T]) error
+type actionHandler[T store.Indexable] interface {
+	PerformAction() (*entity.Entity[T], error)
 }
 
-type entityReader[T store.Indexable] interface {
-	Read(*entity.Entity[T]) error
-}
-
-func handleNewEntity[T store.Indexable](w http.ResponseWriter, req *http.Request, ew entityWriter[T]) {
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		writeBadRequestResponse(w, errors.Wrap(err, "failed to read request body"))
-		return
-	}
-
-	err = json.Unmarshal(body, ew)
-	if err != nil {
-		writeBadRequestResponse(w, errors.Wrap(err, "failed to unmarshal request body"))
-		return
-	}
-
-	entity, err := entity.HandleNew[T](ew)
+func handleActionRoute[T store.Indexable](w http.ResponseWriter, req *http.Request, handler actionHandler[T]) {
+	err := parseRequestParameters(req, handler)
 	if err != nil {
 		writeBadRequestResponse(w, err)
 		return
 	}
 
-	writeEntityResponse(w, entity)
-}
-
-func handleGetEntity[T store.Indexable](w http.ResponseWriter, req *http.Request, ew entityReader[T]) {
-	entity, err := entity.HandleGet[T](ew)
-	if err != nil {
-		writeNotFoundResponse(w, err)
-		return
-	}
-
-	writeEntityResponse(w, entity)
-}
-
-type actionHandler[T store.Indexable] interface {
-	PerformAction() (*entity.Entity[T], error)
-	Unmarshal(data []byte) error
-}
-
-func handleActionRouteByID[T store.Indexable](w http.ResponseWriter, req *http.Request, handler actionHandler[T]) {
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		writeBadRequestResponse(w, errors.Wrap(err, "failed to read request body"))
-		return
-	}
-
-	err = handler.Unmarshal(body)
-	if err != nil {
-		writeBadRequestResponse(w, errors.Wrap(err, "failed to unmarshal request body"))
-		return
-	}
-
 	entity, err := handler.PerformAction()
 	if err != nil {
+		// TODO: Return a typed error from PerformAction to determine status code.
 		writeNotFoundResponse(w, err)
 		return
 	}
@@ -84,15 +40,47 @@ func handleActionRouteByID[T store.Indexable](w http.ResponseWriter, req *http.R
 	writeEntityResponse(w, entity)
 }
 
-// parseIDFromVars attempts to parse a uuid.UUID from the http.Request path.
-func parseIDFromVars(req *http.Request) (uuid.UUID, error) {
-	vars := mux.Vars(req)
-	id, err := uuid.Parse(vars["id"])
-	if err != nil {
-		logger.Error("invalid id", plainError(err))
-		return uuid.Nil, errors.Wrap(err, "invalid id")
+// parseRequestParameters parses the request body and path parameters into the interface.
+func parseRequestParameters(req *http.Request, i interface{}) error {
+	config := &mapstructure.DecoderConfig{
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+				if f.Kind() != reflect.String {
+					return data, nil
+				}
+				if t != reflect.TypeOf(uuid.UUID{}) {
+					return data, nil
+				}
+
+				return uuid.Parse(data.(string))
+			},
+		),
+		Result: i,
 	}
-	return id, nil
+
+	decoder, err := mapstructure.NewDecoder(config)
+	if err != nil {
+		return err
+	}
+
+	err = decoder.Decode(mux.Vars(req))
+	if err != nil {
+		return errors.Wrap(err, "failed to decode path parameter")
+	}
+
+	if req.Body != nil {
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(body, i)
+		if err != nil {
+			return errors.Wrap(err, "failed to unmarshal request body")
+		}
+	}
+
+	return nil
 }
 
 // writeBadRequestResponse writes an http.StatusBadRequest back to the client.

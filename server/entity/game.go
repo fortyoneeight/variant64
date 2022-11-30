@@ -76,12 +76,13 @@ type RequestNewGame struct {
 	PlayerTimeMilis int64       `json:"player_time_ms"`
 }
 
-// Write initializes all fields of the provided Game.
-func (r *RequestNewGame) Write(e *Entity[*Game]) error {
+// PerformAction creates a new Game.
+func (r *RequestNewGame) PerformAction() (*Entity[*Game], error) {
 	if len(r.PlayerOrder) < 2 {
-		return errors.New("invalid number of players, must be >= 2")
+		return nil, errors.New("invalid number of players, must be >= 2")
 	}
 
+	e := &Entity[*Game]{}
 	e.EntityStore = GetGameStore()
 	e.Data = &Game{
 		id:           uuid.New(),
@@ -99,27 +100,30 @@ func (r *RequestNewGame) Write(e *Entity[*Game]) error {
 		e.Data.playerTimers[player] = NewTimer(timerRequest)
 	}
 
-	return nil
+	e.Store()
+
+	return e, nil
 }
 
 // RequestGetGame is used to get a Game by its ID.
 type RequestGetGame struct {
-	ID uuid.UUID `json:"game_id"`
+	GameID uuid.UUID `json:"game_id"`
 }
 
-// Read intializes the ID field of the provided Game.
-func (r *RequestGetGame) Read(e *Entity[*Game]) error {
+// PerformAction loads a Game.
+func (r *RequestGetGame) PerformAction() (*Entity[*Game], error) {
+	e := &Entity[*Game]{}
 	e.EntityStore = GetGameStore()
 	e.Data = &Game{
-		id: r.ID,
+		id: r.GameID,
 	}
 
 	err := e.Load()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return e, nil
 }
 
 // RequestGamePassTurn is used to pass the turn in a Game.

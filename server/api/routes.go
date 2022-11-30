@@ -16,13 +16,13 @@ type route struct {
 
 var httpRoutes = []route{
 	{"/api/player", "Create a Player.", handlePostPlayer, []string{"POST"}},
-	{"/api/player/{id}", "Get a Player by ID.", handleGetPlayerByID, []string{"GET"}},
+	{"/api/player/{player_id}", "Get a Player by ID.", handleGetPlayerByID, []string{"GET"}},
 	{"/api/room", "Create a Room.", handlePostRoom, []string{"POST"}},
 	{"/api/rooms", "Get all Rooms.", handleGetRooms, []string{"GET"}},
-	{"/api/room/{id}", "Get a Room by ID.", handleGetRoomByID, []string{"GET"}},
-	{"/api/room/{id}/join", "Add a Player to a Room.", handlePostRoomJoin, []string{"POST"}},
-	{"/api/room/{id}/leave", "Remove a Player from a Room.", handlePostRoomLeave, []string{"POST"}},
-	{"/api/room/{id}/start", "Start the Game in a Room.", handlePostRoomStart, []string{"POST"}},
+	{"/api/room/{room_id}", "Get a Room by ID.", handleGetRoomByID, []string{"GET"}},
+	{"/api/room/{room_id}/join", "Add a Player to a Room.", handlePostRoomJoin, []string{"POST"}},
+	{"/api/room/{room_id}/leave", "Remove a Player from a Room.", handlePostRoomLeave, []string{"POST"}},
+	{"/api/room/{room_id}/start", "Start the Game in a Room.", handlePostRoomStart, []string{"POST"}},
 }
 
 var websocketRoutes = []route{

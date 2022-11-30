@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
 	"github.com/variant64/server/entity"
 )
@@ -29,7 +30,7 @@ func TestPlayerPost(t *testing.T) {
 			"Invalid user.",
 			"{}",
 			[]string{"display_name cannot be empty"},
-			400,
+			404,
 		},
 		{
 			"Invalid body.",
@@ -59,7 +60,7 @@ func TestPlayerPost(t *testing.T) {
 func TestPlayerGetByID(t *testing.T) {
 	playerName1 := "player1"
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
-	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
 
 	testcases := []struct {
@@ -81,7 +82,7 @@ func TestPlayerGetByID(t *testing.T) {
 			"Invalid UUID.",
 			"1234",
 			[]string{
-				"invalid id",
+				"failed to decode",
 			},
 			400,
 		},
@@ -135,7 +136,7 @@ func TestRoomPost(t *testing.T) {
 			[]string{
 				"room_name cannot be empty",
 			},
-			400,
+			404,
 		},
 		{
 			"Invalid body.",
@@ -167,9 +168,9 @@ func TestRoomsGet(t *testing.T) {
 	roomName2 := "room2"
 	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
 	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
-	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
-	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
+	room2, err := requestNewRoom2.PerformAction()
 	assert.Nil(t, err)
 
 	testcases := []struct {
@@ -210,7 +211,7 @@ func TestRoomsGet(t *testing.T) {
 func TestRoomGetByID(t *testing.T) {
 	roomName1 := "room1"
 	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
-	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
 
 	testcases := []struct {
@@ -233,7 +234,7 @@ func TestRoomGetByID(t *testing.T) {
 			"Invalid UUID.",
 			"1234",
 			[]string{
-				"invalid id",
+				"failed to decode",
 			},
 			400,
 		},
@@ -267,12 +268,12 @@ func TestRoomGetByID(t *testing.T) {
 func TestRoomAddPlayer(t *testing.T) {
 	playerName1 := "player1"
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
-	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
 
 	roomName1 := "room1"
 	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
-	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
 
 	testcases := []struct {
@@ -306,7 +307,7 @@ func TestRoomAddPlayer(t *testing.T) {
 			"1234",
 			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
 			[]string{
-				"invalid id",
+				"failed to decode",
 			},
 			400,
 		},
@@ -347,18 +348,18 @@ func TestRoomRemovePlayer(t *testing.T) {
 	playerName2 := "player2"
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
 	requestNewPlayer2 := entity.RequestNewPlayer{DisplayName: playerName2}
-	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
-	player2, err := requestHandler.HandleNewPlayer(&requestNewPlayer2)
+	player2, err := requestNewPlayer2.PerformAction()
 	assert.Nil(t, err)
 
 	roomName1 := "room1"
 	roomName2 := "room2"
 	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
 	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
-	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
-	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
+	room2, err := requestNewRoom2.PerformAction()
 	assert.Nil(t, err)
 
 	requestAddPlayer1 := &entity.RequestJoinRoom{
@@ -421,7 +422,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 			"1234",
 			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.Data.GetID()),
 			[]string{
-				"invalid id",
+				"failed to decode",
 			},
 			400,
 		},
@@ -462,18 +463,18 @@ func TestRoomStartGame(t *testing.T) {
 	playerName2 := "player2"
 	requestNewPlayer1 := entity.RequestNewPlayer{DisplayName: playerName1}
 	requestNewPlayer2 := entity.RequestNewPlayer{DisplayName: playerName2}
-	player1, err := requestHandler.HandleNewPlayer(&requestNewPlayer1)
+	player1, err := requestNewPlayer1.PerformAction()
 	assert.Nil(t, err)
-	player2, err := requestHandler.HandleNewPlayer(&requestNewPlayer2)
+	player2, err := requestNewPlayer2.PerformAction()
 	assert.Nil(t, err)
 
 	roomName1 := "room1"
 	roomName2 := "room2"
 	requestNewRoom1 := &entity.RequestNewRoom{Name: roomName1}
 	requestNewRoom2 := &entity.RequestNewRoom{Name: roomName2}
-	room1, err := requestHandler.HandleNewRoom(requestNewRoom1)
+	room1, err := requestNewRoom1.PerformAction()
 	assert.Nil(t, err)
-	room2, err := requestHandler.HandleNewRoom(requestNewRoom2)
+	room2, err := requestNewRoom2.PerformAction()
 	assert.Nil(t, err)
 
 	requestAddPlayer1 := &entity.RequestJoinRoom{
@@ -532,7 +533,7 @@ func TestRoomStartGame(t *testing.T) {
 			"1234",
 			"{\"player_time_ms\":1000000}",
 			[]string{
-				"invalid id",
+				"failed to decode",
 			},
 			400,
 		},
