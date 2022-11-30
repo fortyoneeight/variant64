@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/variant64/server/pkg/models/game"
 	"github.com/variant64/server/pkg/models/player"
 	"github.com/variant64/server/pkg/models/room"
 )
@@ -496,26 +497,22 @@ func TestRoomStartGame(t *testing.T) {
 
 	testcases := []struct {
 		description              string
-		id                       string
 		body                     string
 		expectedResponseContains []string
 		expectedStatusCode       int
 	}{
 		{
 			"Valid room ID and playerID.",
-			room1.ID.String(),
-			"{\"player_time_ms\":1000000}",
+			fmt.Sprintf("{\"room_id\":\"%s\",\"player_time_ms\":1000000}", room1.GetID()),
 			[]string{
-				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"players\":[\"%s\",\"%s\"]", player1.GetID(), player2.GetID()),
-				fmt.Sprintf("\"game_id\""),
+				fmt.Sprintf("\"active_player\":\"%s\"", player1.GetID()),
+				"\"state\":\"started\"",
 			},
 			200,
 		},
 		{
 			"Valid room ID not enough players.",
-			room2.ID.String(),
-			"{\"player_time_ms\":1000000}",
+			fmt.Sprintf("{\"room_id\":\"%s\",\"player_time_ms\":1000000}", room2.GetID()),
 			[]string{
 				"invalid number of players",
 			},
@@ -523,24 +520,21 @@ func TestRoomStartGame(t *testing.T) {
 		},
 		{
 			"Invalid body.",
-			room1.ID.String(),
 			"{",
 			[]string{"failed to unmarshal request body"},
 			400,
 		},
 		{
 			"Invalid UUID.",
-			"1234",
-			"{\"player_time_ms\":1000000}",
+			fmt.Sprintf("{\"room_id\":\"someid\",\"player_time_ms\":1000000}"),
 			[]string{
-				"failed to decode",
+				"failed to unmarshal request body",
 			},
 			400,
 		},
 		{
 			"Invalid room ID.",
-			uuid.New().String(),
-			"{\"player_time_ms\":1000000}",
+			fmt.Sprintf("{\"room_id\":\"%s\",\"player_time_ms\":1000000}", uuid.New()),
 			[]string{
 				"not found",
 			},
@@ -555,7 +549,118 @@ func TestRoomStartGame(t *testing.T) {
 
 			request, _ := http.NewRequest(
 				"POST",
-				fmt.Sprintf("/api/room/%s/start", tc.id),
+				fmt.Sprintf("/api/game"),
+				strings.NewReader(tc.body),
+			)
+			writer := executeRequest(router, request)
+
+			assert.Equal(t, tc.expectedStatusCode, writer.statusCode)
+			responseString := string(writer.response)
+			for _, e := range tc.expectedResponseContains {
+				assert.Contains(t, responseString, e)
+			}
+		})
+	}
+}
+
+func TestGameConcede(t *testing.T) {
+	playerName1 := "player1"
+	playerName2 := "player2"
+	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
+	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
+	player1, err := requestNewPlayer1.PerformAction()
+	assert.Nil(t, err)
+	player2, err := requestNewPlayer2.PerformAction()
+	assert.Nil(t, err)
+
+	roomName1 := "room1"
+	roomName2 := "room2"
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
+	room1, err := requestNewRoom1.PerformAction()
+	assert.Nil(t, err)
+	room2, err := requestNewRoom2.PerformAction()
+	assert.Nil(t, err)
+
+	requestAddPlayer1 := &room.RequestJoinRoom{
+		PlayerID: player1.GetID(),
+	}
+
+	requestAddPlayer1.RoomID = room1.GetID()
+	room1, err = requestAddPlayer1.PerformAction()
+
+	requestAddPlayer1.RoomID = room2.GetID()
+	room2, err = requestAddPlayer1.PerformAction()
+
+	requestAddPlayer2 := &room.RequestJoinRoom{
+		PlayerID: player2.GetID(),
+	}
+
+	requestAddPlayer2.RoomID = room1.GetID()
+	room1, err = requestAddPlayer2.PerformAction()
+
+	requestAddPlayer2.RoomID = room2.GetID()
+	room2, err = requestAddPlayer2.PerformAction()
+
+	requestStartGame1 := &room.RequestStartGame{
+		RoomID:          room1.GetID(),
+		PlayerTimeMilis: 1_000_000,
+	}
+	game1, err := requestStartGame1.PerformAction()
+
+	requestStartGame2 := &room.RequestStartGame{
+		RoomID:          room2.GetID(),
+		PlayerTimeMilis: 1_000_000,
+	}
+	game2, err := requestStartGame2.PerformAction()
+
+	requestConcedeGame := &game.RequestConcedeGame{
+		GameID:   game2.GetID(),
+		PlayerID: player1.ID,
+	}
+	requestConcedeGame.PerformAction()
+
+	testcases := []struct {
+		description              string
+		id                       string
+		body                     string
+		expectedResponseContains []string
+		expectedStatusCode       int
+	}{
+		{
+			"Valid game ID and playerID.",
+			game1.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			[]string{
+				fmt.Sprintf("\"winning_players\":[\"%s\"]", player2.GetID()),
+				fmt.Sprintf("\"losing_players\":[\"%s\"]", player1.GetID()),
+			},
+			200,
+		},
+		{
+			"Valid game ID, but other player already conceded.",
+			game2.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
+			[]string{"game already finished"},
+			400,
+		},
+		{
+			"Invalid game ID.",
+			uuid.New().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
+			[]string{"not found"},
+			404,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.description, func(t *testing.T) {
+			router := &mux.Router{}
+			AttachRoutes(router)
+
+			request, _ := http.NewRequest(
+				"POST",
+				fmt.Sprintf("/api/game/%s/concede", tc.id),
 				strings.NewReader(tc.body),
 			)
 			writer := executeRequest(router, request)

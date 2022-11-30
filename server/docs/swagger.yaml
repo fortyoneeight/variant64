@@ -4,43 +4,77 @@ definitions:
       error:
         type: string
     type: object
-  entity.Player:
+  game.Game:
+    properties:
+      active_player:
+        type: string
+      drawn_players:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      losing_players:
+        items:
+          type: string
+        type: array
+      state:
+        $ref: '#/definitions/game.gameState'
+      winning_players:
+        items:
+          type: string
+        type: array
+    type: object
+  game.RequestConcedeGame:
+    properties:
+      player_id:
+        type: string
+    type: object
+  game.gameState:
+    enum:
+    - not_started
+    - started
+    - finished
+    type: string
+    x-enum-varnames:
+    - StateNotStarted
+    - StateStarted
+    - StateFinished
+  player.Player:
     properties:
       display_name:
         type: string
       id:
         type: string
     type: object
-  entity.RequestJoinRoom:
-    properties:
-      player_id:
-        type: string
-      room_id:
-        type: string
-    type: object
-  entity.RequestLeaveRoom:
-    properties:
-      player_id:
-        type: string
-      room_id:
-        type: string
-    type: object
-  entity.RequestNewGame:
-    properties:
-      player_time_ms:
-        type: integer
-    type: object
-  entity.RequestNewPlayer:
+  player.RequestNewPlayer:
     properties:
       display_name:
         type: string
     type: object
-  entity.RequestNewRoom:
+  room.RequestJoinRoom:
+    properties:
+      player_id:
+        type: string
+    type: object
+  room.RequestLeaveRoom:
+    properties:
+      player_id:
+        type: string
+    type: object
+  room.RequestNewRoom:
     properties:
       room_name:
         type: string
     type: object
-  entity.Room:
+  room.RequestStartGame:
+    properties:
+      player_time_ms:
+        type: integer
+      room_id:
+        type: string
+    type: object
+  room.Room:
     properties:
       game_id:
         type: string
@@ -56,6 +90,73 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/game:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/room.RequestStartGame'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Start a game.
+  /api/game/{game_id}/concede:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: room id
+        in: path
+        name: game_id
+        required: true
+        type: string
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/game.RequestConcedeGame'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Player concedes a game.
   /api/player:
     post:
       consumes:
@@ -66,14 +167,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/entity.RequestNewPlayer'
+          $ref: '#/definitions/player.RequestNewPlayer'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Player'
+            $ref: '#/definitions/player.Player'
         "400":
           description: Bad Request
           schema:
@@ -93,7 +194,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Player'
+            $ref: '#/definitions/player.Player'
         "404":
           description: Not Found
           schema:
@@ -113,14 +214,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/entity.RequestNewRoom'
+          $ref: '#/definitions/room.RequestNewRoom'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Room'
+            $ref: '#/definitions/room.Room'
         "400":
           description: Bad Request
           schema:
@@ -140,7 +241,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Room'
+            $ref: '#/definitions/room.Room'
         "400":
           description: Bad Request
           schema:
@@ -169,14 +270,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/entity.RequestJoinRoom'
+          $ref: '#/definitions/room.RequestJoinRoom'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Room'
+            $ref: '#/definitions/room.Room'
         "400":
           description: Bad Request
           schema:
@@ -205,14 +306,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/entity.RequestLeaveRoom'
+          $ref: '#/definitions/room.RequestLeaveRoom'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Room'
+            $ref: '#/definitions/room.Room'
         "400":
           description: Bad Request
           schema:
@@ -226,42 +327,6 @@ paths:
           schema:
             $ref: '#/definitions/api.errorResponse'
       summary: Remove player from a room.
-  /api/room/{room_id}/start:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: room id
-        in: path
-        name: room_id
-        required: true
-        type: string
-      - description: request body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/entity.RequestNewGame'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.Room'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-      summary: Start game in a room.
   /api/rooms:
     get:
       produces:
@@ -271,7 +336,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/entity.Room'
+              $ref: '#/definitions/room.Room'
             type: array
         "404":
           description: Not Found

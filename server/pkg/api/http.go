@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/variant64/server/pkg/models/game"
 	"github.com/variant64/server/pkg/models/player"
 	"github.com/variant64/server/pkg/models/room"
 )
@@ -15,8 +16,8 @@ type errorResponse struct {
 // @Accept	json
 // @Produce	json
 // @Router	/api/player [post]
-// @Param	request	body		entity.RequestNewPlayer	true	"request body"
-// @Success	200		{object}	entity.Player
+// @Param	request	body		player.RequestNewPlayer	true	"request body"
+// @Success	200		{object}	player.Player
 // @Failure	400		{object}	errorResponse
 func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 	handleActionRoute[*player.Player](w, req, &player.RequestNewPlayer{})
@@ -26,7 +27,7 @@ func handlePostPlayer(w http.ResponseWriter, req *http.Request) {
 // @Produce	json
 // @Router	/api/player/{player_id} [get]
 // @Param	player_id	path		string	true	"player id"
-// @Success	200		{object}	entity.Player
+// @Success	200		{object}	player.Player
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
@@ -37,8 +38,8 @@ func handleGetPlayerByID(w http.ResponseWriter, req *http.Request) {
 // @Accept	json
 // @Produce	json
 // @Router	/api/room [post]
-// @Param	request	body		entity.RequestNewRoom	true	"request body"
-// @Success	200		{object}	entity.Room
+// @Param	request	body		room.RequestNewRoom	true	"request body"
+// @Success	200		{object}	room.Room
 // @Failure	400		{object}	errorResponse
 func handlePostRoom(w http.ResponseWriter, req *http.Request) {
 	handleActionRoute[*room.Room](w, req, &room.RequestNewRoom{})
@@ -47,7 +48,7 @@ func handlePostRoom(w http.ResponseWriter, req *http.Request) {
 // @Summary	Get all rooms.
 // @Produce	json
 // @Router	/api/rooms [get]
-// @Success	200	{array}		entity.Room
+// @Success	200	{array}		room.Room
 // @Failure	404	{object}	errorResponse
 // @Failure	500	{object}	errorResponse
 func handleGetRooms(w http.ResponseWriter, req *http.Request) {
@@ -58,7 +59,7 @@ func handleGetRooms(w http.ResponseWriter, req *http.Request) {
 // @Produce	json
 // @Router	/api/room/{room_id} [get]
 // @Param	room_id	path		string	true	"room id"
-// @Success	200		{object}	entity.Room
+// @Success	200		{object}	room.Room
 // @Failure	400		{object}	errorResponse
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
@@ -71,8 +72,8 @@ func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
 // @Produce	json
 // @Router	/api/room/{room_id}/join [post]
 // @Param	room_id	path		string						true	"room id"
-// @Param	request	body		entity.RequestJoinRoom	true	"request body"
-// @Success	200		{object}	entity.Room
+// @Param	request	body		room.RequestJoinRoom	true	"request body"
+// @Success	200		{object}	room.Room
 // @Failure	400		{object}	errorResponse
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
@@ -85,8 +86,8 @@ func handlePostRoomJoin(w http.ResponseWriter, req *http.Request) {
 // @Produce	json
 // @Router	/api/room/{room_id}/leave [post]
 // @Param	room_id	path		string							true	"room id"
-// @Param	request	body		entity.RequestLeaveRoom	true	"request body"
-// @Success	200		{object}	entity.Room
+// @Param	request	body		room.RequestLeaveRoom	true	"request body"
+// @Success	200		{object}	room.Room
 // @Failure	400		{object}	errorResponse
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
@@ -94,16 +95,29 @@ func handlePostRoomLeave(w http.ResponseWriter, req *http.Request) {
 	handleActionRoute[*room.Room](w, req, &room.RequestLeaveRoom{})
 }
 
-// @Summary	Start game in a room.
+// @Summary	Start a game.
 // @Accept	json
 // @Produce	json
-// @Router	/api/room/{room_id}/start [post]
-// @Param	room_id	path		string					true	"room id"
-// @Param	request	body		entity.RequestNewGame	true	"request body"
-// @Success	200		{object}	entity.Room
+// @Router	/api/game [post]
+// @Param	request	body		room.RequestStartGame	true	"request body"
+// @Success	200		{object}	game.Game
 // @Failure	400		{object}	errorResponse
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
-func handlePostRoomStart(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[*room.Room](w, req, &room.RequestStartGame{})
+func handlePostGame(w http.ResponseWriter, req *http.Request) {
+	handleActionRoute[*game.Game](w, req, &room.RequestStartGame{})
+}
+
+// @Summary	Player concedes a game.
+// @Accept	json
+// @Produce	json
+// @Router	/api/game/{game_id}/concede [post]
+// @Param	game_id	path		string					true	"room id"
+// @Param	request	body		game.RequestConcedeGame	true	"request body"
+// @Success	200		{object}	game.Game
+// @Failure	400		{object}	errorResponse
+// @Failure	404		{object}	errorResponse
+// @Failure	500		{object}	errorResponse
+func handlePostGamePlayerConcede(w http.ResponseWriter, req *http.Request) {
+	handleActionRoute[*game.Game](w, req, &game.RequestConcedeGame{})
 }

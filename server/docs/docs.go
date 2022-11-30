@@ -17,6 +17,109 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/game": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Start a game.",
+                "parameters": [
+                    {
+                        "description": "request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/room.RequestStartGame"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/game.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/{game_id}/concede": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Player concedes a game.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "room id",
+                        "name": "game_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/game.RequestConcedeGame"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/game.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/player": {
             "post": {
                 "consumes": [
@@ -33,7 +136,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.RequestNewPlayer"
+                            "$ref": "#/definitions/player.RequestNewPlayer"
                         }
                     }
                 ],
@@ -41,7 +144,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Player"
+                            "$ref": "#/definitions/player.Player"
                         }
                     },
                     "400": {
@@ -72,7 +175,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Player"
+                            "$ref": "#/definitions/player.Player"
                         }
                     },
                     "404": {
@@ -106,7 +209,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.RequestNewRoom"
+                            "$ref": "#/definitions/room.RequestNewRoom"
                         }
                     }
                 ],
@@ -114,7 +217,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Room"
+                            "$ref": "#/definitions/room.Room"
                         }
                     },
                     "400": {
@@ -145,7 +248,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Room"
+                            "$ref": "#/definitions/room.Room"
                         }
                     },
                     "400": {
@@ -192,7 +295,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.RequestJoinRoom"
+                            "$ref": "#/definitions/room.RequestJoinRoom"
                         }
                     }
                 ],
@@ -200,7 +303,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Room"
+                            "$ref": "#/definitions/room.Room"
                         }
                     },
                     "400": {
@@ -247,7 +350,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.RequestLeaveRoom"
+                            "$ref": "#/definitions/room.RequestLeaveRoom"
                         }
                     }
                 ],
@@ -255,62 +358,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Room"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/room/{room_id}/start": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Start game in a room.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "room id",
-                        "name": "room_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "request body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/entity.RequestNewGame"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/entity.Room"
+                            "$ref": "#/definitions/room.Room"
                         }
                     },
                     "400": {
@@ -346,7 +394,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entity.Room"
+                                "$ref": "#/definitions/room.Room"
                             }
                         }
                     },
@@ -375,7 +423,60 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Player": {
+        "game.Game": {
+            "type": "object",
+            "properties": {
+                "active_player": {
+                    "type": "string"
+                },
+                "drawn_players": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "losing_players": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "state": {
+                    "$ref": "#/definitions/game.gameState"
+                },
+                "winning_players": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "game.RequestConcedeGame": {
+            "type": "object",
+            "properties": {
+                "player_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "game.gameState": {
+            "type": "string",
+            "enum": [
+                "not_started",
+                "started",
+                "finished"
+            ],
+            "x-enum-varnames": [
+                "StateNotStarted",
+                "StateStarted",
+                "StateFinished"
+            ]
+        },
+        "player.Player": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -386,37 +487,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.RequestJoinRoom": {
-            "type": "object",
-            "properties": {
-                "player_id": {
-                    "type": "string"
-                },
-                "room_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "entity.RequestLeaveRoom": {
-            "type": "object",
-            "properties": {
-                "player_id": {
-                    "type": "string"
-                },
-                "room_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "entity.RequestNewGame": {
-            "type": "object",
-            "properties": {
-                "player_time_ms": {
-                    "type": "integer"
-                }
-            }
-        },
-        "entity.RequestNewPlayer": {
+        "player.RequestNewPlayer": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -424,7 +495,23 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.RequestNewRoom": {
+        "room.RequestJoinRoom": {
+            "type": "object",
+            "properties": {
+                "player_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "room.RequestLeaveRoom": {
+            "type": "object",
+            "properties": {
+                "player_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "room.RequestNewRoom": {
             "type": "object",
             "properties": {
                 "room_name": {
@@ -432,7 +519,18 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Room": {
+        "room.RequestStartGame": {
+            "type": "object",
+            "properties": {
+                "player_time_ms": {
+                    "type": "integer"
+                },
+                "room_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "room.Room": {
             "type": "object",
             "properties": {
                 "game_id": {
