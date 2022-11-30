@@ -24,6 +24,8 @@ var httpRoutes = []route{
 	{"/api/room/{room_id}/leave", "Remove a Player from a Room.", handlePostRoomLeave, []string{"POST"}},
 	{"/api/game", "Start the Game.", handlePostGame, []string{"POST"}},
 	{"/api/game/{game_id}/concede", "Player concedes a Game.", handlePostGamePlayerConcede, []string{"POST"}},
+	{"/api/game/{game_id}/draw/approve", "Player approves a drawn Game.", handlePostGamePlayerApproveDraw, []string{"POST"}},
+	{"/api/game/{game_id}/draw/reject", "Player rejects a drawn Game.", handlePostGamePlayerRejectDraw, []string{"POST"}},
 }
 
 var websocketRoutes = []route{
@@ -31,7 +33,7 @@ var websocketRoutes = []route{
 }
 
 func logRequest(w http.ResponseWriter, req *http.Request) {
-	logger.Info(fmt.Sprintf("[HANDLING_ROUTE] %s %s %s\n", req.RemoteAddr, req.Method, req.URL))
+	logger.Info(fmt.Sprintf("[HANDLING_ROUTE] %s %s %s", req.RemoteAddr, req.Method, req.URL))
 }
 
 func createHandler(handler http.HandlerFunc) http.HandlerFunc {

@@ -88,7 +88,117 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/game.RequestConcedeGame"
+                            "$ref": "#/definitions/game.RequestConcede"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/game.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/{game_id}/draw/approve": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Player approves a game to draw.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "room id",
+                        "name": "game_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/game.RequestApproveDraw"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/game.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/{game_id}/draw/reject": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Player rejects a game to draw.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "room id",
+                        "name": "game_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/game.RequestRejectDraw"
                         }
                     }
                 ],
@@ -429,6 +539,12 @@ const docTemplate = `{
                 "active_player": {
                     "type": "string"
                 },
+                "approved_draw_players": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "drawn_players": {
                     "type": "array",
                     "items": {
@@ -455,13 +571,24 @@ const docTemplate = `{
                 }
             }
         },
-        "game.RequestConcedeGame": {
+        "game.RequestApproveDraw": {
             "type": "object",
             "properties": {
                 "player_id": {
                     "type": "string"
                 }
             }
+        },
+        "game.RequestConcede": {
+            "type": "object",
+            "properties": {
+                "player_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "game.RequestRejectDraw": {
+            "type": "object"
         },
         "game.gameState": {
             "type": "string",

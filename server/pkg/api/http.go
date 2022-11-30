@@ -72,7 +72,7 @@ func handleGetRoomByID(w http.ResponseWriter, req *http.Request) {
 // @Produce	json
 // @Router	/api/room/{room_id}/join [post]
 // @Param	room_id	path		string						true	"room id"
-// @Param	request	body		room.RequestJoinRoom	true	"request body"
+// @Param	request	body		room.RequestJoinRoom	    true	"request body"
 // @Success	200		{object}	room.Room
 // @Failure	400		{object}	errorResponse
 // @Failure	404		{object}	errorResponse
@@ -113,11 +113,39 @@ func handlePostGame(w http.ResponseWriter, req *http.Request) {
 // @Produce	json
 // @Router	/api/game/{game_id}/concede [post]
 // @Param	game_id	path		string					true	"room id"
-// @Param	request	body		game.RequestConcedeGame	true	"request body"
+// @Param	request	body		game.RequestConcede	    true	"request body"
 // @Success	200		{object}	game.Game
 // @Failure	400		{object}	errorResponse
 // @Failure	404		{object}	errorResponse
 // @Failure	500		{object}	errorResponse
 func handlePostGamePlayerConcede(w http.ResponseWriter, req *http.Request) {
-	handleActionRoute[*game.Game](w, req, &game.RequestConcedeGame{})
+	handleActionRoute[*game.Game](w, req, &game.RequestConcede{})
+}
+
+// @Summary	Player approves a game to draw.
+// @Accept	json
+// @Produce	json
+// @Router	/api/game/{game_id}/draw/approve [post]
+// @Param	game_id	path		string					true	"room id"
+// @Param	request	body		game.RequestApproveDraw true	"request body"
+// @Success	200		{object}	game.Game
+// @Failure	400		{object}	errorResponse
+// @Failure	404		{object}	errorResponse
+// @Failure	500		{object}	errorResponse
+func handlePostGamePlayerApproveDraw(w http.ResponseWriter, req *http.Request) {
+	handleActionRoute[*game.Game](w, req, &game.RequestApproveDraw{})
+}
+
+// @Summary	Player rejects a game to draw.
+// @Accept	json
+// @Produce	json
+// @Router	/api/game/{game_id}/draw/reject [post]
+// @Param	game_id	path		string					true	"room id"
+// @Param	request	body		game.RequestRejectDraw	true	"request body"
+// @Success	200		{object}	game.Game
+// @Failure	400		{object}	errorResponse
+// @Failure	404		{object}	errorResponse
+// @Failure	500		{object}	errorResponse
+func handlePostGamePlayerRejectDraw(w http.ResponseWriter, req *http.Request) {
+	handleActionRoute[*game.Game](w, req, &game.RequestRejectDraw{})
 }

@@ -28,12 +28,15 @@ func (r *RequestNewGame) PerformAction() (*Game, errortypes.TypedError) {
 		Winners:      []uuid.UUID{},
 		Losers:       []uuid.UUID{},
 		Drawn:        []uuid.UUID{},
+		ApprovedDraw: map[uuid.UUID]bool{},
 		State:        StateNotStarted,
 		mux:          &sync.Mutex{},
 	}
 	game.updatePub = NewGameUpdatesPub(game.GetID())
 
 	for _, player := range r.PlayerOrder {
+		game.ApprovedDraw[player] = false
+
 		timerRequest := timer.RequestNewTimer{
 			StartingTimeMilis: r.PlayerTimeMilis,
 			DecrementMilis:    1_000,
@@ -89,19 +92,60 @@ func (r *RequestStartGame) PerformAction() (*Game, errortypes.TypedError) {
 	return e, nil
 }
 
-// RequestConcedeGame is used to concede a Game.
-type RequestConcedeGame struct {
+// RequestConcede is used to concede a Game.
+type RequestConcede struct {
 	GameID   uuid.UUID `json:"game_id" mapstructure:"game_id" swaggerignore:"true"`
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
-func (r *RequestConcedeGame) PerformAction() (*Game, errortypes.TypedError) {
+func (r *RequestConcede) PerformAction() (*Game, errortypes.TypedError) {
 	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
 	if err != nil {
 		return nil, err
 	}
 
 	err = game.declareLoser(r.PlayerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
+}
+
+// RequestApproveDraw is used to approve a draw for a Game.
+type RequestApproveDraw struct {
+	GameID   uuid.UUID `json:"game_id" mapstructure:"game_id" swaggerignore:"true"`
+	PlayerID uuid.UUID `json:"player_id"`
+}
+
+// PerformAction approves a draw for one player in a Game.
+func (r *RequestApproveDraw) PerformAction() (*Game, errortypes.TypedError) {
+	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
+	if err != nil {
+		return nil, err
+	}
+
+	err = game.approveDraw(r.PlayerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
+}
+
+// RequestRejectDraw is used to reject a draw for a Game.
+type RequestRejectDraw struct {
+	GameID uuid.UUID `json:"game_id" mapstructure:"game_id" swaggerignore:"true"`
+}
+
+// PerformAction rejects a draw in a Game.
+func (r *RequestRejectDraw) PerformAction() (*Game, errortypes.TypedError) {
+	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
+	if err != nil {
+		return nil, err
+	}
+
+	err = game.rejectDraw()
 	if err != nil {
 		return nil, err
 	}
