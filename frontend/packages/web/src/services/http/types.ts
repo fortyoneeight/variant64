@@ -1,4 +1,4 @@
-import { Player, Room } from '../../models';
+import { Player, Room, Game } from '../../models';
 import { RoutesParams } from '../sharedTypes';
 
 export interface HttpRequestEvent {
@@ -29,6 +29,9 @@ export enum HTTPActions {
   // player
   CREATE_PLAYER = 'CREATE_PLAYER',
   GET_PLAYER = 'GET_PLAYER',
+
+  // gameplay
+  CONCEDE_GAME = 'CONCEDE_GAME',
 }
 
 export type CreateRoomRequest = {
@@ -65,11 +68,11 @@ export type LeaveRoomRequest = {
 };
 export type LeaveRoomResponse = {} & Room;
 
-export type StartRoomRequest = {
+export type StartGameRequest = {
   [RoutesParams.ROOM_NAME]: string;
 };
-export type StartRoomResponse = {};
-export type StartRoomErrorResponse = {
+export type StartGameResponse = Game;
+export type StartGameErrorResponse = {
   error: string;
 };
 
@@ -86,4 +89,16 @@ export type GetPlayerResponse = Player;
 export interface RouteConfig {
   path: (id?: string) => string;
   method: string;
+}
+
+export type ConcedeResponse = {};
+
+export interface RoutesConfig {
+  name: string;
+  routes: Record<HTTPActions, RouteConfig>;
+}
+
+export interface HttpServiceParams {
+  url: string;
+  routesConfig: RoutesConfig;
 }

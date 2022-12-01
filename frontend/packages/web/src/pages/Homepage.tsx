@@ -58,12 +58,12 @@ export default function Homepage() {
   // Test api calls.
   useEffect(() => {
     homepageService.getRooms().then((rooms) => setRooms(rooms));
-    homepageService.subscribeToGameUpdates('rando_gameID');
+    //homepageService.subscribeToGameUpdates('rando_gameID');
   }, []);
 
   const handleRoomSubmit = (homepageService: HomepageService, roomName: string) => {
-    homepageService.createRoom(roomName).then((room) => {
-      setRooms([...rooms, room]);
+    homepageService.createRoom(roomName).then((roomResponse) => {
+      setRooms([...rooms, roomResponse]);
     });
   };
 

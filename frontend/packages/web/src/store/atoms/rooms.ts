@@ -1,5 +1,5 @@
 import { atom } from 'recoil';
-import { Player, Room } from '../../models';
+import { Player, Room, Game } from '../../models';
 
 export const roomsState = atom({
   key: 'roomsState',
@@ -14,4 +14,9 @@ export const roomState = atom({
 export const playerState = atom<Player>({
   key: 'playerState',
   default: {} as Player,
+});
+
+export const gameState = atom<Game>({
+  key: 'gameState',
+  default: {} as Game,
 });
