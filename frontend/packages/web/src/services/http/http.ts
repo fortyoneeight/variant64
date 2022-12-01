@@ -1,11 +1,6 @@
 import axios from 'axios';
-import { AppActions, HttpServiceParams, RoutesConfig } from '../types';
+import { RoutesConfig, HttpServiceParams, HttpRequestEvent } from './types';
 
-interface requestEvent {
-  action: AppActions;
-  params?: any;
-  body?: any;
-}
 export class HttpService {
   url: string;
   routesConfig: RoutesConfig;
@@ -33,7 +28,7 @@ export class HttpService {
       });
   }
 
-  request<T>(event: requestEvent): Promise<T> {
+  request<T>(event: HttpRequestEvent): Promise<T> {
     const { action, params } = event;
     const { path, method } = this.routesConfig?.routes[action];
 

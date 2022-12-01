@@ -1,17 +1,16 @@
-import { HttpServiceParams, RoutesConfig } from '../types';
+import { WebSocketRequestEvent, WebSocketServiceParams } from './types';
 
 export class WebSocketService {
   url: string;
-  routesConfig: RoutesConfig;
+  private socket: WebSocket;
 
-  constructor(params: HttpServiceParams) {
+  constructor(params: WebSocketServiceParams) {
     this.url = params.url;
-    this.routesConfig = params.routesConfig;
 
-    this.initializeConnection();
+    this.socket = this.initializeConnection();
   }
 
-  private initializeConnection() {
+  private initializeConnection(): WebSocket {
     let socket = new WebSocket(this.url);
 
     socket.onopen = function (e) {
@@ -35,5 +34,21 @@ export class WebSocketService {
     socket.onerror = function (error) {
       console.log(`[error]`);
     };
+
+    return socket;
+  }
+
+  send<T>(event: WebSocketRequestEvent) {
+    const { action, body } = event;
+
+    const command = {
+      action,
+      ...(body as T),
+    };
+
+    const serialized = JSON.stringify(command);
+
+    console.log(`[WEB_SOCKET_COMMAND] ${action}`, body);
+    return this.socket.send(serialized);
   }
 }

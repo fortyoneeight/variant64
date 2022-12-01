@@ -1,21 +1,25 @@
-import { HttpService } from '../services';
 import {
-  AppActions,
-  CreatePlayerResponse,
-  CreateRoomResponse,
-  GetPlayerResponse,
-  GetRoomResponse,
+  HttpService,
+  WebSocketService,
   GetRoomsResponse,
+  CreateRoomResponse,
+  GetRoomResponse,
   JoinRoomResponse,
   LeaveRoomResponse,
   StartRoomResponse,
+  CreatePlayerResponse,
+  GetPlayerResponse,
+  SubscribeGameUpdatesCommand,
+  AppActions,
   RoutesParams,
-} from '../types';
+} from '../services';
 
 export class HomepageService {
   private httpservice: HttpService;
-  constructor(httpservice: HttpService) {
+  private websocketservice: WebSocketService;
+  constructor(httpservice: HttpService, websocketservice: WebSocketService) {
     this.httpservice = httpservice;
+    this.websocketservice = websocketservice;
   }
 
   getRooms() {
@@ -90,6 +94,15 @@ export class HomepageService {
       action: AppActions.GET_PLAYER,
       params: {
         [RoutesParams.PLAYER_ID]: playerID,
+      },
+    });
+  }
+
+  subscribeToGameUpdates(gameID: string) {
+    this.websocketservice.send<SubscribeGameUpdatesCommand>({
+      action: AppActions.SUBSCRIBE_GAME_UPDATES,
+      body: {
+        [RoutesParams.GAME_ID]: gameID,
       },
     });
   }

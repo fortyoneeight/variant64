@@ -1,4 +1,4 @@
-import { type } from 'os';
+import { Player } from './player';
 
 export interface Board {
   size: {
@@ -45,7 +45,8 @@ export interface BoardClocks {
   [key: string]: string;
 }
 
-export interface Player {
-  id: string;
-  display_name: string;
+export interface BoardState {
+  board: Board;
+  active_player: Player;
+  clocks: BoardClocks;
 }

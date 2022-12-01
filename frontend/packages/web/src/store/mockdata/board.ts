@@ -1,4 +1,4 @@
-import { Board, BoardCellItemTypes, BoardPiece, BoardPieceTypes } from '../../types';
+import { Board, BoardCellItemTypes, BoardPiece, BoardPieceTypes } from '../../models';
 
 const boardWidth = 8;
 const boardLength = 8;

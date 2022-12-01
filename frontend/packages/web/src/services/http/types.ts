@@ -1,19 +1,34 @@
-import { Player } from './board';
-import { AppActions } from './actions';
+import { Player, Room } from '../../models';
+import { RoutesParams } from '../sharedTypes';
 
-// TODO: move this to another file
-export type Room = {
-  id: string;
+export interface HttpRequestEvent {
+  action: HTTPActions;
+  params?: any;
+  body?: any;
+}
+
+export interface RoutesConfig {
   name: string;
-  players: Array<string>;
-};
+  routes: Record<HTTPActions, RouteConfig>;
+}
 
-export enum RoutesParams {
-  ROOM_NAME = 'room_name',
-  ROOM_ID = 'room_id',
-  PLAYER_ID = 'player_id',
-  PLAYER_DISPLAY_NAME = 'display_name',
-  PLAYER_TIME_MILLIS = 'player_time_ms',
+export interface HttpServiceParams {
+  url: string;
+  routesConfig: RoutesConfig;
+}
+
+export enum HTTPActions {
+  // rooms
+  CREATE_ROOM = 'CREATE_ROOM',
+  GET_ROOM = 'GET_ROOM',
+  JOIN_ROOM = 'JOIN_ROOM',
+  LEAVE_ROOM = 'LEAVE_ROOM',
+  START_ROOM = 'START_ROOM',
+  GET_ROOMS = 'GET_ROOMS',
+
+  // player
+  CREATE_PLAYER = 'CREATE_PLAYER',
+  GET_PLAYER = 'GET_PLAYER',
 }
 
 export type CreateRoomRequest = {
@@ -71,21 +86,4 @@ export type GetPlayerResponse = Player;
 export interface RouteConfig {
   path: (id?: string) => string;
   method: string;
-}
-
-export function NewRoute(path: (params?: any) => string, method: string) {
-  return {
-    path: path,
-    method,
-  };
-}
-
-export interface RoutesConfig {
-  name: string;
-  routes: Record<AppActions, RouteConfig>;
-}
-
-export interface HttpServiceParams {
-  url: string;
-  routesConfig: RoutesConfig;
 }

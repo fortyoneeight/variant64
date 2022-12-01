@@ -1,5 +1,5 @@
 import { atom } from 'recoil';
-import { Player, Room } from '../../types';
+import { Player, Room } from '../../models';
 
 export const roomsState = atom({
   key: 'roomsState',
