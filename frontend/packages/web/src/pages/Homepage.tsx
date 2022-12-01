@@ -51,13 +51,14 @@ export default function Homepage() {
 
   const context = React.useContext(ServicesContext);
   const homepageService = useMemo(
-    () => new HomepageService(context.roomHttpService),
-    [context.roomHttpService]
+    () => new HomepageService(context.roomHttpService, context.roomWebSocketService),
+    [context.roomHttpService, context.roomWebSocketService]
   );
 
   // Test api calls.
   useEffect(() => {
     homepageService.getRooms().then((rooms) => setRooms(rooms));
+    homepageService.subscribeToGameUpdates('rando_gameID');
   }, []);
 
   const handleRoomSubmit = (homepageService: HomepageService, roomName: string) => {

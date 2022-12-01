@@ -16,7 +16,6 @@ let roomHttpService = new HttpService({
 
 let roomWebSocketService = new WebSocketService({
   url: `ws://${REACT_APP_BE_SEVER}/ws`,
-  routesConfig: RoomAPIRoutesConfig,
 });
 
 function App() {

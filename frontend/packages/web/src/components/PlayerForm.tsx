@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Player } from '../types';
+import { Player } from '../models';
 
 export default function PlayerForm({ submitForm }: { submitForm: any }) {
   const [form, setForm] = useState<Player>({} as Player);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Room } from '../types';
+import { Room } from '../models';
 
 export default function RoomForm({ submitForm }: { submitForm: any }) {
   const [form, setForm] = useState<Room>({} as Room);
