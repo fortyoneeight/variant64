@@ -31,6 +31,10 @@ export const RoomAPIRoutesConfig = {
       'get'
     ),
     [HTTPActions.START_ROOM]: NewRoute((params) => `/game`, 'post'),
+    [HTTPActions.CONCEDE_GAME]: NewRoute(
+      (params) => `/game/${params[RoutesParams.GAME_ID]}/concede`,
+      'post'
+    ),
   } as Record<HTTPActions, RouteConfig>,
 };
 

@@ -6,11 +6,12 @@ import {
   GetRoomResponse,
   JoinRoomResponse,
   LeaveRoomResponse,
-  StartRoomResponse,
   CreatePlayerResponse,
   GetPlayerResponse,
   SubscribeGameUpdatesCommand,
   AppActions,
+  StartGameResponse,
+  ConcedeResponse,
   RoutesParams,
 } from '../services';
 
@@ -69,7 +70,7 @@ export class HomepageService {
   }
 
   startRoom(roomID: string, clockMillis: number) {
-    return this.httpservice.request<StartRoomResponse>({
+    return this.httpservice.request<StartGameResponse>({
       action: AppActions.START_ROOM,
       body: {
         [RoutesParams.ROOM_ID]: roomID,
@@ -101,6 +102,18 @@ export class HomepageService {
       action: AppActions.SUBSCRIBE_GAME_UPDATES,
       body: {
         [RoutesParams.GAME_ID]: gameID,
+      },
+    });
+  }
+
+  concedeGame(gameID: string, playerID: string) {
+    return this.httpservice.request<ConcedeResponse>({
+      action: AppActions.CONCEDE_GAME,
+      params: {
+        [RoutesParams.GAME_ID]: gameID,
+      },
+      body: {
+        [RoutesParams.PLAYER_ID]: playerID,
       },
     });
   }

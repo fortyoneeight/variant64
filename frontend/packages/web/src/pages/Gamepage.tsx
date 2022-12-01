@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import Gameboard from '../components/gameboard';
-import { playerState, roomState } from '../store/atoms';
+import { playerState, roomState, gameState } from '../store/atoms';
 import { ServicesContext } from '../store/context';
 import { mockdataBoard } from '../store/mockdata/board';
 import { HomepageService } from './hompage-service';
@@ -17,6 +17,7 @@ export default function Gamepage() {
 
   const [room, setRoom] = useRecoilState(roomState);
   const [player, setPlayer] = useRecoilState(playerState);
+  const [game, setGame] = useRecoilState(gameState);
   const defaultClockMillis = 600000;
 
   if (!room.id && id) {
@@ -48,10 +49,26 @@ export default function Gamepage() {
   };
 
   const handleStartClick = () => {
-    homepageService.startRoom(room.id, defaultClockMillis).then((roomResponse) => {
+    homepageService.startRoom(room.id, defaultClockMillis).then((gameResponse) => {
       setRoom({
         ...room,
-        ...roomResponse,
+        game_id: gameResponse.id,
+      });
+      setGame({
+        ...game,
+        ...gameResponse,
+      });
+    });
+  };
+
+  const handleConcedeClick = () => {
+    if (!game.id) {
+      return;
+    }
+    homepageService.concedeGame(game.id, player.id).then((gameResponse) => {
+      setGame({
+        ...game,
+        ...gameResponse,
       });
     });
   };
@@ -83,7 +100,9 @@ export default function Gamepage() {
         </button>
         {joinLeaveButton}
         <button className="drawButton">Offer Draw</button>
-        <button className="concedeButton">Concede</button>
+        <button className="concedeButton" onClick={() => handleConcedeClick()}>
+          Concede
+        </button>
       </div>
     </div>
   );
