@@ -24,9 +24,10 @@ type Game struct {
 	playerTimers map[uuid.UUID]*timer.Timer
 	playerOrder  []uuid.UUID
 
-	Winners []uuid.UUID `json:"winning_players"`
-	Losers  []uuid.UUID `json:"losing_players"`
-	Drawn   []uuid.UUID `json:"drawn_players"`
+	Winners      []uuid.UUID        `json:"winning_players"`
+	Losers       []uuid.UUID        `json:"losing_players"`
+	Drawn        []uuid.UUID        `json:"drawn_players"`
+	ApprovedDraw map[uuid.UUID]bool `json:"approved_draw_players"`
 
 	State gameState `json:"state"`
 
@@ -44,7 +45,7 @@ type GameUpdate struct {
 }
 
 // GetID returns a Game's ID.
-func (g Game) GetID() uuid.UUID {
+func (g *Game) GetID() uuid.UUID {
 	return g.ID
 }
 
@@ -53,8 +54,9 @@ func (g *Game) start() errortypes.TypedError {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
-	if g.State != StateNotStarted {
-		return errGameStarted{}
+	err := g.validateGameState(StateNotStarted)
+	if err != nil {
+		return err
 	}
 
 	g.subscribeToTimers()
@@ -82,8 +84,9 @@ func (g *Game) declareWinner(playerID uuid.UUID) error {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
-	if g.State != StateStarted {
-		return errGameFinsished{}
+	err := g.validateGameState(StateStarted)
+	if err != nil {
+		return err
 	}
 
 	winners := make([]uuid.UUID, 0)
@@ -112,8 +115,9 @@ func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
-	if g.State != StateStarted {
-		return errGameFinsished{}
+	err := g.validateGameState(StateStarted)
+	if err != nil {
+		return err
 	}
 
 	winners := make([]uuid.UUID, 0)
@@ -134,6 +138,65 @@ func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
 	g.Losers = losers
 	g.State = StateFinished
 
+	return nil
+}
+
+// approveDraw marks the player as having accepeted a draw,
+// if all players have accepeted a draw the game is considered a draw.
+func (g *Game) approveDraw(playerID uuid.UUID) errortypes.TypedError {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+
+	err := g.validateGameState(StateStarted)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := g.ApprovedDraw[playerID]; ok {
+		g.ApprovedDraw[playerID] = true
+
+		allAccepted := true
+		for _, accepted := range g.ApprovedDraw {
+			if !accepted {
+				allAccepted = false
+				break
+			}
+		}
+
+		if allAccepted {
+			g.Drawn = g.playerOrder
+			g.State = StateFinished
+			return nil
+		}
+	} else {
+		return errPlayerNotInGame{}
+	}
+
+	return nil
+}
+
+// rejectDraw marks all the players as having not accepted a draw.
+func (g *Game) rejectDraw() errortypes.TypedError {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+
+	err := g.validateGameState(StateStarted)
+	if err != nil {
+		return err
+	}
+
+	for player := range g.ApprovedDraw {
+		g.ApprovedDraw[player] = false
+	}
+
+	return nil
+}
+
+// validateGameState checks if the Game is in the correct state.
+func (g *Game) validateGameState(required gameState) errortypes.TypedError {
+	if g.State != required {
+		return errIncorrectGameState{requiredState: required, currentState: g.State}
+	}
 	return nil
 }
 

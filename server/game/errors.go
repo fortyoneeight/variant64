@@ -38,22 +38,15 @@ func (e errPlayerNotInGame) Error() string {
 	return "Game error: player not found in game"
 }
 
-type errGameFinsished struct{}
+type errIncorrectGameState struct {
+	requiredState gameState
+	currentState  gameState
+}
 
-func (e errGameFinsished) GetType() errortypes.Type {
+func (e errIncorrectGameState) GetType() errortypes.Type {
 	return errortypes.BadRequest
 }
 
-func (e errGameFinsished) Error() string {
-	return "Game error: game already finished"
-}
-
-type errGameStarted struct{}
-
-func (e errGameStarted) GetType() errortypes.Type {
-	return errortypes.BadRequest
-}
-
-func (e errGameStarted) Error() string {
-	return "Game error: game already started"
+func (e errIncorrectGameState) Error() string {
+	return fmt.Sprintf("Game error: game is %s not %s", e.currentState, e.requiredState)
 }

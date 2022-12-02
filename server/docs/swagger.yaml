@@ -8,6 +8,10 @@ definitions:
     properties:
       active_player:
         type: string
+      approved_draw_players:
+        additionalProperties:
+          type: boolean
+        type: object
       drawn_players:
         items:
           type: string
@@ -25,10 +29,17 @@ definitions:
           type: string
         type: array
     type: object
-  game.RequestConcedeGame:
+  game.RequestApproveDraw:
     properties:
       player_id:
         type: string
+    type: object
+  game.RequestConcede:
+    properties:
+      player_id:
+        type: string
+    type: object
+  game.RequestRejectDraw:
     type: object
   game.gameState:
     enum:
@@ -136,7 +147,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/game.RequestConcedeGame'
+          $ref: '#/definitions/game.RequestConcede'
       produces:
       - application/json
       responses:
@@ -157,6 +168,78 @@ paths:
           schema:
             $ref: '#/definitions/api.errorResponse'
       summary: Player concedes a game.
+  /api/game/{game_id}/draw/approve:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: room id
+        in: path
+        name: game_id
+        required: true
+        type: string
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/game.RequestApproveDraw'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Player approves a game to draw.
+  /api/game/{game_id}/draw/reject:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: room id
+        in: path
+        name: game_id
+        required: true
+        type: string
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/game.RequestRejectDraw'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Player approves a game to draw.
   /api/player:
     post:
       consumes:

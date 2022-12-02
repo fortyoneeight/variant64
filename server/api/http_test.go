@@ -614,7 +614,7 @@ func TestGameConcede(t *testing.T) {
 	}
 	game2, err := requestStartGame2.PerformAction()
 
-	requestConcedeGame := &game.RequestConcedeGame{
+	requestConcedeGame := &game.RequestConcede{
 		GameID:   game2.GetID(),
 		PlayerID: player1.ID,
 	}
@@ -641,7 +641,7 @@ func TestGameConcede(t *testing.T) {
 			"Valid game ID, but other player already conceded.",
 			game2.GetID().String(),
 			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
-			[]string{"game already finished"},
+			[]string{"game is finished"},
 			400,
 		},
 		{
@@ -661,6 +661,202 @@ func TestGameConcede(t *testing.T) {
 			request, _ := http.NewRequest(
 				"POST",
 				fmt.Sprintf("/api/game/%s/concede", tc.id),
+				strings.NewReader(tc.body),
+			)
+			writer := executeRequest(router, request)
+
+			assert.Equal(t, tc.expectedStatusCode, writer.statusCode)
+			responseString := string(writer.response)
+			for _, e := range tc.expectedResponseContains {
+				assert.Contains(t, responseString, e)
+			}
+		})
+	}
+}
+
+func TestGameDrawApprove(t *testing.T) {
+	playerName1 := "player1"
+	playerName2 := "player2"
+	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
+	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
+	player1, err := requestNewPlayer1.PerformAction()
+	assert.Nil(t, err)
+	player2, err := requestNewPlayer2.PerformAction()
+	assert.Nil(t, err)
+
+	roomName1 := "room1"
+	roomName2 := "room2"
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
+	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
+	room1, err := requestNewRoom1.PerformAction()
+	assert.Nil(t, err)
+	room2, err := requestNewRoom2.PerformAction()
+	assert.Nil(t, err)
+
+	requestAddPlayer1 := &room.RequestJoinRoom{
+		PlayerID: player1.GetID(),
+	}
+
+	requestAddPlayer1.RoomID = room1.GetID()
+	room1, err = requestAddPlayer1.PerformAction()
+
+	requestAddPlayer1.RoomID = room2.GetID()
+	room2, err = requestAddPlayer1.PerformAction()
+
+	requestAddPlayer2 := &room.RequestJoinRoom{
+		PlayerID: player2.GetID(),
+	}
+
+	requestAddPlayer2.RoomID = room1.GetID()
+	room1, err = requestAddPlayer2.PerformAction()
+
+	requestAddPlayer2.RoomID = room2.GetID()
+	room2, err = requestAddPlayer2.PerformAction()
+
+	requestStartGame1 := &room.RequestStartGame{
+		RoomID:          room1.GetID(),
+		PlayerTimeMilis: 1_000_000,
+	}
+	game1, err := requestStartGame1.PerformAction()
+	assert.Nil(t, err)
+
+	requestApproveDrawPlayer1 := game.RequestApproveDraw{
+		GameID:   game1.GetID(),
+		PlayerID: player1.GetID(),
+	}
+	game1, err = requestApproveDrawPlayer1.PerformAction()
+	assert.Nil(t, err)
+
+	requestStartGame2 := &room.RequestStartGame{
+		RoomID:          room2.GetID(),
+		PlayerTimeMilis: 1_000_000,
+	}
+	game2, err := requestStartGame2.PerformAction()
+	assert.Nil(t, err)
+
+	testcases := []struct {
+		description              string
+		id                       string
+		body                     string
+		expectedResponseContains []string
+		expectedStatusCode       int
+	}{
+		{
+			"Valid game ID and playerID, last to accept.",
+			game1.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
+			[]string{
+				"\"winning_players\":[]",
+				"\"losing_players\":[]",
+				fmt.Sprintf("\"drawn_players\":[\"%s\",\"%s\"]", player2.GetID(), player1.GetID()),
+			},
+			200,
+		},
+		{
+			"Valid game ID and playerID, first to accept",
+			game2.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			[]string{
+				"\"winning_players\":[]",
+				"\"losing_players\":[]",
+				"\"drawn_players\":[]",
+			},
+			200,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.description, func(t *testing.T) {
+			router := &mux.Router{}
+			AttachRoutes(router)
+
+			request, _ := http.NewRequest(
+				"POST",
+				fmt.Sprintf("/api/game/%s/draw/approve", tc.id),
+				strings.NewReader(tc.body),
+			)
+			writer := executeRequest(router, request)
+
+			assert.Equal(t, tc.expectedStatusCode, writer.statusCode)
+			responseString := string(writer.response)
+			for _, e := range tc.expectedResponseContains {
+				assert.Contains(t, responseString, e)
+			}
+		})
+	}
+}
+
+func TestGameDrawReject(t *testing.T) {
+	playerName1 := "player1"
+	playerName2 := "player2"
+	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
+	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
+	player1, err := requestNewPlayer1.PerformAction()
+	assert.Nil(t, err)
+	player2, err := requestNewPlayer2.PerformAction()
+	assert.Nil(t, err)
+
+	roomName1 := "room1"
+	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
+	room1, err := requestNewRoom1.PerformAction()
+	assert.Nil(t, err)
+
+	requestAddPlayer1 := &room.RequestJoinRoom{
+		PlayerID: player1.GetID(),
+	}
+
+	requestAddPlayer1.RoomID = room1.GetID()
+	room1, err = requestAddPlayer1.PerformAction()
+
+	requestAddPlayer2 := &room.RequestJoinRoom{
+		PlayerID: player2.GetID(),
+	}
+
+	requestAddPlayer2.RoomID = room1.GetID()
+	room1, err = requestAddPlayer2.PerformAction()
+
+	requestStartGame1 := &room.RequestStartGame{
+		RoomID:          room1.GetID(),
+		PlayerTimeMilis: 1_000_000,
+	}
+	game1, err := requestStartGame1.PerformAction()
+	assert.Nil(t, err)
+
+	requestApproveDrawPlayer1 := game.RequestApproveDraw{
+		GameID:   game1.GetID(),
+		PlayerID: player1.GetID(),
+	}
+	game1, err = requestApproveDrawPlayer1.PerformAction()
+	assert.Nil(t, err)
+
+	testcases := []struct {
+		description              string
+		id                       string
+		body                     string
+		expectedResponseContains []string
+		expectedStatusCode       int
+	}{
+		{
+			"Valid game ID.",
+			game1.GetID().String(),
+			"{}",
+			[]string{
+				"\"winning_players\":[]",
+				"\"losing_players\":[]",
+				"\"drawn_players\":[]",
+			},
+			200,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.description, func(t *testing.T) {
+			router := &mux.Router{}
+			AttachRoutes(router)
+
+			request, _ := http.NewRequest(
+				"POST",
+				fmt.Sprintf("/api/game/%s/draw/reject", tc.id),
 				strings.NewReader(tc.body),
 			)
 			writer := executeRequest(router, request)
