@@ -2,7 +2,7 @@ package player
 
 import (
 	"github.com/google/uuid"
-	"github.com/variant64/server/errortypes"
+	"github.com/variant64/server/pkg/errortypes"
 )
 
 // RequestNewPlayer is used to create a new Player.

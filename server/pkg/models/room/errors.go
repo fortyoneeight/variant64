@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/errortypes"
+	"github.com/variant64/server/pkg/errortypes"
 )
 
 type errRoomNotFound struct{}

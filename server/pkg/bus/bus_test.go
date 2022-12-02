@@ -12,17 +12,17 @@ func TestBus(t *testing.T) {
 	topic1 := uuid.New()
 	topic2 := uuid.New()
 
-	testcases := []struct{
-		name string
-		bus *Bus[string]
-		subs map[uuid.UUID][]*mockSub[string]
-		messages map[uuid.UUID][]string
+	testcases := []struct {
+		name           string
+		bus            *Bus[string]
+		subs           map[uuid.UUID][]*mockSub[string]
+		messages       map[uuid.UUID][]string
 		subscribeError error
-		publishError error
+		publishError   error
 	}{
 		{
 			name: "One topic, one sub, one message.",
-			bus: NewBus[string]([]uuid.UUID{topic1}),
+			bus:  NewBus[string]([]uuid.UUID{topic1}),
 			subs: map[uuid.UUID][]*mockSub[string]{
 				topic1: {
 					&mockSub[string]{},
@@ -34,11 +34,11 @@ func TestBus(t *testing.T) {
 				},
 			},
 			subscribeError: nil,
-			publishError: nil,
+			publishError:   nil,
 		},
 		{
 			name: "One topic, two subs, two messages.",
-			bus: NewBus[string]([]uuid.UUID{topic1}),
+			bus:  NewBus[string]([]uuid.UUID{topic1}),
 			subs: map[uuid.UUID][]*mockSub[string]{
 				topic1: {
 					&mockSub[string]{},
@@ -52,11 +52,11 @@ func TestBus(t *testing.T) {
 				},
 			},
 			subscribeError: nil,
-			publishError: nil,
+			publishError:   nil,
 		},
 		{
 			name: "Two topics, two subs per topic, two messages per topic.",
-			bus: NewBus[string]([]uuid.UUID{topic1, topic2}),
+			bus:  NewBus[string]([]uuid.UUID{topic1, topic2}),
 			subs: map[uuid.UUID][]*mockSub[string]{
 				topic1: {
 					&mockSub[string]{},
@@ -78,23 +78,23 @@ func TestBus(t *testing.T) {
 				},
 			},
 			subscribeError: nil,
-			publishError: nil,
+			publishError:   nil,
 		},
 		{
 			name: "No topics, one sub, subscribe error.",
-			bus: NewBus[string]([]uuid.UUID{}),
+			bus:  NewBus[string]([]uuid.UUID{}),
 			subs: map[uuid.UUID][]*mockSub[string]{
 				topic1: {
 					&mockSub[string]{},
 				},
 			},
-			messages: map[uuid.UUID][]string{},
+			messages:       map[uuid.UUID][]string{},
 			subscribeError: fmt.Errorf("topic does not exist: %s", topic1),
-			publishError: nil,
+			publishError:   nil,
 		},
 		{
 			name: "No topics, no pubs, publish error.",
-			bus: NewBus[string]([]uuid.UUID{}),
+			bus:  NewBus[string]([]uuid.UUID{}),
 			subs: map[uuid.UUID][]*mockSub[string]{},
 			messages: map[uuid.UUID][]string{
 				topic1: {
@@ -102,7 +102,7 @@ func TestBus(t *testing.T) {
 				},
 			},
 			subscribeError: nil,
-			publishError: fmt.Errorf("topic does not exist: %s", topic1),
+			publishError:   fmt.Errorf("topic does not exist: %s", topic1),
 		},
 	}
 

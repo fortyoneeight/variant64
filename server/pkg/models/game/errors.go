@@ -3,7 +3,7 @@ package game
 import (
 	"fmt"
 
-	"github.com/variant64/server/errortypes"
+	"github.com/variant64/server/pkg/errortypes"
 )
 
 type errGameNotFound struct{}

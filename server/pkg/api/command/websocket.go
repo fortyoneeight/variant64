@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/gorilla/websocket"
-	"github.com/variant64/server/game"
+	"github.com/variant64/server/pkg/models/game"
 )
 
 // WSHandler handles incoming WS messages from a client.

@@ -1,7 +1,7 @@
 package player
 
 import (
-	"github.com/variant64/server/errortypes"
+	"github.com/variant64/server/pkg/errortypes"
 )
 
 type errPlayerNotFound struct{}

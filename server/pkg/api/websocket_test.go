@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
-	"github.com/variant64/server/api/command"
+	"github.com/variant64/server/pkg/api/command"
 )
 
 func TestReadAndHandleMessages(t *testing.T) {

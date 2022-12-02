@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/google/uuid"
-	"github.com/variant64/server/bus"
+	"github.com/variant64/server/pkg/bus"
 )
 
 type updatePub[T any] struct {

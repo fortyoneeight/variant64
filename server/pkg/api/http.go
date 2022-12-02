@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/variant64/server/player"
-	"github.com/variant64/server/room"
+	"github.com/variant64/server/pkg/models/player"
+	"github.com/variant64/server/pkg/models/room"
 )
 
 type errorResponse struct {

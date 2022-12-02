@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/store"
+	"github.com/variant64/server/pkg/store"
 )
 
 var playerStore *store.IndexedStore[*Player]

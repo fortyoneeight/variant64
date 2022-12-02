@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/errortypes"
-	"github.com/variant64/server/game"
+	"github.com/variant64/server/pkg/errortypes"
+	"github.com/variant64/server/pkg/models/game"
 )
 
 // RequestNewRoom is used to create a new Room.

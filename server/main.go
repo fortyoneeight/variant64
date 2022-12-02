@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/swaggo/http-swagger"
 
-	"github.com/variant64/server/api"
 	_ "github.com/variant64/server/docs"
+	"github.com/variant64/server/pkg/api"
 )
 
 //	@title		Variant64 Server

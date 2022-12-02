@@ -2,8 +2,8 @@ package game
 
 import (
 	"github.com/google/uuid"
-	"github.com/variant64/server/errortypes"
-	"github.com/variant64/server/timer"
+	"github.com/variant64/server/pkg/errortypes"
+	"github.com/variant64/server/pkg/timer"
 )
 
 // RequestNewGame is a used to create a new Game.

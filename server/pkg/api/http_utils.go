@@ -9,7 +9,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"github.com/variant64/server/errortypes"
+	"github.com/variant64/server/pkg/errortypes"
 	"go.uber.org/zap"
 
 	"github.com/google/uuid"

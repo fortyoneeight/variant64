@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/google/uuid"
-	"github.com/variant64/server/timer"
+	"github.com/variant64/server/pkg/timer"
 )
 
 // Game represents an on-going game between a list of players.

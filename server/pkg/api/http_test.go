@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/variant64/server/player"
-	"github.com/variant64/server/room"
+	"github.com/variant64/server/pkg/models/player"
+	"github.com/variant64/server/pkg/models/room"
 )
 
 func TestPlayerPost(t *testing.T) {
