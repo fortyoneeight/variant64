@@ -71,10 +71,8 @@ export class HomepageService {
   startRoom(roomID: string, clockMillis: number) {
     return this.httpservice.request<StartRoomResponse>({
       action: AppActions.START_ROOM,
-      params: {
-        [RoutesParams.ROOM_ID]: roomID,
-      },
       body: {
+        [RoutesParams.ROOM_ID]: roomID,
         [RoutesParams.PLAYER_TIME_MILLIS]: clockMillis,
       },
     });
