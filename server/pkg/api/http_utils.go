@@ -74,12 +74,11 @@ func parseRequestParameters(req *http.Request, i interface{}) error {
 		return errors.Wrap(err, "failed to decode path parameter")
 	}
 
-	if req.Body != nil {
+	if req.Method != "GET" {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			return err
 		}
-
 		err = json.Unmarshal(body, i)
 		if err != nil {
 			return errors.Wrap(err, "failed to unmarshal request body")
