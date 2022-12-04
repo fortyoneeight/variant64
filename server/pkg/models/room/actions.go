@@ -26,6 +26,8 @@ func (r *RequestNewRoom) PerformAction() (*Room, errortypes.TypedError) {
 		mux:     &sync.RWMutex{},
 	}
 
+	room.updatePub = NewRoomUpdatePub(room.ID)
+
 	roomStore := getRoomStore()
 	roomStore.Lock()
 	defer roomStore.Unlock()
@@ -96,6 +98,12 @@ func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 	roomStore.Store(room)
 
+	room.updatePub.Publish(
+		RoomUpdate{
+			ID:      r.RoomID,
+			Players: room.Players,
+		},
+	)
 	return room, nil
 }
 
@@ -124,6 +132,12 @@ func (r *RequestLeaveRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 	roomStore.Store(room)
 
+	room.updatePub.Publish(
+		RoomUpdate{
+			ID:      r.RoomID,
+			Players: room.Players,
+		},
+	)
 	return room, nil
 }
 
@@ -164,5 +178,12 @@ func (r *RequestStartGame) PerformAction() (*game.Game, errortypes.TypedError) {
 
 	roomStore.Store(room)
 
+	room.updatePub.Publish(
+		RoomUpdate{
+			ID:      r.RoomID,
+			Players: room.Players,
+			GameID:  room.GameID,
+		},
+	)
 	return gameEntity, nil
 }

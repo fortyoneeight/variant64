@@ -9,9 +9,14 @@ export interface WebSocketRequestEvent {
 }
 
 export enum WebSocketActions {
-  SUBSCRIBE_GAME_UPDATES = 'subscribe',
+  SUBSCRIBE_GAME_UPDATES = 'game_subscribe',
+  SUBSCRIBE_ROOM_UPDATES = 'room_subscribe',
 }
 
 export interface SubscribeGameUpdatesCommand {
   [RoutesParams.GAME_ID]: string;
+}
+
+export interface SubscribeRoomUpdatesCommand {
+  [RoutesParams.ROOM_ID]: string;
 }

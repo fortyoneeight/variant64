@@ -13,10 +13,19 @@ type Room struct {
 	Players []uuid.UUID `json:"players"`
 	GameID  *uuid.UUID  `json:"game_id"`
 
+	updatePub *updatePub[RoomUpdate]
+
 	mux *sync.RWMutex
 }
 
 // GetID returns a Room's ID.
 func (r *Room) GetID() uuid.UUID {
 	return r.ID
+}
+
+// RoomUpdate represents a change in a Room's state.
+type RoomUpdate struct {
+	ID      uuid.UUID   `json:"id,omitempty"`
+	Players []uuid.UUID `json:"players,omitempty"`
+	GameID  *uuid.UUID  `json:"game_id,omitempty"`
 }

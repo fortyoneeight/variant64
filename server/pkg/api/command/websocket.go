@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/variant64/server/pkg/models/game"
+	"github.com/variant64/server/pkg/models/room"
 )
 
 // WSHandler handles incoming WS messages from a client.
@@ -30,15 +31,29 @@ func (w *WSHandler) HandleCommand(command Command, message []byte) error {
 			return err
 		}
 		return w.handleGameSubscribe(commandGameSubscribe)
+	case RoomSubscribe:
+		commandRoomSubscribe := &CommandRoomSubscribe{}
+		err := json.Unmarshal(message, commandRoomSubscribe)
+		if err != nil {
+			return err
+		}
+		return w.handleRoomSubscribe(commandRoomSubscribe)
 	default:
 		return errors.New("invalid or missing command")
 	}
 }
 
-// handleGameSubscribe handles a CommandSubscribe from a client.
+// handleGameSubscribe handles a CommandGameSubscribe from a client.
 func (w *WSHandler) handleGameSubscribe(command *CommandGameSubscribe) error {
 	gameUpdateBus := game.GetGameUpdateBus()
 	gameUpdateBus.Subscribe(command.GameID, &gameUpdateSubscriber{conn: w.conn})
+	return nil
+}
+
+// handleRoomSubscribe handles a CommandRoomSubscribe from a client.
+func (w *WSHandler) handleRoomSubscribe(command *CommandRoomSubscribe) error {
+	roomUpdateBus := room.GetRoomBus()
+	roomUpdateBus.Subscribe(command.RoomID, &roomUpdateSubscriber{conn: w.conn})
 	return nil
 }
 
@@ -49,6 +64,20 @@ type gameUpdateSubscriber struct {
 
 // OnMessage forwards entity.GameUpdates to the associated websocket.Conn.
 func (g *gameUpdateSubscriber) OnMessage(update game.GameUpdate) error {
+	message, err := json.Marshal(update)
+	if err != nil {
+		return nil
+	}
+	g.conn.WriteMessage(1, message)
+	return nil
+}
+
+type roomUpdateSubscriber struct {
+	conn *websocket.Conn
+}
+
+// OnMessage forwards entity.GameUpdates to the associated websocket.Conn.
+func (g *roomUpdateSubscriber) OnMessage(update room.RoomUpdate) error {
 	message, err := json.Marshal(update)
 	if err != nil {
 		return nil

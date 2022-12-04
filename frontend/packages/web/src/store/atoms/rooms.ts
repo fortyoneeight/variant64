@@ -20,3 +20,18 @@ export const gameState = atom<Game>({
   key: 'gameState',
   default: {} as Game,
 });
+
+export const gameUpdateState = atom<{
+  game_id: string;
+  clocks: {
+    [key: string]: string;
+  };
+}>({
+  key: 'gameUpdateState',
+  default: {} as {
+    game_id: string;
+    clocks: {
+      [key: string]: string;
+    };
+  },
+});
