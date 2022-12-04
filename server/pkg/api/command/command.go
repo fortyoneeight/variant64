@@ -8,8 +8,8 @@ import (
 type APICommand string
 
 const (
-	Subscribe   APICommand = "subscribe"
-	Unsubscribe APICommand = "unsubscribe"
+	GameSubscribe   APICommand = "game_subscribe"
+	GameUnsubscribe APICommand = "game_unsubscribe"
 )
 
 // Command represents a top level command.
@@ -17,14 +17,14 @@ type Command struct {
 	Command APICommand `json:"command"`
 }
 
-// CommandSubscribe represents a subscribe command.
-type CommandSubscribe struct {
+// CommandGameSubscribe represents a game subscribe command.
+type CommandGameSubscribe struct {
 	Command
 	GameID uuid.UUID `json:"game_id"`
 }
 
-// CommandUnsubscribe represents an unsubscribe command.
-type CommandUnsubscribe struct {
+// CommandGameUnsubscribe represents an game unsubscribe command.
+type CommandGameUnsubscribe struct {
 	Command
 	GameID uuid.UUID `json:"game_id"`
 }
