@@ -32,9 +32,9 @@ func TestReadAndHandleMessages(t *testing.T) {
 			&mockCommandHandler{
 				receivedCommands: make([]command.Command, 0),
 			},
-			[]string{"{\"command\":\"subscribe\"}"},
+			[]string{"{\"command\":\"game_subscribe\"}"},
 			[]command.Command{
-				command.Command{Command: command.Subscribe},
+				{Command: command.GameSubscribe},
 			},
 		},
 		{
@@ -43,16 +43,16 @@ func TestReadAndHandleMessages(t *testing.T) {
 				receivedCommands: make([]command.Command, 0),
 			},
 			[]string{
-				"{\"command\":\"subscribe\"}",
-				"{\"command\":\"unsubscribe\"}",
-				"{\"command\":\"subscribe\"}",
-				"{\"command\":\"unsubscribe\"}",
+				"{\"command\":\"game_subscribe\"}",
+				"{\"command\":\"game_unsubscribe\"}",
+				"{\"command\":\"game_subscribe\"}",
+				"{\"command\":\"game_unsubscribe\"}",
 			},
 			[]command.Command{
-				command.Command{Command: command.Subscribe},
-				command.Command{Command: command.Unsubscribe},
-				command.Command{Command: command.Subscribe},
-				command.Command{Command: command.Unsubscribe},
+				{Command: command.GameSubscribe},
+				{Command: command.GameUnsubscribe},
+				{Command: command.GameSubscribe},
+				{Command: command.GameUnsubscribe},
 			},
 		},
 	}

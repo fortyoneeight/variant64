@@ -23,20 +23,20 @@ func NewWSHandler(conn *websocket.Conn) *WSHandler {
 // HandleCommand handles a specific Command from a provided client message.
 func (w *WSHandler) HandleCommand(command Command, message []byte) error {
 	switch command.Command {
-	case Subscribe:
-		commandSubscribe := &CommandSubscribe{}
-		err := json.Unmarshal(message, commandSubscribe)
+	case GameSubscribe:
+		commandGameSubscribe := &CommandGameSubscribe{}
+		err := json.Unmarshal(message, commandGameSubscribe)
 		if err != nil {
 			return err
 		}
-		return w.handleSubscribe(commandSubscribe)
+		return w.handleGameSubscribe(commandGameSubscribe)
 	default:
 		return errors.New("invalid or missing command")
 	}
 }
 
-// handleSubscribe handles a CommandSubscribe from a client.
-func (w *WSHandler) handleSubscribe(command *CommandSubscribe) error {
+// handleGameSubscribe handles a CommandSubscribe from a client.
+func (w *WSHandler) handleGameSubscribe(command *CommandGameSubscribe) error {
 	gameUpdateBus := game.GetGameUpdateBus()
 	gameUpdateBus.Subscribe(command.GameID, &gameUpdateSubscriber{conn: w.conn})
 	return nil
