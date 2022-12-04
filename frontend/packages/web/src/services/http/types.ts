@@ -75,6 +75,10 @@ export type StartGameResponse = Game;
 export type StartGameErrorResponse = {
   error: string;
 };
+export type StartRoomResponse = Game;
+export type StartRoomErrorResponse = {
+  error: string;
+};
 
 export type CreatePlayerRequest = {
   [RoutesParams.PLAYER_ID]: string;

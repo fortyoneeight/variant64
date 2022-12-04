@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import Gameboard from '../features/gameboard';
-import { playerState, roomState, gameState } from '../../store/atoms';
+import { roomState, playerState, gameUpdateState } from '../../store/atoms';
 import { ServicesContext } from '../../store/context';
-import { mockdataBoard } from '../../store/mockdata/board';
+import { mockdataBoard } from '../../store/mockdata';
+import { Gameboard } from '../features';
 import { HomepageService } from './hompage-service';
 
 export default function Gamepage() {
@@ -17,7 +17,7 @@ export default function Gamepage() {
 
   const [room, setRoom] = useRecoilState(roomState);
   const [player, setPlayer] = useRecoilState(playerState);
-  const [game, setGame] = useRecoilState(gameState);
+  const [gameUpdate, setGameUpdate] = useRecoilState(gameUpdateState);
   const defaultClockMillis = 600000;
 
   if (!room.id && id) {
@@ -49,29 +49,41 @@ export default function Gamepage() {
   };
 
   const handleStartClick = () => {
-    homepageService.startRoom(room.id, defaultClockMillis).then((gameResponse) => {
-      setRoom({
-        ...room,
-        game_id: gameResponse.id,
-      });
-      setGame({
-        ...game,
+    homepageService.startRoom(room.id, defaultClockMillis).then((game) => {
+      homepageService.subscribeToGameUpdates(game.id);
+      // setRoom({
+      //   ...room,
+      //   ...game,
+      // });
+    });
+  };
+
+  const handleConcedeClick = () => {
+    if (!gameUpdate.game_id) {
+      return;
+    }
+    homepageService.concedeGame(gameUpdate.game_id, player.id).then((gameResponse) => {
+      setGameUpdate({
+        ...gameUpdate,
         ...gameResponse,
       });
     });
   };
 
-  const handleConcedeClick = () => {
-    if (!game.id) {
-      return;
-    }
-    homepageService.concedeGame(game.id, player.id).then((gameResponse) => {
-      setGame({
-        ...game,
-        ...gameResponse,
-      });
-    });
+  const cb = (data: any) => {
+    console.log('[COMPONENT_DATA]', data);
+    // setGame({
+    //   ...data,
+    // });
   };
+
+  useEffect(() => {
+    homepageService.registerCallback(cb);
+  }, []);
+
+  useEffect(() => {
+    homepageService.subscribeToRoomUpdates(id as string);
+  }, [id]);
 
   const joinLeaveButton = isPlayerPlaying ? (
     <button className="drawButton" onClick={() => handleLeaveClick()}>
@@ -104,6 +116,7 @@ export default function Gamepage() {
           Concede
         </button>
       </div>
+      {JSON.stringify(gameUpdate)}
     </div>
   );
 }

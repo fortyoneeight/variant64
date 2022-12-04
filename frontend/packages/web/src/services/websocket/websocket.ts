@@ -1,27 +1,30 @@
+import { json } from 'stream/consumers';
 import { WebSocketRequestEvent, WebSocketServiceParams } from './types';
 
 export class WebSocketService {
   url: string;
   private socket: WebSocket;
 
+  private subscribers: Record<string, (event: any) => void>;
   constructor(params: WebSocketServiceParams) {
     this.url = params.url;
-
     this.socket = this.initializeConnection();
+    this.subscribers = {};
   }
 
   private initializeConnection(): WebSocket {
     let socket = new WebSocket(this.url);
 
-    socket.onopen = function (e) {
+    socket.onopen = (e) => {
       console.log('[open] Connection established');
     };
 
-    socket.onmessage = function (event) {
-      console.log(`[message] Data received from server: ${event.data}`);
+    socket.onmessage = (event) => {
+      console.info(`[message] Data received from server: ${event.data}`);
+      Object.values(this.subscribers).forEach((cb) => cb(JSON.parse(event.data)));
     };
 
-    socket.onclose = function (event) {
+    socket.onclose = (event) => {
       if (event.wasClean) {
         console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
       } else {
@@ -31,8 +34,8 @@ export class WebSocketService {
       }
     };
 
-    socket.onerror = function (error) {
-      console.log(`[error]`);
+    socket.onerror = (error) => {
+      console.log(`[error]`, error);
     };
 
     return socket;
@@ -42,7 +45,7 @@ export class WebSocketService {
     const { action, body } = event;
 
     const command = {
-      action,
+      command: action,
       ...(body as T),
     };
 
@@ -50,5 +53,9 @@ export class WebSocketService {
 
     console.log(`[WEB_SOCKET_COMMAND] ${action}`, body);
     return this.socket.send(serialized);
+  }
+
+  subscribe(name: string, cb: (event: any) => void) {
+    this.subscribers[name] = cb;
   }
 }

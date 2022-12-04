@@ -117,4 +117,17 @@ export class HomepageService {
       },
     });
   }
+
+  subscribeToRoomUpdates(roomID: string) {
+    this.websocketservice.send<SubscribeRoomUpdatesCommand>({
+      action: AppActions.SUBSCRIBE_ROOM_UPDATES,
+      body: {
+        [RoutesParams.ROOM_ID]: roomID,
+      },
+    });
+  }
+
+  registerCallback(cb: (event: any) => void) {
+    this.websocketservice.subscribe('homepage-service', cb);
+  }
 }
