@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import Gameboard from '../components/gameboard';
-import { playerState, roomState, gameState } from '../store/atoms';
-import { ServicesContext } from '../store/context';
-import { mockdataBoard } from '../store/mockdata/board';
+import Gameboard from '../features/gameboard';
+import { playerState, roomState, gameState } from '../../store/atoms';
+import { ServicesContext } from '../../store/context';
+import { mockdataBoard } from '../../store/mockdata/board';
 import { HomepageService } from './hompage-service';
 
 export default function Gamepage() {

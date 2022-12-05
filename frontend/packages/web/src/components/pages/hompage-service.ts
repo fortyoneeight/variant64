@@ -13,7 +13,7 @@ import {
   StartGameResponse,
   ConcedeResponse,
   RoutesParams,
-} from '../services';
+} from '../../services';
 
 export class HomepageService {
   private httpservice: HttpService;

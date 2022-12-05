@@ -1,0 +1,35 @@
+.roomListContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4vh;
+  gap: 3vh;
+  border-radius: 0.5em;
+  min-height: 60vh;
+  min-width: 35vw;
+}
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  min-width: 35vw;
+}
+
+.roomListTextField {
+  font-size: 1.5em;
+  padding: 0.2em 0.5em;
+  border: none;
+  border-radius: 0.5em;
+  background-color: #fff;
+  width: 100%;
+}
+
+.roomLink {
+  color: black;
+}
+
+.roomListRow {
+  display: flex;
+  gap: 1vw;
+}
