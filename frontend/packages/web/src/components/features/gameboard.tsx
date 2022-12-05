@@ -1,5 +1,5 @@
 import React from 'react';
-import { Board, BoardPiece } from '../models';
+import { Board, BoardPiece } from '../../models';
 
 export default function Gameboard({ board }: { board: Board }) {
   return (
