@@ -1,45 +1,47 @@
 import React from 'react';
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
-import Gamepage from './pages/Gamepage';
-import Homepage from './pages/Homepage';
+import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { playerState } from './store/atoms';
+import { Gamepage, Homepage, Onboarding } from './components/pages';
 
 function Header() {
   return (
-    <nav>
-      <h1 style={{ textAlign: 'center' }}>
-        <Link to="/">Variant64 Chess</Link>
-      </h1>
-    </nav>
+    <aside className="header">
+      <h1 style={{ color: '#29EF67' }}>Variant 64</h1>
+    </aside>
   );
 }
 
 function Footer() {
   return (
-    <div>
-      <aside>
-        <p style={{ textAlign: 'center' }}>
-          <a href="https://github.com/izakfr/variant64">Variant64 - Github Repo</a>
-        </p>
-      </aside>
-    </div>
+    <aside className="footer">
+      <a style={{ color: '#29EF67' }} href="https://github.com/fortyoneeight/variant64">
+        Github Repo
+      </a>
+    </aside>
   );
 }
+
+const PrivateRoute = () => {
+  const [player, _] = useRecoilState(playerState);
+  return player.id ? <Outlet /> : <Navigate to="/" />;
+};
 
 export default function Routing() {
   return (
     <>
       <BrowserRouter>
         <Header />
-
         <Routes>
-          <Route path="/" element={<Homepage />}></Route>
-          <Route path="/room/:id" element={<Gamepage />}></Route>
-          <Route
-            path={'*'} //match all routes - for http 404
-            element={<div>404!!! ahh!!!</div>}
-          />
+          <Route path="/" element={<Onboarding />} />
+          <Route path="/home" element={<PrivateRoute />}>
+            <Route path="/home" element={<Homepage />} />
+          </Route>
+          <Route path="/room/:id" element={<PrivateRoute />}>
+            <Route path="/room/:id" element={<Gamepage />} />
+          </Route>
+          <Route path={'*'} element={<div>404!!! ahh!!!</div>} />
         </Routes>
-
         <Footer />
       </BrowserRouter>
     </>

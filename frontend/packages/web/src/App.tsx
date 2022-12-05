@@ -25,7 +25,7 @@ function App() {
         <ServicesContext.Provider
           value={{ roomHttpService: roomHttpService, roomWebSocketService: roomWebSocketService }}
         >
-          <div>
+          <div className="appBody">
             <Routing />
           </div>
         </ServicesContext.Provider>
