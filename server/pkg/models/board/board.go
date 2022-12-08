@@ -19,6 +19,16 @@ const (
 	WHITE
 )
 
+func (c Color) String() string {
+	switch c {
+	case WHITE:
+		return "white"
+	case BLACK:
+		return "black"
+	}
+	return "invalid"
+}
+
 type MoveType int
 
 const (
@@ -52,6 +62,12 @@ func (m MoveType) String() string {
 		return "en_passant"
 	}
 	return "invalid"
+}
+
+type Move struct {
+	Source      Position
+	Destination Position
+	MoveType    MoveType
 }
 
 type MoveMap = map[MoveType][]Position

@@ -235,7 +235,7 @@ func (k *King) GetMoves(source Position) MoveMap {
 // GenerateTerminalRayPosition determines the terminal position in a ray by moving in the
 // provided direction until the bounds are breached.
 func GenerateTerminalRayPosition(source Position, direction Direction, bounds Bounds) Position {
-	previousTerminalPostion := source
+	previousTerminalPosition := source
 	terminalPosition := source
 	for {
 		switch direction {
@@ -261,9 +261,9 @@ func GenerateTerminalRayPosition(source Position, direction Direction, bounds Bo
 			terminalPosition.File -= 1
 		}
 		if bounds.IsInboundsPosition(terminalPosition) {
-			previousTerminalPostion = terminalPosition
+			previousTerminalPosition = terminalPosition
 		} else {
-			return previousTerminalPostion
+			return previousTerminalPosition
 		}
 	}
 }

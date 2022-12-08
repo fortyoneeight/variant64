@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -59,7 +60,7 @@ func TestCheckPawnMoves(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legalMoves := classicBoard.getLegalMoves(test.position)
+			legalMoves := classicBoard.getMovesAtPosition(test.position)
 			assert.Equal(t, test.expectedLegalMoves, legalMoves)
 		})
 	}
@@ -103,7 +104,7 @@ func TestCheckKnightMoves(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			legalMoves := classicBoard.getLegalMoves(tc.position)
+			legalMoves := classicBoard.getMovesAtPosition(tc.position)
 			for _, move := range tc.expectedLegalMoves[board.NORMAL] {
 				assert.Contains(t, legalMoves[board.NORMAL], move)
 			}
@@ -169,7 +170,7 @@ func TestCheckQueenMoves(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			legalMoves := classicBoard.getLegalMoves(tc.position)
+			legalMoves := classicBoard.getMovesAtPosition(tc.position)
 			for _, move := range tc.expectedLegalMoves[board.NORMAL] {
 				assert.Contains(t, legalMoves[board.NORMAL], move)
 			}
@@ -274,7 +275,7 @@ func TestCheckKingMoves(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			legalMoves := classicBoard.getLegalMoves(tc.position)
+			legalMoves := classicBoard.getMovesAtPosition(tc.position)
 			for _, move := range tc.expectedLegalMoves[board.NORMAL] {
 				assert.Contains(t, legalMoves[board.NORMAL], move)
 			}
@@ -336,7 +337,7 @@ func TestCheckRookMoves(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			legalMoves := classicBoard.getLegalMoves(tc.position)
+			legalMoves := classicBoard.getMovesAtPosition(tc.position)
 			for _, move := range tc.expectedLegalMoves[board.NORMAL] {
 				assert.Contains(t, legalMoves[board.NORMAL], move)
 			}
@@ -388,10 +389,314 @@ func TestCheckBishopMoves(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			legalMoves := classicBoard.getLegalMoves(tc.position)
+			legalMoves := classicBoard.getMovesAtPosition(tc.position)
 			for _, move := range tc.expectedLegalMoves[board.NORMAL] {
 				assert.Contains(t, legalMoves[board.NORMAL], move)
 			}
 		})
+	}
+}
+
+func TestHandleMove(t *testing.T) {
+	bounds := board.Bounds{Rank: 8, File: 8}
+	testCases := []struct {
+		name          string
+		moves         []board.Move
+		initialBoard  ClassicBoard
+		expectedBoard ClassicBoard
+		expectedErr   error
+	}{
+		{
+			name: "pawn normal move",
+			moves: []board.Move{
+				{
+					Source:      board.Position{Rank: 0, File: 0},
+					Destination: board.Position{Rank: 1, File: 0},
+					MoveType:    board.NORMAL,
+				},
+				{
+					Source:      board.Position{Rank: 6, File: 0},
+					Destination: board.Position{Rank: 5, File: 0},
+					MoveType:    board.NORMAL,
+				},
+			},
+			initialBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						0: {
+							0: &board.Pawn{Color: board.WHITE},
+						},
+						6: {
+							0: &board.Pawn{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						1: {
+							0: &board.Pawn{Color: board.WHITE},
+						},
+						5: {
+							0: &board.Pawn{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "pawn double push",
+			moves: []board.Move{
+				{
+					Source:      board.Position{Rank: 1, File: 0},
+					Destination: board.Position{Rank: 3, File: 0},
+					MoveType:    board.PAWN_DOUBLE_PUSH,
+				},
+				{
+					Source:      board.Position{Rank: 6, File: 0},
+					Destination: board.Position{Rank: 4, File: 0},
+					MoveType:    board.PAWN_DOUBLE_PUSH,
+				},
+			},
+			initialBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						1: {
+							0: &board.Pawn{Color: board.WHITE},
+						},
+						6: {
+							0: &board.Pawn{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						3: {
+							0: &board.Pawn{Color: board.WHITE},
+						},
+						4: {
+							0: &board.Pawn{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "kingside castle",
+			moves: []board.Move{
+				{
+					Source:      board.Position{Rank: 0, File: 4},
+					Destination: board.Position{Rank: 0, File: 6},
+					MoveType:    board.KINGSIDE_CASTLE,
+				},
+				{
+					Source:      board.Position{Rank: 7, File: 4},
+					Destination: board.Position{Rank: 7, File: 6},
+					MoveType:    board.KINGSIDE_CASTLE,
+				},
+			},
+			initialBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						0: {
+							4: &board.King{Color: board.WHITE},
+							7: &board.Rook{Color: board.WHITE},
+						},
+						7: {
+							4: &board.King{Color: board.BLACK},
+							7: &board.Rook{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  false,
+				whiteAllowedQueensideCastle: false,
+				blackAllowedKingsideCastle:  false,
+				blackAllowedQueensideCastle: false,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						0: {
+							6: &board.King{Color: board.WHITE},
+							5: &board.Rook{Color: board.WHITE},
+						},
+						7: {
+							6: &board.King{Color: board.BLACK},
+							5: &board.Rook{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "queenside castle",
+			moves: []board.Move{
+				{
+					Source:      board.Position{Rank: 0, File: 4},
+					Destination: board.Position{Rank: 0, File: 2},
+					MoveType:    board.QUEENSIDE_CASTLE,
+				},
+				{
+					Source:      board.Position{Rank: 7, File: 4},
+					Destination: board.Position{Rank: 7, File: 2},
+					MoveType:    board.QUEENSIDE_CASTLE,
+				},
+			},
+			initialBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						0: {
+							0: &board.Rook{Color: board.WHITE},
+							4: &board.King{Color: board.WHITE},
+						},
+						7: {
+							0: &board.Rook{Color: board.BLACK},
+							4: &board.King{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  false,
+				whiteAllowedQueensideCastle: false,
+				blackAllowedKingsideCastle:  false,
+				blackAllowedQueensideCastle: false,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						0: {
+							2: &board.King{Color: board.WHITE},
+							3: &board.Rook{Color: board.WHITE},
+						},
+						7: {
+							2: &board.King{Color: board.BLACK},
+							3: &board.Rook{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "pawn capture",
+			moves: []board.Move{
+				{
+					Source:      board.Position{Rank: 1, File: 0},
+					Destination: board.Position{Rank: 2, File: 1},
+					MoveType:    board.CAPTURE,
+				},
+				{
+					Source:      board.Position{Rank: 7, File: 0},
+					Destination: board.Position{Rank: 6, File: 1},
+					MoveType:    board.CAPTURE,
+				},
+			},
+			initialBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						1: {
+							0: &board.Pawn{Color: board.WHITE},
+						},
+						2: {
+							1: &board.Pawn{Color: board.BLACK},
+						},
+						6: {
+							1: &board.Pawn{Color: board.WHITE},
+						},
+						7: {
+							0: &board.Pawn{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedBoard: ClassicBoard{
+				Bounds:                      bounds,
+				whiteAllowedKingsideCastle:  true,
+				whiteAllowedQueensideCastle: true,
+				blackAllowedKingsideCastle:  true,
+				blackAllowedQueensideCastle: true,
+				locations: NewPieceLocations(
+					bounds,
+					locationMap{
+						2: {
+							1: &board.Pawn{Color: board.WHITE},
+						},
+						6: {
+							1: &board.Pawn{Color: board.BLACK},
+						},
+					},
+				),
+			},
+			expectedErr: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		// Create a new board for each test case to avoid modifying the initial board.
+		board := tc.initialBoard
+
+		// Call the HandleMove method on the board.
+		for _, move := range tc.moves {
+			err := board.HandleMove(move)
+			if err != nil {
+				t.Errorf("Test case %s: expected no error but got %v", tc.name, err)
+			}
+		}
+
+		// Check that the board is in the expected state.
+		if !reflect.DeepEqual(board, tc.expectedBoard) {
+			t.Errorf("Test case %s: expected board %v but got %v", tc.name, tc.expectedBoard, board)
+		}
 	}
 }
