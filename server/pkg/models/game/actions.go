@@ -5,6 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/variant64/server/pkg/models"
+	"github.com/variant64/server/pkg/models/board"
+	"github.com/variant64/server/pkg/models/board/classic"
 	"github.com/variant64/server/pkg/timer"
 
 	"github.com/gorilla/websocket"
@@ -14,8 +16,9 @@ var gameUpdateBus = models.NewUpdateBus[GameUpdate]()
 
 // RequestNewGame is a used to create a new Game.
 type RequestNewGame struct {
-	PlayerOrder     []uuid.UUID `json:"player_order" swaggerignore:"true"`
-	PlayerTimeMilis int64       `json:"player_time_ms"`
+	PlayerOrder     []uuid.UUID         `json:"player_order" swaggerignore:"true"`
+	PlayerTimeMilis int64               `json:"player_time_ms"`
+	GameboardType   board.GameboardType `json:"gameboard_type"`
 }
 
 // PerformAction creates a new Game.
@@ -53,6 +56,12 @@ func (r *RequestNewGame) PerformAction() (*Game, error) {
 		game.playerTimers[player] = timer.NewTimer(timerRequest)
 	}
 
+	gameboard, err := newGameboard(r.GameboardType)
+	if err != nil {
+		return nil, err
+	}
+	game.board = gameboard
+
 	gameStore := getGameStore()
 	gameStore.Lock()
 	defer gameStore.Unlock()
@@ -60,6 +69,16 @@ func (r *RequestNewGame) PerformAction() (*Game, error) {
 	gameStore.Store(game)
 
 	return game, nil
+}
+
+// newGameboard returns a gameboard based on the request type.
+func newGameboard(gameboardType board.GameboardType) (gameboard, error) {
+	switch gameboardType {
+	case board.GameboardTypeDefault, board.GameboardTypeClassic:
+		return (&classic.RequestNewBoard{}).PerformAction()
+	default:
+		return nil, errUnableToCreateBoard
+	}
 }
 
 // RequestGetGame is used to get a Game by its ID.
@@ -155,6 +174,28 @@ func (r *RequestRejectDraw) PerformAction() (*Game, error) {
 	}
 
 	err = game.rejectDraw()
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
+}
+
+// RequestMakeMove is used to make a move in a Game.
+type RequestMakeMove struct {
+	GameID   uuid.UUID  `json:"game_id" mapstructure:"game_id" swaggerignore:"true"`
+	PlayerID uuid.UUID  `json:"player_id"`
+	Move     board.Move `json:"move"`
+}
+
+// PerformAction makes a move on the board if it's valid.
+func (r *RequestMakeMove) PerformAction() (*Game, error) {
+	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
+	if err != nil {
+		return nil, err
+	}
+
+	err = game.makeMove(r.PlayerID, r.Move)
 	if err != nil {
 		return nil, err
 	}

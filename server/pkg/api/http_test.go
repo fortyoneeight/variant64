@@ -59,10 +59,9 @@ func TestPlayerPost(t *testing.T) {
 }
 
 func TestPlayerGetByID(t *testing.T) {
-	playerName1 := "player1"
-	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
-	player1, err := requestNewPlayer1.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithPlayers(1),
+	)
 
 	testcases := []struct {
 		description              string
@@ -72,10 +71,10 @@ func TestPlayerGetByID(t *testing.T) {
 	}{
 		{
 			"Valid playerID.",
-			player1.GetID().String(),
+			testEntities1.player1.GetID().String(),
 			[]string{
-				fmt.Sprintf("\"display_name\":\"%s\"", playerName1),
-				fmt.Sprintf("\"id\":\"%s\"", player1.GetID()),
+				fmt.Sprintf("\"display_name\":\"%s\"", testEntities1.player1.DisplayName),
+				fmt.Sprintf("\"id\":\"%s\"", testEntities1.player1.GetID()),
 			},
 			200,
 		},
@@ -165,14 +164,13 @@ func TestRoomPost(t *testing.T) {
 }
 
 func TestRoomsGet(t *testing.T) {
-	roomName1 := "room1"
-	roomName2 := "room2"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
-	room2, err := requestNewRoom2.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithRoom(),
+	)
+
+	testEntities2 := Setup(
+		WithRoom(),
+	)
 
 	testcases := []struct {
 		description              string
@@ -182,10 +180,10 @@ func TestRoomsGet(t *testing.T) {
 		{
 			"Multiple rooms.",
 			[]string{
-				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
-				fmt.Sprintf("\"name\":\"%s\"", roomName2),
-				fmt.Sprintf("\"id\":\"%s\"", room2.GetID()),
+				fmt.Sprintf("\"name\":\"%s\"", testEntities1.room1.Name),
+				fmt.Sprintf("\"id\":\"%s\"", testEntities1.room1.GetID()),
+				fmt.Sprintf("\"name\":\"%s\"", testEntities2.room1.Name),
+				fmt.Sprintf("\"id\":\"%s\"", testEntities2.room1.GetID()),
 				"\"game_id\":null",
 			},
 			200,
@@ -210,10 +208,9 @@ func TestRoomsGet(t *testing.T) {
 }
 
 func TestRoomGetByID(t *testing.T) {
-	roomName1 := "room1"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithRoom(),
+	)
 
 	testcases := []struct {
 		description              string
@@ -223,10 +220,10 @@ func TestRoomGetByID(t *testing.T) {
 	}{
 		{
 			"Valid room ID.",
-			room1.ID.String(),
+			testEntities1.room1.ID.String(),
 			[]string{
-				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
+				fmt.Sprintf("\"name\":\"%s\"", testEntities1.room1.Name),
+				fmt.Sprintf("\"id\":\"%s\"", testEntities1.room1.GetID()),
 				"\"game_id\":null",
 			},
 			200,
@@ -267,15 +264,10 @@ func TestRoomGetByID(t *testing.T) {
 }
 
 func TestRoomAddPlayer(t *testing.T) {
-	playerName1 := "player1"
-	requestNewPlayer1 := &player.RequestNewPlayer{DisplayName: playerName1}
-	player1, err := requestNewPlayer1.PerformAction()
-	assert.Nil(t, err)
-
-	roomName1 := "room1"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithPlayers(1),
+		WithRoom(),
+	)
 
 	testcases := []struct {
 		description              string
@@ -286,19 +278,19 @@ func TestRoomAddPlayer(t *testing.T) {
 	}{
 		{
 			"Valid room ID.",
-			room1.ID.String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			testEntities1.room1.ID.String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player1.GetID()),
 			[]string{
-				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", player1.GetID()),
+				fmt.Sprintf("\"name\":\"%s\"", testEntities1.room1.Name),
+				fmt.Sprintf("\"id\":\"%s\"", testEntities1.room1.GetID()),
+				fmt.Sprintf("\"players\":[\"%s\"]", testEntities1.player1.GetID()),
 				"\"game_id\":null",
 			},
 			200,
 		},
 		{
 			"Invalid body.",
-			room1.ID.String(),
+			testEntities1.room1.ID.String(),
 			"{",
 			[]string{"failed to unmarshal request body"},
 			400,
@@ -306,7 +298,7 @@ func TestRoomAddPlayer(t *testing.T) {
 		{
 			"Invalid UUID.",
 			"1234",
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player1.GetID()),
 			[]string{
 				"failed to decode",
 			},
@@ -315,7 +307,7 @@ func TestRoomAddPlayer(t *testing.T) {
 		{
 			"Invalid room ID.",
 			uuid.New().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player1.GetID()),
 			[]string{
 				"not found",
 			},
@@ -345,40 +337,17 @@ func TestRoomAddPlayer(t *testing.T) {
 }
 
 func TestRoomRemovePlayer(t *testing.T) {
-	playerName1 := "player1"
-	playerName2 := "player2"
-	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
-	player1, err := requestNewPlayer1.PerformAction()
-	assert.Nil(t, err)
-	player2, err := requestNewPlayer2.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+	)
 
-	roomName1 := "room1"
-	roomName2 := "room2"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
-	room2, err := requestNewRoom2.PerformAction()
-	assert.Nil(t, err)
-
-	requestAddPlayer1 := &room.RequestJoinRoom{
-		PlayerID: player1.GetID(),
-	}
-
-	requestAddPlayer1.RoomID = room1.GetID()
-	room1, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer1.RoomID = room2.GetID()
-	room2, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer2 := &room.RequestJoinRoom{
-		PlayerID: player2.GetID(),
-	}
-
-	requestAddPlayer2.RoomID = room1.GetID()
-	room1, err = requestAddPlayer2.PerformAction()
+	testEntities2 := Setup(
+		WithPlayers(1),
+		WithPlayersInRoom(1),
+		WithRoom(),
+	)
 
 	testcases := []struct {
 		description              string
@@ -389,31 +358,31 @@ func TestRoomRemovePlayer(t *testing.T) {
 	}{
 		{
 			"Valid room ID and playerID.",
-			room1.ID.String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			testEntities1.room1.ID.String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player1.GetID()),
 			[]string{
-				fmt.Sprintf("\"name\":\"%s\"", roomName1),
-				fmt.Sprintf("\"id\":\"%s\"", room1.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", player2.GetID()),
+				fmt.Sprintf("\"name\":\"%s\"", testEntities1.room1.Name),
+				fmt.Sprintf("\"id\":\"%s\"", testEntities1.room1.GetID()),
+				fmt.Sprintf("\"players\":[\"%s\"]", testEntities1.player2.GetID()),
 				"\"game_id\":null",
 			},
 			200,
 		},
 		{
 			"Valid room ID and invalid playerID.",
-			room2.ID.String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
+			testEntities2.room1.ID.String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", uuid.New()),
 			[]string{
-				fmt.Sprintf("\"name\":\"%s\"", roomName2),
-				fmt.Sprintf("\"id\":\"%s\"", room2.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", player1.GetID()),
+				fmt.Sprintf("\"name\":\"%s\"", testEntities2.room1.Name),
+				fmt.Sprintf("\"id\":\"%s\"", testEntities2.room1.GetID()),
+				fmt.Sprintf("\"players\":[\"%s\"]", testEntities2.player1.GetID()),
 				"\"game_id\":null",
 			},
 			200,
 		},
 		{
 			"Invalid body.",
-			room1.ID.String(),
+			testEntities1.room1.ID.String(),
 			"{",
 			[]string{"failed to unmarshal request body"},
 			400,
@@ -421,7 +390,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 		{
 			"Invalid UUID.",
 			"1234",
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player1.GetID()),
 			[]string{
 				"failed to decode",
 			},
@@ -430,7 +399,7 @@ func TestRoomRemovePlayer(t *testing.T) {
 		{
 			"Invalid room ID.",
 			uuid.New().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player1.GetID()),
 			[]string{
 				"not found",
 			},
@@ -460,40 +429,17 @@ func TestRoomRemovePlayer(t *testing.T) {
 }
 
 func TestRoomStartGame(t *testing.T) {
-	playerName1 := "player1"
-	playerName2 := "player2"
-	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
-	player1, err := requestNewPlayer1.PerformAction()
-	assert.Nil(t, err)
-	player2, err := requestNewPlayer2.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+	)
 
-	roomName1 := "room1"
-	roomName2 := "room2"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
-	room2, err := requestNewRoom2.PerformAction()
-	assert.Nil(t, err)
-
-	requestAddPlayer1 := &room.RequestJoinRoom{
-		PlayerID: player1.GetID(),
-	}
-
-	requestAddPlayer1.RoomID = room1.GetID()
-	room1, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer1.RoomID = room2.GetID()
-	room2, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer2 := &room.RequestJoinRoom{
-		PlayerID: player2.GetID(),
-	}
-
-	requestAddPlayer2.RoomID = room1.GetID()
-	room1, err = requestAddPlayer2.PerformAction()
+	testEntities2 := Setup(
+		WithPlayers(1),
+		WithPlayersInRoom(1),
+		WithRoom(),
+	)
 
 	testcases := []struct {
 		description              string
@@ -503,16 +449,16 @@ func TestRoomStartGame(t *testing.T) {
 	}{
 		{
 			"Valid room ID and playerID.",
-			fmt.Sprintf("{\"room_id\":\"%s\",\"player_time_ms\":1000000}", room1.GetID()),
+			fmt.Sprintf("{\"room_id\":\"%s\",\"player_time_ms\":1000000}", testEntities1.room1.GetID()),
 			[]string{
-				fmt.Sprintf("\"active_player\":\"%s\"", player1.GetID()),
+				fmt.Sprintf("\"active_player\":\"%s\"", testEntities1.player1.GetID()),
 				"\"state\":\"started\"",
 			},
 			200,
 		},
 		{
 			"Valid room ID not enough players.",
-			fmt.Sprintf("{\"room_id\":\"%s\",\"player_time_ms\":1000000}", room2.GetID()),
+			fmt.Sprintf("{\"room_id\":\"%s\",\"player_time_ms\":1000000}", testEntities2.room1.GetID()),
 			[]string{
 				"invalid number of players",
 			},
@@ -564,61 +510,20 @@ func TestRoomStartGame(t *testing.T) {
 }
 
 func TestGameConcede(t *testing.T) {
-	playerName1 := "player1"
-	playerName2 := "player2"
-	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
-	player1, err := requestNewPlayer1.PerformAction()
-	assert.Nil(t, err)
-	player2, err := requestNewPlayer2.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+		WithGame(),
+	)
 
-	roomName1 := "room1"
-	roomName2 := "room2"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
-	room2, err := requestNewRoom2.PerformAction()
-	assert.Nil(t, err)
-
-	requestAddPlayer1 := &room.RequestJoinRoom{
-		PlayerID: player1.GetID(),
-	}
-
-	requestAddPlayer1.RoomID = room1.GetID()
-	room1, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer1.RoomID = room2.GetID()
-	room2, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer2 := &room.RequestJoinRoom{
-		PlayerID: player2.GetID(),
-	}
-
-	requestAddPlayer2.RoomID = room1.GetID()
-	room1, err = requestAddPlayer2.PerformAction()
-
-	requestAddPlayer2.RoomID = room2.GetID()
-	room2, err = requestAddPlayer2.PerformAction()
-
-	requestStartGame1 := &room.RequestStartGame{
-		RoomID:          room1.GetID(),
-		PlayerTimeMilis: 1_000_000,
-	}
-	game1, err := requestStartGame1.PerformAction()
-
-	requestStartGame2 := &room.RequestStartGame{
-		RoomID:          room2.GetID(),
-		PlayerTimeMilis: 1_000_000,
-	}
-	game2, err := requestStartGame2.PerformAction()
-
-	requestConcede := &game.RequestConcede{
-		GameID:   game2.GetID(),
-		PlayerID: player1.ID,
-	}
-	requestConcede.PerformAction()
+	testEntities2 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+		WithGame(),
+		WithConcededPlayer(),
+	)
 
 	testcases := []struct {
 		description              string
@@ -629,25 +534,25 @@ func TestGameConcede(t *testing.T) {
 	}{
 		{
 			"Valid gameID and playerID.",
-			game1.GetID().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			testEntities1.game1.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player1.GetID()),
 			[]string{
-				fmt.Sprintf("\"winning_players\":[\"%s\"]", player2.GetID()),
-				fmt.Sprintf("\"losing_players\":[\"%s\"]", player1.GetID()),
+				fmt.Sprintf("\"winning_players\":[\"%s\"]", testEntities1.player2.GetID()),
+				fmt.Sprintf("\"losing_players\":[\"%s\"]", testEntities1.player1.GetID()),
 			},
 			200,
 		},
 		{
 			"Valid gameID, but other player already conceded.",
-			game2.GetID().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
+			testEntities1.game1.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities2.player2.GetID()),
 			[]string{"game is finished"},
 			400,
 		},
 		{
 			"Invalid gameID.",
 			uuid.New().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player2.GetID()),
 			[]string{"not found"},
 			404,
 		},
@@ -675,64 +580,20 @@ func TestGameConcede(t *testing.T) {
 }
 
 func TestGameDrawApprove(t *testing.T) {
-	playerName1 := "player1"
-	playerName2 := "player2"
-	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
-	player1, err := requestNewPlayer1.PerformAction()
-	assert.Nil(t, err)
-	player2, err := requestNewPlayer2.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+		WithGame(),
+		WithApprovedDrawPlayer(),
+	)
 
-	roomName1 := "room1"
-	roomName2 := "room2"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	requestNewRoom2 := &room.RequestNewRoom{Name: roomName2}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
-	room2, err := requestNewRoom2.PerformAction()
-	assert.Nil(t, err)
-
-	requestAddPlayer1 := &room.RequestJoinRoom{
-		PlayerID: player1.GetID(),
-	}
-
-	requestAddPlayer1.RoomID = room1.GetID()
-	room1, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer1.RoomID = room2.GetID()
-	room2, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer2 := &room.RequestJoinRoom{
-		PlayerID: player2.GetID(),
-	}
-
-	requestAddPlayer2.RoomID = room1.GetID()
-	room1, err = requestAddPlayer2.PerformAction()
-
-	requestAddPlayer2.RoomID = room2.GetID()
-	room2, err = requestAddPlayer2.PerformAction()
-
-	requestStartGame1 := &room.RequestStartGame{
-		RoomID:          room1.GetID(),
-		PlayerTimeMilis: 1_000_000,
-	}
-	game1, err := requestStartGame1.PerformAction()
-	assert.Nil(t, err)
-
-	requestApproveDrawPlayer1 := game.RequestApproveDraw{
-		GameID:   game1.GetID(),
-		PlayerID: player1.GetID(),
-	}
-	game1, err = requestApproveDrawPlayer1.PerformAction()
-	assert.Nil(t, err)
-
-	requestStartGame2 := &room.RequestStartGame{
-		RoomID:          room2.GetID(),
-		PlayerTimeMilis: 1_000_000,
-	}
-	game2, err := requestStartGame2.PerformAction()
-	assert.Nil(t, err)
+	testEntities2 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+		WithGame(),
+	)
 
 	testcases := []struct {
 		description              string
@@ -743,19 +604,19 @@ func TestGameDrawApprove(t *testing.T) {
 	}{
 		{
 			"Valid gameID and playerID, last to accept.",
-			game1.GetID().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player2.GetID()),
+			testEntities1.game1.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities1.player2.GetID()),
 			[]string{
 				"\"winning_players\":[]",
 				"\"losing_players\":[]",
-				fmt.Sprintf("\"drawn_players\":[\"%s\",\"%s\"]", player2.GetID(), player1.GetID()),
+				fmt.Sprintf("\"drawn_players\":[\"%s\",\"%s\"]", testEntities1.player2.GetID(), testEntities1.player1.GetID()),
 			},
 			200,
 		},
 		{
 			"Valid gameID and playerID, first to accept",
-			game2.GetID().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\"}", player1.GetID()),
+			testEntities2.game1.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", testEntities2.player1.GetID()),
 			[]string{
 				"\"winning_players\":[]",
 				"\"losing_players\":[]",
@@ -787,46 +648,18 @@ func TestGameDrawApprove(t *testing.T) {
 }
 
 func TestGameDrawReject(t *testing.T) {
-	playerName1 := "player1"
-	playerName2 := "player2"
-	requestNewPlayer1 := player.RequestNewPlayer{DisplayName: playerName1}
-	requestNewPlayer2 := player.RequestNewPlayer{DisplayName: playerName2}
-	player1, err := requestNewPlayer1.PerformAction()
-	assert.Nil(t, err)
-	player2, err := requestNewPlayer2.PerformAction()
-	assert.Nil(t, err)
-
-	roomName1 := "room1"
-	requestNewRoom1 := &room.RequestNewRoom{Name: roomName1}
-	room1, err := requestNewRoom1.PerformAction()
-	assert.Nil(t, err)
-
-	requestAddPlayer1 := &room.RequestJoinRoom{
-		PlayerID: player1.GetID(),
-	}
-
-	requestAddPlayer1.RoomID = room1.GetID()
-	room1, err = requestAddPlayer1.PerformAction()
-
-	requestAddPlayer2 := &room.RequestJoinRoom{
-		PlayerID: player2.GetID(),
-	}
-
-	requestAddPlayer2.RoomID = room1.GetID()
-	room1, err = requestAddPlayer2.PerformAction()
-
-	requestStartGame1 := &room.RequestStartGame{
-		RoomID:          room1.GetID(),
-		PlayerTimeMilis: 1_000_000,
-	}
-	game1, err := requestStartGame1.PerformAction()
-	assert.Nil(t, err)
+	testEntities1 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+		WithGame(),
+	)
 
 	requestApproveDrawPlayer1 := game.RequestApproveDraw{
-		GameID:   game1.GetID(),
-		PlayerID: player1.GetID(),
+		GameID:   testEntities1.game1.GetID(),
+		PlayerID: testEntities1.player1.GetID(),
 	}
-	game1, err = requestApproveDrawPlayer1.PerformAction()
+	game1, err := requestApproveDrawPlayer1.PerformAction()
 	assert.Nil(t, err)
 
 	testcases := []struct {
@@ -867,6 +700,200 @@ func TestGameDrawReject(t *testing.T) {
 				assert.Contains(t, responseString, e)
 			}
 		})
+	}
+}
+
+func TestGamePlayerMakeMove(t *testing.T) {
+	testEntities1 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+		WithGame(),
+	)
+
+	// Test making a valid move.
+	testcases := []struct {
+		description              string
+		id                       string
+		body                     string
+		expectedResponseContains []string
+		expectedStatusCode       int
+	}{
+		{
+			"Valid gameID and move.",
+			testEntities1.game1.GetID().String(),
+			fmt.Sprintf("{\"player_id\":\"%s\",\"move\":{\"source\":{\"rank\":1,\"file\":1},\"destination\":{\"rank\":2,\"file\":1},\"move_type\":\"NORMAL\"}}", testEntities1.player1.GetID()),
+			[]string{
+				"\"winning_players\":[]",
+				"\"losing_players\":[]",
+				"\"drawn_players\":[]",
+			},
+			200,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.description, func(t *testing.T) {
+			router := &mux.Router{}
+			AttachRoutes(router)
+
+			request, _ := http.NewRequest(
+				"POST",
+				fmt.Sprintf("/api/game/%s/move", tc.id),
+				strings.NewReader(tc.body),
+			)
+			writer := executeRequest(router, request)
+
+			assert.Equal(t, tc.expectedStatusCode, writer.statusCode)
+			responseString := string(writer.response)
+			for _, e := range tc.expectedResponseContains {
+				assert.Contains(t, responseString, e)
+			}
+		})
+	}
+}
+
+type setupOption = func(s *setupBuilder)
+
+type setupBuilder struct {
+	player1          *player.Player
+	player2          *player.Player
+	addPlayer1InRoom bool
+	addPlayer2InRoom bool
+	room1            *room.Room
+	game1            *game.Game
+}
+
+type testEntities struct {
+	player1 *player.Player
+	player2 *player.Player
+	room1   *room.Room
+	game1   *game.Game
+}
+
+func (s *setupBuilder) Build() testEntities {
+	return testEntities{
+		s.player1,
+		s.player2,
+		s.room1,
+		s.game1,
+	}
+}
+
+func Setup(options ...setupOption) testEntities {
+	setupBuilder := &setupBuilder{}
+
+	for _, option := range options {
+		option(setupBuilder)
+	}
+
+	return setupBuilder.Build()
+}
+
+func WithPlayers(num int) setupOption {
+	return func(s *setupBuilder) {
+		if num <= 0 {
+			panic("error in setup")
+		}
+
+		if num >= 1 {
+			player1, err := (&player.RequestNewPlayer{DisplayName: "player1"}).PerformAction()
+			if err != nil {
+				panic("error in setup")
+			}
+			s.player1 = player1
+		}
+
+		if num >= 2 {
+			player2, err := (&player.RequestNewPlayer{DisplayName: "player1"}).PerformAction()
+			if err != nil {
+				panic("error in setup")
+			}
+			s.player2 = player2
+		}
+	}
+}
+
+func WithPlayersInRoom(num int) setupOption {
+	return func(s *setupBuilder) {
+		if num <= 0 {
+			panic("error in setup")
+		}
+
+		if num >= 1 {
+			s.addPlayer1InRoom = true
+		}
+
+		if num >= 2 {
+			s.addPlayer2InRoom = true
+		}
+	}
+}
+
+func WithRoom() setupOption {
+	return func(s *setupBuilder) {
+		room1, err := (&room.RequestNewRoom{Name: "test room"}).PerformAction()
+		if err != nil {
+			panic("error in setup")
+		}
+
+		if s.player1 != nil && s.addPlayer1InRoom {
+			_, err = (&room.RequestJoinRoom{RoomID: room1.ID, PlayerID: s.player1.GetID()}).PerformAction()
+			if err != nil {
+				panic("error in setup")
+			}
+		}
+
+		if s.player2 != nil && s.addPlayer2InRoom {
+			_, err = (&room.RequestJoinRoom{RoomID: room1.ID, PlayerID: s.player2.GetID()}).PerformAction()
+			if err != nil {
+				panic("error in setup")
+			}
+		}
+
+		s.room1 = room1
+	}
+}
+
+func WithGame() setupOption {
+	return func(s *setupBuilder) {
+		game, err := (&room.RequestStartGame{RoomID: s.room1.GetID()}).PerformAction()
+		if err != nil {
+			panic("error in setup")
+		}
+		s.game1 = game
+	}
+}
+
+func WithApprovedDrawPlayer() setupOption {
+	return func(s *setupBuilder) {
+		if s.game1 == nil {
+			panic("error in setup")
+		}
+
+		_, err := (&game.RequestApproveDraw{
+			GameID:   s.game1.GetID(),
+			PlayerID: s.player1.GetID(),
+		}).PerformAction()
+		if err != nil {
+			panic("error in setup")
+		}
+	}
+}
+
+func WithConcededPlayer() setupOption {
+	return func(s *setupBuilder) {
+		if s.game1 == nil {
+			panic("error in setup")
+		}
+
+		_, err := (&game.RequestConcede{
+			GameID:   s.game1.GetID(),
+			PlayerID: s.player1.GetID(),
+		}).PerformAction()
+		if err != nil {
+			panic("error in setup")
+		}
 	}
 }
 

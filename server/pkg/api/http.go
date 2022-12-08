@@ -149,3 +149,17 @@ func handlePostGamePlayerApproveDraw(w http.ResponseWriter, req *http.Request) {
 func handlePostGamePlayerRejectDraw(w http.ResponseWriter, req *http.Request) {
 	handleActionRoute[*game.Game](w, req, &game.RequestRejectDraw{})
 }
+
+// @Summary Make a move.
+// @Accept json
+// @Produce json
+// @Router /api/game/{game_id}/move [post]
+// @Param game_id path string true "game id"
+// @Param request body game.RequestMakeMove true "request body"
+// @Success 200 {object} game.Game
+// @Failure 400 {object} errorResponse
+// @Failure 404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+func handlePostGamePlayerMakeMove(w http.ResponseWriter, req *http.Request) {
+	handleActionRoute[*game.Game](w, req, &game.RequestMakeMove{})
+}

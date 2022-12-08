@@ -26,6 +26,7 @@ var httpRoutes = []route{
 	{"/api/game/{game_id}/concede", "Player concedes a Game.", handlePostGamePlayerConcede, []string{"POST"}},
 	{"/api/game/{game_id}/draw/approve", "Player approves a drawn Game.", handlePostGamePlayerApproveDraw, []string{"POST"}},
 	{"/api/game/{game_id}/draw/reject", "Player rejects a drawn Game.", handlePostGamePlayerRejectDraw, []string{"POST"}},
+	{"/api/game/{game_id}/move", "Player makes a move in the game.", handlePostGamePlayerMakeMove, []string{"POST"}},
 }
 
 var websocketRoutes = []route{

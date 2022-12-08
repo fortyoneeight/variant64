@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/variant64/server/pkg/models"
+	"github.com/variant64/server/pkg/models/board"
 	"github.com/variant64/server/pkg/timer"
 )
 
@@ -15,6 +16,11 @@ const (
 	StateStarted    gameState = "started"
 	StateFinished   gameState = "finished"
 )
+
+type gameboard interface {
+	GetAllMoves() map[int]map[int]board.MoveMap
+	HandleMove(move board.Move) error
+}
 
 // Game represents an on-going game between a list of players.
 type Game struct {
@@ -30,6 +36,8 @@ type Game struct {
 	ApprovedDraw map[uuid.UUID]bool `json:"approved_draw_players"`
 
 	State gameState `json:"state"`
+
+	board gameboard
 
 	updateHandler *models.UpdatePublisher[GameUpdate]
 
@@ -218,6 +226,30 @@ func (g *Game) rejectDraw() error {
 				ApprovedDraw: &g.ApprovedDraw,
 			},
 		})
+
+	return nil
+}
+
+// makeMove makes a move for the provided PlayerID if valid.
+func (g *Game) makeMove(playerID uuid.UUID, move board.Move) error {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+
+	err := g.isGameInState(StateStarted)
+	if err != nil {
+		return err
+	}
+
+	if g.ActivePlayer != playerID {
+		return errNotPlayersTurn(playerID.String())
+	}
+
+	moveErr := g.board.HandleMove(move)
+	if moveErr != nil {
+		return errInvalidMove(err)
+	}
+
+	g.passTurn()
 
 	return nil
 }

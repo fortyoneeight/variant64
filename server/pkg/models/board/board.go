@@ -1,5 +1,12 @@
 package board
 
+type GameboardType string
+
+const (
+	GameboardTypeDefault GameboardType = ""
+	GameboardTypeClassic GameboardType = "classic"
+)
+
 type PieceType int
 
 const (
