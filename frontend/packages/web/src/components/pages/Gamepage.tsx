@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import { roomState, playerState, gameUpdateState } from '../../store/atoms';
+import { roomState, playerState, gameState, gameUpdateState } from '../../store/atoms';
 import { ServicesContext } from '../../store/context';
 import { mockdataBoard } from '../../store/mockdata';
-import { Gameboard } from '../features';
+import { Gameboard, DrawButton } from '../features';
 import { HomepageService } from './hompage-service';
 
 export default function Gamepage() {
@@ -17,6 +17,7 @@ export default function Gamepage() {
 
   const [room, setRoom] = useRecoilState(roomState);
   const [player, setPlayer] = useRecoilState(playerState);
+  const [game, setGame] = useRecoilState(gameState);
   const [gameUpdate, setGameUpdate] = useRecoilState(gameUpdateState);
   const defaultClockMillis = 600000;
 
@@ -28,6 +29,7 @@ export default function Gamepage() {
       });
     });
   }
+
   const isPlayerPlaying = room.players?.find((roomPlayerID) => roomPlayerID == player.id);
 
   const handleJoinClick = () => {
@@ -49,18 +51,22 @@ export default function Gamepage() {
   };
 
   const handleStartClick = () => {
-    homepageService.startRoom(room.id, defaultClockMillis).then((game) => {
-      homepageService.subscribeToGameUpdates(game.id);
+    homepageService.startRoom(room.id, defaultClockMillis).then((gameResponse) => {
+      homepageService.subscribeToGameUpdates(gameResponse.id);
+      setGame({
+        ...game,
+        ...gameResponse,
+      });
     });
   };
 
   const handleConcedeClick = () => {
-    if (!gameUpdate.game_id) {
+    if (!game.id) {
       return;
     }
-    homepageService.concedeGame(gameUpdate.game_id, player.id).then((gameResponse) => {
-      setGameUpdate({
-        ...gameUpdate,
+    homepageService.concedeGame(game.id, player.id).then((gameResponse) => {
+      setGame({
+        ...game,
         ...gameResponse,
       });
     });
@@ -92,11 +98,11 @@ export default function Gamepage() {
   }, [id]);
 
   const joinLeaveButton = isPlayerPlaying ? (
-    <button className="drawButton" onClick={() => handleLeaveClick()}>
+    <button className="drawButton gradientBackground" onClick={() => handleLeaveClick()}>
       Quit Game
     </button>
   ) : (
-    <button className="drawButton" onClick={() => handleJoinClick()}>
+    <button className="drawButton gradientBackground" onClick={() => handleJoinClick()}>
       Join Game
     </button>
   );
@@ -117,7 +123,7 @@ export default function Gamepage() {
           Start Game
         </button>
         {joinLeaveButton}
-        <button className="drawButton">Offer Draw</button>
+        <DrawButton />
         <button className="concedeButton" onClick={() => handleConcedeClick()}>
           Concede
         </button>

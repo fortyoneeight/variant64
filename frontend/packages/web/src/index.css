@@ -27,7 +27,8 @@ input,
 button,
 p,
 a,
-h1 {
+h1,
+div {
   font-family: 'texturina';
 }
 
@@ -88,10 +89,6 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 2vh;
-}
-.drawButton {
-  font-size: 1.5rem;
-  padding: 0.5rem;
 }
 .concedeButton {
   font-size: 1.5rem;
