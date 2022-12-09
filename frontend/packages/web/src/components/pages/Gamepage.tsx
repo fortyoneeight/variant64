@@ -116,7 +116,6 @@ export default function Gamepage() {
           Concede
         </button>
       </div>
-      {JSON.stringify(gameUpdate)}
     </div>
   );
 }

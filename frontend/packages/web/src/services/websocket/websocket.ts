@@ -42,11 +42,12 @@ export class WebSocketService {
   }
 
   send<T>(event: WebSocketRequestEvent) {
-    const { action, body } = event;
+    const { action, channel, body } = event;
 
     const command = {
       command: action,
-      ...(body as T),
+      channel,
+      body: JSON.stringify(body),
     };
 
     const serialized = JSON.stringify(command);

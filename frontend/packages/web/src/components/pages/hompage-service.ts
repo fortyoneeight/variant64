@@ -13,6 +13,8 @@ import {
   StartGameResponse,
   ConcedeResponse,
   RoutesParams,
+  SubscribeRoomUpdatesCommand,
+  WebSocketChannels,
 } from '../../services';
 
 export class HomepageService {
@@ -100,6 +102,7 @@ export class HomepageService {
   subscribeToGameUpdates(gameID: string) {
     this.websocketservice.send<SubscribeGameUpdatesCommand>({
       action: AppActions.SUBSCRIBE_GAME_UPDATES,
+      channel: WebSocketChannels.GAME,
       body: {
         [RoutesParams.GAME_ID]: gameID,
       },
@@ -121,6 +124,7 @@ export class HomepageService {
   subscribeToRoomUpdates(roomID: string) {
     this.websocketservice.send<SubscribeRoomUpdatesCommand>({
       action: AppActions.SUBSCRIBE_ROOM_UPDATES,
+      channel: WebSocketChannels.ROOM,
       body: {
         [RoutesParams.ROOM_ID]: roomID,
       },

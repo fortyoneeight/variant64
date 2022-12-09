@@ -75,7 +75,7 @@ export type StartGameResponse = Game;
 export type StartGameErrorResponse = {
   error: string;
 };
-export type StartRoomResponse = Game;
+
 export type StartRoomErrorResponse = {
   error: string;
 };

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRequestRoomAddPlayer(t *testing.T) {
+func TestRequestJoinRoom(t *testing.T) {
 	newRoomRequest1 := &RequestNewRoom{Name: "room1"}
 	room1, err := newRoomRequest1.PerformAction()
 	assert.Nil(t, err)

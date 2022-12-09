@@ -5,12 +5,18 @@ export interface WebSocketServiceParams {
 
 export interface WebSocketRequestEvent {
   action: WebSocketActions;
+  channel: WebSocketChannels;
   body?: any;
 }
 
+export enum WebSocketChannels {
+  GAME = 'game',
+  ROOM = 'room',
+}
+
 export enum WebSocketActions {
-  SUBSCRIBE_GAME_UPDATES = 'game_subscribe',
-  SUBSCRIBE_ROOM_UPDATES = 'room_subscribe',
+  SUBSCRIBE_GAME_UPDATES = 'subscribe',
+  SUBSCRIBE_ROOM_UPDATES = 'subscribe',
 }
 
 export interface SubscribeGameUpdatesCommand {

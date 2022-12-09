@@ -27,14 +27,14 @@ func (e errMissingName) Error() string {
 	return "Room error: room_name is required"
 }
 
-type errDuplicatePlayer struct {
+type ErrDuplicatePlayer struct {
 	playerID uuid.UUID
 }
 
-func (e errDuplicatePlayer) GetType() errortypes.Type {
+func (e ErrDuplicatePlayer) GetType() errortypes.Type {
 	return errortypes.BadRequest
 }
 
-func (e errDuplicatePlayer) Error() string {
+func (e ErrDuplicatePlayer) Error() string {
 	return fmt.Sprintf("Room error: duplicate player %s", e.playerID)
 }

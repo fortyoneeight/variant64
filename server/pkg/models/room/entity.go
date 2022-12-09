@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/variant64/server/pkg/models"
 )
 
 // Room represents a room in which Players can play and watch Games.
@@ -13,7 +14,7 @@ type Room struct {
 	Players []uuid.UUID `json:"players"`
 	GameID  *uuid.UUID  `json:"game_id"`
 
-	updatePub *updatePub[RoomUpdate]
+	updateHandler *models.UpdatePublisher[RoomUpdate]
 
 	mux *sync.RWMutex
 }
@@ -25,7 +26,7 @@ func (r *Room) GetID() uuid.UUID {
 
 // RoomUpdate represents a change in a Room's state.
 type RoomUpdate struct {
-	ID      uuid.UUID   `json:"id,omitempty"`
-	Players []uuid.UUID `json:"players,omitempty"`
-	GameID  *uuid.UUID  `json:"game_id,omitempty"`
+	ID      *uuid.UUID   `json:"id,omitempty"`
+	Players *[]uuid.UUID `json:"players,omitempty"`
+	GameID  *uuid.UUID   `json:"game_id,omitempty"`
 }
