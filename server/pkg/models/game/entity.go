@@ -43,6 +43,19 @@ type GameUpdate struct {
 
 	ActivePlayer *uuid.UUID           `json:"active_player,omitempty"`
 	Clocks       *map[uuid.UUID]int64 `json:"clocks,omitempty"`
+
+	Winners *[]uuid.UUID `json:"winning_players,omitempty"`
+	Losers  *[]uuid.UUID `json:"losing_players,omitempty"`
+	Drawn   *[]uuid.UUID `json:"drawn_players,omitempty"`
+
+	ApprovedDraw *map[uuid.UUID]bool `json:"approved_draw_players,omitempty"`
+
+	State *gameState `json:"state,omitempty"`
+}
+
+// Build returns a GameUpdate.
+func (g *GameUpdate) Build() GameUpdate {
+	return *g
 }
 
 // GetID returns a Game's ID.
@@ -104,9 +117,20 @@ func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
 		return errPlayerNotInGame{}
 	}
 
+	g.playerTimers[g.ActivePlayer].Pause()
 	g.Winners = winners
 	g.Losers = losers
 	g.State = StateFinished
+
+	g.updateHandler.Publish(
+		GameUpdate{
+			GameID:  g.ID,
+			Winners: &g.Winners,
+			Losers:  &g.Losers,
+			Drawn:   &g.Drawn,
+			State:   &g.State,
+		},
+	)
 
 	return nil
 }
@@ -136,7 +160,22 @@ func (g *Game) approveDraw(playerID uuid.UUID) errortypes.TypedError {
 		if allAccepted {
 			g.Drawn = g.playerOrder
 			g.State = StateFinished
-			return nil
+			g.updateHandler.Publish(
+				GameUpdate{
+					GameID:  g.ID,
+					Winners: &g.Winners,
+					Losers:  &g.Losers,
+					Drawn:   &g.Drawn,
+					State:   &g.State,
+				},
+			)
+		} else {
+			g.updateHandler.Publish(
+				GameUpdate{
+					GameID:       g.ID,
+					ApprovedDraw: &g.ApprovedDraw,
+				},
+			)
 		}
 	} else {
 		return errPlayerNotInGame{}
@@ -158,6 +197,13 @@ func (g *Game) rejectDraw() errortypes.TypedError {
 	for player := range g.ApprovedDraw {
 		g.ApprovedDraw[player] = false
 	}
+
+	g.updateHandler.Publish(
+		GameUpdate{
+			GameID:       g.ID,
+			ApprovedDraw: &g.ApprovedDraw,
+		},
+	)
 
 	return nil
 }
