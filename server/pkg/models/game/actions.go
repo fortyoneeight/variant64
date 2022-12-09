@@ -4,9 +4,15 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/variant64/server/pkg/bus"
 	"github.com/variant64/server/pkg/errortypes"
+	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/timer"
+
+	"github.com/gorilla/websocket"
 )
+
+var gameUpdateBus = bus.NewBus[GameUpdate]([]uuid.UUID{})
 
 // RequestNewGame is a used to create a new Game.
 type RequestNewGame struct {
@@ -32,7 +38,12 @@ func (r *RequestNewGame) PerformAction() (*Game, errortypes.TypedError) {
 		State:        StateNotStarted,
 		mux:          &sync.Mutex{},
 	}
-	game.updatePub = NewGameUpdatesPub(game.GetID())
+	handler, err := models.NewUpdatePub(game.ID, gameUpdateBus)
+	if err != nil {
+		return nil, models.ErrFailedUpdatePub{}
+	}
+
+	game.updateHandler = handler
 
 	for _, player := range r.PlayerOrder {
 		game.ApprovedDraw[player] = false
@@ -151,4 +162,42 @@ func (r *RequestRejectDraw) PerformAction() (*Game, errortypes.TypedError) {
 	}
 
 	return game, nil
+}
+
+const (
+	MessageChannel = "game"
+
+	GameSubscribe   string = "subscribe"
+	GameUnsubscribe string = "unsubscribe"
+)
+
+// CommandGameSubscribe represents a game subscribe command.
+type CommandGameSubscribe struct {
+	GameID      uuid.UUID `json:"game_id"`
+	EventWriter models.EventWriter
+}
+
+func (c *CommandGameSubscribe) PerformAction() errortypes.TypedError {
+	gameUpdateBus.Subscribe(c.GameID, models.NewMessageSubscriber[GameUpdate](c.EventWriter))
+	return nil
+}
+
+// CommandGameUnsubscribe represents an game unsubscribe command.
+type CommandGameUnsubscribe struct {
+	models.Command
+	GameID uuid.UUID `json:"game_id"`
+}
+
+func (c *CommandGameUnsubscribe) PerformAction(conn *websocket.Conn) errortypes.TypedError {
+	return nil
+}
+
+// HandleCommand handles all incoming game writer messages.
+func HandleCommand(writer models.EventWriter, command, body string) errortypes.TypedError {
+	switch {
+	case command == GameSubscribe:
+		return models.HandleCommand(models.MarshallCommand(body, &CommandGameSubscribe{EventWriter: writer}))
+	default:
+		return models.ErrInvalidCommand{}
+	}
 }

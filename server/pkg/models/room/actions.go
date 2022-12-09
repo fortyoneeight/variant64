@@ -4,9 +4,13 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/variant64/server/pkg/bus"
 	"github.com/variant64/server/pkg/errortypes"
+	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/models/game"
 )
+
+var roomUpdateBus = bus.NewBus[RoomUpdate]([]uuid.UUID{})
 
 // RequestNewRoom is used to create a new Room.
 type RequestNewRoom struct {
@@ -26,7 +30,11 @@ func (r *RequestNewRoom) PerformAction() (*Room, errortypes.TypedError) {
 		mux:     &sync.RWMutex{},
 	}
 
-	room.updatePub = NewRoomUpdatePub(room.ID)
+	handler, err := models.NewUpdatePub(room.ID, roomUpdateBus)
+	if err != nil {
+		return nil, models.ErrFailedUpdatePub{}
+	}
+	room.updateHandler = handler
 
 	roomStore := getRoomStore()
 	roomStore.Lock()
@@ -87,7 +95,7 @@ func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 	for _, p := range room.Players {
 		if p == r.PlayerID {
-			return nil, errDuplicatePlayer{playerID: r.PlayerID}
+			return nil, ErrDuplicatePlayer{playerID: r.PlayerID}
 		}
 	}
 	room.Players = append(room.Players, r.PlayerID)
@@ -98,10 +106,10 @@ func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 	roomStore.Store(room)
 
-	room.updatePub.Publish(
+	room.updateHandler.Publish(
 		RoomUpdate{
-			ID:      r.RoomID,
-			Players: room.Players,
+			ID:      &r.RoomID,
+			Players: &room.Players,
 		},
 	)
 	return room, nil
@@ -132,10 +140,10 @@ func (r *RequestLeaveRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 	roomStore.Store(room)
 
-	room.updatePub.Publish(
+	room.updateHandler.Publish(
 		RoomUpdate{
-			ID:      r.RoomID,
-			Players: room.Players,
+			ID:      &r.RoomID,
+			Players: &room.Players,
 		},
 	)
 	return room, nil
@@ -178,12 +186,53 @@ func (r *RequestStartGame) PerformAction() (*game.Game, errortypes.TypedError) {
 
 	roomStore.Store(room)
 
-	room.updatePub.Publish(
+	room.updateHandler.Publish(
 		RoomUpdate{
-			ID:      r.RoomID,
-			Players: room.Players,
+			ID:      &r.RoomID,
+			Players: &room.Players,
 			GameID:  room.GameID,
 		},
 	)
 	return gameEntity, nil
+}
+
+const (
+	MessageChannel = "room"
+
+	RoomSubscribe   string = "subscribe"
+	RoomUnsubscribe string = "unsubscribe"
+)
+
+// CommandRoomSubscribe represents a room subscribe command.
+type CommandRoomSubscribe struct {
+	RoomID      uuid.UUID `json:"room_id"`
+	EventWriter models.EventWriter
+}
+
+func (c *CommandRoomSubscribe) PerformAction() errortypes.TypedError {
+	roomUpdateBus.Subscribe(c.RoomID, models.NewMessageSubscriber[RoomUpdate](c.EventWriter))
+	return nil
+}
+
+// CommandRoomUnsubscribe represents an room unsubscribe command.
+type CommandRoomUnsubscribe struct {
+	models.Command
+	RoomID uuid.UUID `json:"room_id"`
+}
+
+func (c *CommandRoomUnsubscribe) PerformAction() errortypes.TypedError {
+	return nil
+}
+
+// HandleCommand handles all incoming room writer messages.
+func HandleCommand(writer models.EventWriter, command, body string) errortypes.TypedError {
+	switch {
+	case command == RoomSubscribe:
+		return models.HandleCommand(models.MarshallCommand(body, &CommandRoomSubscribe{EventWriter: writer}))
+	case command == RoomUnsubscribe:
+		c := CommandRoomUnsubscribe{}
+		return c.PerformAction()
+	default:
+		return models.ErrInvalidCommand{}
+	}
 }

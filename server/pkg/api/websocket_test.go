@@ -1,58 +1,79 @@
 package api
 
 import (
-	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
-	"github.com/variant64/server/pkg/api/command"
+	"github.com/variant64/server/pkg/models/game"
+	"github.com/variant64/server/pkg/models/room"
 )
 
 func TestReadAndHandleMessages(t *testing.T) {
 	testcases := []struct {
-		description        string
-		mockCommandHandler *mockCommandHandler
-		messages           []string
-		expectedCommands   []command.Command
+		description               string
+		mockCommandHandler        *mockCommandHandler
+		messages                  []string
+		expectedCommands          []WebSocketRequest
+		expectedChannelRequestMap map[string]int
 	}{
 		{
-			"No commands sent.",
-			&mockCommandHandler{
-				receivedCommands: make([]command.Command, 0),
+			"all commands.",
+			newMockCommandHandler(),
+			[]string{
+				"{\"channel\":\"game\", \"command\":\"subscribe\"}",
+				"{\"channel\":\"game\", \"command\":\"unsubscribe\"}",
+				"{\"channel\":\"room\", \"command\":\"subscribe\"}",
+				"{\"channel\":\"room\", \"command\":\"unsubscribe\"}",
 			},
+			[]WebSocketRequest{
+				{Channel: game.MessageChannel, Command: game.GameSubscribe},
+				{Channel: game.MessageChannel, Command: game.GameUnsubscribe},
+				{Channel: room.MessageChannel, Command: room.RoomSubscribe},
+				{Channel: room.MessageChannel, Command: room.RoomUnsubscribe},
+			},
+			map[string]int{
+				game.MessageChannel: 2,
+				room.MessageChannel: 2,
+			},
+		},
+		{
+			"No commands sent.",
+			newMockCommandHandler(),
 			[]string{},
-			[]command.Command{},
+			[]WebSocketRequest{},
+			make(map[string]int),
 		},
 		{
 			"One command sent.",
-			&mockCommandHandler{
-				receivedCommands: make([]command.Command, 0),
+			newMockCommandHandler(),
+			[]string{"{\"channel\":\"game\", \"command\":\"subscribe\"}"},
+			[]WebSocketRequest{
+				{Command: game.GameSubscribe},
 			},
-			[]string{"{\"command\":\"game_subscribe\"}"},
-			[]command.Command{
-				{Command: command.GameSubscribe},
+			map[string]int{
+				game.MessageChannel: 1,
 			},
 		},
 		{
 			"Multiple commands sent.",
-			&mockCommandHandler{
-				receivedCommands: make([]command.Command, 0),
-			},
+			newMockCommandHandler(),
 			[]string{
-				"{\"command\":\"game_subscribe\"}",
-				"{\"command\":\"game_unsubscribe\"}",
-				"{\"command\":\"game_subscribe\"}",
-				"{\"command\":\"game_unsubscribe\"}",
+				"{\"channel\":\"game\", \"command\":\"subscribe\"}",
+				"{\"channel\":\"game\", \"command\":\"unsubscribe\"}",
+				"{\"channel\":\"game\", \"command\":\"subscribe\"}",
+				"{\"channel\":\"game\", \"command\":\"unsubscribe\"}",
 			},
-			[]command.Command{
-				{Command: command.GameSubscribe},
-				{Command: command.GameUnsubscribe},
-				{Command: command.GameSubscribe},
-				{Command: command.GameUnsubscribe},
+			[]WebSocketRequest{
+				{Channel: game.MessageChannel, Command: game.GameSubscribe},
+				{Channel: game.MessageChannel, Command: game.GameUnsubscribe},
+				{Channel: game.MessageChannel, Command: game.GameSubscribe},
+				{Channel: game.MessageChannel, Command: game.GameUnsubscribe},
+			},
+			map[string]int{
+				game.MessageChannel: 4,
 			},
 		},
 	}
@@ -60,50 +81,63 @@ func TestReadAndHandleMessages(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.description, func(t *testing.T) {
 			// Setup mock server with mockCommandHandler.
-			server := httptest.NewServer(
-				http.HandlerFunc(
-					func(w http.ResponseWriter, r *http.Request) {
-						conn, err := upgrader.Upgrade(w, r, nil)
-						if err != nil {
-							return
-						}
-						defer conn.Close()
-
-						readAndHandleMessages(conn, tc.mockCommandHandler)
-					}),
-			)
+			server := httptest.NewServer(NewWebSocketHandleFunc(tc.mockCommandHandler))
 
 			// Connect to mock server.
-			serverURL := "ws" + strings.TrimPrefix(server.URL, "http")
-			conn, _, err := websocket.DefaultDialer.Dial(serverURL, nil)
-			if err != nil {
-				t.Error(err)
-			}
+			wsServer := NewWebSocketServer(server.URL)
 
 			// Send messages.
 			for _, message := range tc.messages {
-				conn.WriteMessage(websocket.TextMessage, []byte(message))
+				wsServer.WriteMessage(websocket.TextMessage, []byte(message))
 			}
 
 			// Wait for processing and check expected.
 			for i := 0; i < 5; i += 1 {
-				if len(tc.expectedCommands) > len(tc.mockCommandHandler.receivedCommands) {
+				if len(tc.expectedCommands) > tc.mockCommandHandler.totalCommandsReceived {
 					time.Sleep(1 * time.Second)
 				}
 			}
-			assert.Equal(t, tc.expectedCommands, tc.mockCommandHandler.receivedCommands)
+			assert.Equal(t, len(tc.expectedCommands), tc.mockCommandHandler.totalCommandsReceived)
+
+			for channel, expectedChannelCount := range tc.expectedChannelRequestMap {
+				assert.Equal(t, len(tc.mockCommandHandler.receivedCommandsMap[channel]), expectedChannelCount)
+			}
 
 			server.Close()
-			conn.Close()
+			wsServer.Close()
 		})
 	}
 }
 
 type mockCommandHandler struct {
-	receivedCommands []command.Command
+	receivedCommandsMap   map[string][]WebSocketRequest
+	totalCommandsReceived int
 }
 
-func (m *mockCommandHandler) HandleCommand(command command.Command, message []byte) error {
-	m.receivedCommands = append(m.receivedCommands, command)
+func (m *mockCommandHandler) HandleCommand(command WebSocketRequest) error {
+	m.receivedCommandsMap[command.Channel] = append(m.receivedCommandsMap[command.Channel], command)
+	m.totalCommandsReceived++
 	return nil
+}
+
+func newMockCommandHandler() *mockCommandHandler {
+	return &mockCommandHandler{
+		receivedCommandsMap: make(map[string][]WebSocketRequest),
+	}
+}
+
+func TestChannelHandlerMap(t *testing.T) {
+	wsHandler := &WSHandler{
+		handlerMap: make(map[string]channelHandlerFunc),
+	}
+	// Setup mock server with mockCommandHandler.
+	server := httptest.NewServer(NewWebSocketHandleFunc(wsHandler))
+
+	// Connect to mock server.
+	wsServer := NewWebSocketServer(server.URL)
+	wsHandler.SetWebsocketConn(wsServer.Conn)
+
+	RegisterChannelHandlers(wsHandler)
+
+	assert.Equal(t, len(wsHandler.AvailableChannels()), 2)
 }

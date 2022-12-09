@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/variant64/server/pkg/errortypes"
+	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/timer"
 )
 
@@ -31,7 +32,7 @@ type Game struct {
 
 	State gameState `json:"state"`
 
-	updatePub *updatePub[GameUpdate]
+	updateHandler *models.UpdatePublisher[GameUpdate]
 
 	mux *sync.Mutex
 }
@@ -181,7 +182,7 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *timer.Timer) {
 	for {
 		select {
 		case val := <-t.TimerChan:
-			g.updatePub.Publish(
+			g.updateHandler.Publish(
 				GameUpdate{
 					GameID: g.ID,
 					Clocks: &map[uuid.UUID]int64{playerID: val},
