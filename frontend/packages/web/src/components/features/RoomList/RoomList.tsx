@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { roomsState, roomState } from '../../../store/atoms';
 import { HomepageService } from '../../pages/hompage-service';
 import { ServicesContext } from '../../../store/context';

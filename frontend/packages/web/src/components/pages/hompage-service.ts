@@ -12,6 +12,7 @@ import {
   AppActions,
   StartGameResponse,
   ConcedeResponse,
+  DrawResponse,
   RoutesParams,
   SubscribeRoomUpdatesCommand,
   WebSocketChannels,
@@ -106,6 +107,20 @@ export class HomepageService {
       body: {
         [RoutesParams.GAME_ID]: gameID,
       },
+    });
+  }
+
+  drawGame(approved: boolean, gameID: string, playerID: string) {
+    return this.httpservice.request<DrawResponse>({
+      action: approved ? AppActions.APPROVE_DRAW : AppActions.REJECT_DRAW,
+      params: {
+        [RoutesParams.GAME_ID]: gameID,
+      },
+      body: approved
+        ? {
+            [RoutesParams.PLAYER_ID]: playerID,
+          }
+        : {},
     });
   }
 

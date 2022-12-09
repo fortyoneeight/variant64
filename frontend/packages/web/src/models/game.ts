@@ -4,5 +4,6 @@ export type Game = {
   winning_players: Array<string>;
   losing_players: Array<string>;
   drawn_players: Array<string>;
-  finished: boolean;
+  approved_draw_players: { [playerId: string]: boolean };
+  state: string;
 };

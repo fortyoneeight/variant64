@@ -28,10 +28,7 @@ export default function RoomForm() {
 
   const handleOnchange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const [_, name] = e.target.name.split('roomForm_');
-    setRoomForm({
-      ...roomForm,
-      [name]: e.target.value,
-    });
+    setRoomForm({ ...roomForm, [name]: e.target.value });
   };
 
   const handleOnSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {

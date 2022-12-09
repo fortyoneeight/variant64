@@ -35,6 +35,14 @@ export const RoomAPIRoutesConfig = {
       (params) => `/game/${params[RoutesParams.GAME_ID]}/concede`,
       'post'
     ),
+    [HTTPActions.APPROVE_DRAW]: NewRoute(
+      (params) => `/game/${params[RoutesParams.GAME_ID]}/draw/approve`,
+      'post'
+    ),
+    [HTTPActions.REJECT_DRAW]: NewRoute(
+      (params) => `/game/${params[RoutesParams.GAME_ID]}/draw/reject`,
+      'post'
+    ),
   } as Record<HTTPActions, RouteConfig>,
 };
 

@@ -1,0 +1,17 @@
+.drawButton {
+  font-size: 1.5rem;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.3rem;
+  color: #fff;
+  text-align: center;
+}
+
+.whiteButton {
+  font-size: 1.5rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  color: #000;
+}

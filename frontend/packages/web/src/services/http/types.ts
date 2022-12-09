@@ -32,6 +32,8 @@ export enum HTTPActions {
 
   // gameplay
   CONCEDE_GAME = 'CONCEDE_GAME',
+  APPROVE_DRAW = 'ACCEPT_DRAW',
+  REJECT_DRAW = 'REJECT_DRAW',
 }
 
 export type CreateRoomRequest = {
@@ -95,7 +97,8 @@ export interface RouteConfig {
   method: string;
 }
 
-export type ConcedeResponse = {};
+export type ConcedeResponse = Game;
+export type DrawResponse = Game;
 
 export interface RoutesConfig {
   name: string;
