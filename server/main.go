@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"github.com/swaggo/http-swagger"
 
 	_ "github.com/variant64/server/docs"
@@ -21,6 +22,13 @@ func main() {
 	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 	api.AttachRoutes(r)
 
-	http.Handle("/", r)
-	http.ListenAndServe(":8000", nil)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://variant64.xyz"},
+		AllowedMethods:   []string{"GET", "POST"},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(r)
+
+	http.ListenAndServe(":8000", handler)
 }

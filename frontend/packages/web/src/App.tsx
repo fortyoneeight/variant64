@@ -5,17 +5,17 @@ import { RecoilRoot } from 'recoil';
 import { ServicesContext } from './store/context';
 import { RoomAPIRoutesConfig, HttpService, WebSocketService } from './services';
 
-const { REACT_APP_BE_SEVER, REACT_APP_DEVELOPMENT_PROXY } = process.env;
+const { REACT_APP_BE_SERVER, REACT_APP_DEVELOPMENT_PROXY } = process.env;
 const proxyUrl = REACT_APP_DEVELOPMENT_PROXY ? REACT_APP_DEVELOPMENT_PROXY : '';
-console.log(REACT_APP_BE_SEVER, REACT_APP_DEVELOPMENT_PROXY, process.env.NODE_ENV);
+console.log(REACT_APP_BE_SERVER, REACT_APP_DEVELOPMENT_PROXY, process.env.NODE_ENV);
 
 let roomHttpService = new HttpService({
-  url: `http://${proxyUrl}/${REACT_APP_BE_SEVER}/api`,
+  url: `http://${proxyUrl}/${REACT_APP_BE_SERVER}/api`,
   routesConfig: RoomAPIRoutesConfig,
 });
 
 let roomWebSocketService = new WebSocketService({
-  url: `ws://${REACT_APP_BE_SEVER}/ws`,
+  url: `ws://${REACT_APP_BE_SERVER}/ws`,
 });
 
 function App() {
