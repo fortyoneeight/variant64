@@ -17,7 +17,7 @@ import (
 )
 
 type actionHandler[T any] interface {
-	PerformAction() (T, errortypes.TypedError)
+	PerformAction() (T, error)
 }
 
 func handleActionRoute[T any](w http.ResponseWriter, req *http.Request, handler actionHandler[T]) {
@@ -28,8 +28,9 @@ func handleActionRoute[T any](w http.ResponseWriter, req *http.Request, handler 
 	}
 
 	entity, actionErr := handler.PerformAction()
-	if actionErr != nil {
-		switch actionErr.GetType() {
+	typedErr := &errortypes.TypedError{}
+	if errors.As(actionErr, typedErr) {
+		switch typedErr.GetType() {
 		case errortypes.NotFound:
 			writeStatusCode(w, http.StatusNotFound, actionErr)
 			return

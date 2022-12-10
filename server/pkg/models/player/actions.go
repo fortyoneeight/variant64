@@ -2,7 +2,6 @@ package player
 
 import (
 	"github.com/google/uuid"
-	"github.com/variant64/server/pkg/errortypes"
 )
 
 // RequestNewPlayer is used to create a new Player.
@@ -11,9 +10,9 @@ type RequestNewPlayer struct {
 }
 
 // PerformAction creates a new Player.
-func (r *RequestNewPlayer) PerformAction() (*Player, errortypes.TypedError) {
+func (r *RequestNewPlayer) PerformAction() (*Player, error) {
 	if r.DisplayName == "" {
-		return nil, missingDisplayName{}
+		return nil, errMissingDisplayName
 	}
 
 	player := &Player{
@@ -36,14 +35,14 @@ type RequestGetPlayer struct {
 }
 
 // PerformAction loads a Player.
-func (r *RequestGetPlayer) PerformAction() (*Player, errortypes.TypedError) {
+func (r *RequestGetPlayer) PerformAction() (*Player, error) {
 	playerStore := getPlayerStore()
 	playerStore.Lock()
 	defer playerStore.Unlock()
 
 	player := playerStore.GetByID(r.PlayerID)
 	if player == nil {
-		return nil, errPlayerNotFound{}
+		return nil, errPlayerNotFound
 	}
 
 	return player, nil

@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/pkg/errortypes"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/timer"
 
@@ -20,9 +19,9 @@ type RequestNewGame struct {
 }
 
 // PerformAction creates a new Game.
-func (r *RequestNewGame) PerformAction() (*Game, errortypes.TypedError) {
+func (r *RequestNewGame) PerformAction() (*Game, error) {
 	if len(r.PlayerOrder) < 2 {
-		return nil, errInvalidPlayersNumber{number: len(r.PlayerOrder)}
+		return nil, errInvalidPlayersNumber(len(r.PlayerOrder))
 	}
 
 	game := &Game{
@@ -39,7 +38,7 @@ func (r *RequestNewGame) PerformAction() (*Game, errortypes.TypedError) {
 	}
 	handler, err := models.NewUpdatePub(game.ID, gameUpdateBus)
 	if err != nil {
-		return nil, models.ErrFailedUpdatePub{}
+		return nil, models.ErrFailedUpdatePub("Game")
 	}
 
 	game.updateHandler = handler
@@ -69,14 +68,14 @@ type RequestGetGame struct {
 }
 
 // PerformAction loads a Game.
-func (r *RequestGetGame) PerformAction() (*Game, errortypes.TypedError) {
+func (r *RequestGetGame) PerformAction() (*Game, error) {
 	gameStore := getGameStore()
 	gameStore.Lock()
 	defer gameStore.Unlock()
 
 	game := gameStore.GetByID(r.GameID)
 	if game == nil {
-		return nil, errGameNotFound{}
+		return nil, errGameNotFound
 	}
 
 	return game, nil
@@ -88,7 +87,7 @@ type RequestStartGame struct {
 }
 
 // PerformAction starts a Game.
-func (r *RequestStartGame) PerformAction() (*Game, errortypes.TypedError) {
+func (r *RequestStartGame) PerformAction() (*Game, error) {
 	e, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
 	if err != nil {
 		return nil, err
@@ -108,7 +107,7 @@ type RequestConcede struct {
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
-func (r *RequestConcede) PerformAction() (*Game, errortypes.TypedError) {
+func (r *RequestConcede) PerformAction() (*Game, error) {
 	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
 	if err != nil {
 		return nil, err
@@ -129,7 +128,7 @@ type RequestApproveDraw struct {
 }
 
 // PerformAction approves a draw for one player in a Game.
-func (r *RequestApproveDraw) PerformAction() (*Game, errortypes.TypedError) {
+func (r *RequestApproveDraw) PerformAction() (*Game, error) {
 	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
 	if err != nil {
 		return nil, err
@@ -149,7 +148,7 @@ type RequestRejectDraw struct {
 }
 
 // PerformAction rejects a draw in a Game.
-func (r *RequestRejectDraw) PerformAction() (*Game, errortypes.TypedError) {
+func (r *RequestRejectDraw) PerformAction() (*Game, error) {
 	game, err := (&RequestGetGame{GameID: r.GameID}).PerformAction()
 	if err != nil {
 		return nil, err
@@ -176,7 +175,7 @@ type CommandGameSubscribe struct {
 	EventWriter models.EventWriter
 }
 
-func (c *CommandGameSubscribe) PerformAction() errortypes.TypedError {
+func (c *CommandGameSubscribe) PerformAction() error {
 	models.Subscribe(gameUpdateBus, c.GameID, MessageChannel, c.EventWriter)
 	return nil
 }
@@ -187,16 +186,16 @@ type CommandGameUnsubscribe struct {
 	GameID uuid.UUID `json:"game_id"`
 }
 
-func (c *CommandGameUnsubscribe) PerformAction(conn *websocket.Conn) errortypes.TypedError {
+func (c *CommandGameUnsubscribe) PerformAction(conn *websocket.Conn) error {
 	return nil
 }
 
 // HandleCommand handles all incoming game writer messages.
-func HandleCommand(writer models.EventWriter, command, body string) errortypes.TypedError {
+func HandleCommand(writer models.EventWriter, command, body string) error {
 	switch {
 	case command == GameSubscribe:
 		return models.HandleCommand(models.MarshallCommand(body, &CommandGameSubscribe{EventWriter: writer}))
 	default:
-		return models.ErrInvalidCommand{}
+		return models.ErrInvalidCommand
 	}
 }

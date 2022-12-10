@@ -7,35 +7,12 @@ import (
 )
 
 // ErrInvalidCommand represents a invalid command.
-type ErrInvalidCommand struct{}
-
-func (e ErrInvalidCommand) GetType() errortypes.Type {
-	return errortypes.BadRequest
-}
-
-func (e ErrInvalidCommand) Error() string {
-	return "Websocket action not defined"
-}
+var ErrInvalidCommand = errortypes.New(errortypes.BadRequest, "Websocket action not defined")
 
 // ErrFailedCommandMarshall represents a failed command marshall.
-type ErrFailedCommandMarshall struct{}
+var ErrFailedCommandMarshall = errortypes.New(errortypes.BadRequest, "Websocket action failed to marshall")
 
-func (e ErrFailedCommandMarshall) GetType() errortypes.Type {
-	return errortypes.BadRequest
-}
-
-func (e ErrFailedCommandMarshall) Error() string {
-	return "Websocket action failed to marshall"
-}
-
-type ErrFailedUpdatePub struct {
-	entityType string
-}
-
-func (e ErrFailedUpdatePub) GetType() errortypes.Type {
-	return errortypes.BadRequest
-}
-
-func (e ErrFailedUpdatePub) Error() string {
-	return fmt.Sprintf("%s error: cannot create new update pub", e.entityType)
+// ErrFailedUpdatePub represents a failed command marshall.
+var ErrFailedUpdatePub = func(entityType string) errortypes.TypedError {
+	return errortypes.New(errortypes.InternalError, fmt.Sprintf("%s error: cannot create new update pub", entityType))
 }

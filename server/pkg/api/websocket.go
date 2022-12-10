@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
-	"github.com/variant64/server/pkg/errortypes"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/models/game"
 	"github.com/variant64/server/pkg/models/room"
@@ -20,7 +19,7 @@ var upgrader = websocket.Upgrader{
 }
 
 // channelHandlerFunc is the handler for a specific channel.
-type channelHandlerFunc func(conn models.EventWriter, command, body string) errortypes.TypedError
+type channelHandlerFunc func(conn models.EventWriter, command, body string) error
 
 // WSHandler handles incoming WS messages from a client.
 type WSHandler struct {
