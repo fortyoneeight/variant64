@@ -23,7 +23,26 @@ func (t Type) String() string {
 	return ""
 }
 
-type TypedError interface {
-	GetType() Type
-	Error() string
+type TypedError struct {
+	errType Type
+	errMsg  string
+}
+
+func (e TypedError) GetType() Type {
+	return e.errType
+}
+
+func (e TypedError) Error() string {
+	return e.errMsg
+}
+
+func (e TypedError) IsError() bool {
+	return e.errType == None || len(e.errMsg) > 0
+}
+
+func New(t Type, errMsg string) TypedError {
+	return TypedError{
+		errType: t,
+		errMsg:  errMsg,
+	}
 }

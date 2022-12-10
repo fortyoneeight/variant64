@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/variant64/server/pkg/errortypes"
 	"github.com/variant64/server/pkg/models/board"
 )
 
@@ -140,21 +139,21 @@ func (b *ClassicBoard) GetAllMoves() map[int]map[int]board.MoveMap {
 }
 
 // HandleMove handles a Move submitted by the client.
-func (b *ClassicBoard) HandleMove(move board.Move) errortypes.TypedError {
+func (b *ClassicBoard) HandleMove(move board.Move) error {
 	// Check if there is a piece at the source position.
 	sourcePiece := b.getPiece(move.Source)
 	if sourcePiece == nil {
-		return errPieceNotFound{}
+		return errPieceNotFound
 	}
 
 	// Verify move is legal.
 	err := b.isMoveAllowed(move, sourcePiece)
 	if err != nil {
-		return errMoveNotAllowed{}
+		return errMoveNotAllowed
 	}
 
 	// Update the board state.
-	var moveErr errortypes.TypedError
+	var moveErr error
 	switch move.MoveType {
 	case board.NORMAL:
 		moveErr = b.applySingleMoveToLocations(move, sourcePiece)
@@ -167,7 +166,7 @@ func (b *ClassicBoard) HandleMove(move board.Move) errortypes.TypedError {
 	case board.QUEENSIDE_CASTLE:
 		moveErr = b.applyQueensideCastleToLocations(move, sourcePiece)
 	default:
-		moveErr = errMoveNotAllowed{}
+		moveErr = errMoveNotAllowed
 	}
 	if moveErr != nil {
 		return moveErr
@@ -207,19 +206,19 @@ func (b *ClassicBoard) isMoveAllowed(move board.Move, sourcePiece piece) error {
 }
 
 // applySingleMoveToLocations handles moving a single piece from one square to another.
-func (b *ClassicBoard) applySingleMoveToLocations(move board.Move, sourcePiece piece) errortypes.TypedError {
+func (b *ClassicBoard) applySingleMoveToLocations(move board.Move, sourcePiece piece) error {
 	b.locations[move.Destination.Rank][move.Destination.File] = sourcePiece
 	b.locations[move.Source.Rank][move.Source.File] = nil
 	return nil
 }
 
 // applyKingsideCastleToLocations handles a KINGSIDE_CASTLE move.
-func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePiece piece) errortypes.TypedError {
+func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePiece piece) error {
 	// Check that castling is allowed.
 	if sourcePiece.GetColor() == board.WHITE && !b.whiteAllowedKingsideCastle {
-		return errNotAllowedToCastle{color: sourcePiece.GetColor()}
+		return errNotAllowedToCastle(sourcePiece.GetColor())
 	} else if sourcePiece.GetColor() == board.BLACK && !b.blackAllowedKingsideCastle {
-		return errNotAllowedToCastle{color: sourcePiece.GetColor()}
+		return errNotAllowedToCastle(sourcePiece.GetColor())
 	}
 
 	// Handle the king movement.
@@ -235,19 +234,19 @@ func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePie
 		b.locations[7][5] = b.locations[7][7]
 		b.locations[7][7] = nil
 	default:
-		return errNotAllowedToCastle{color: sourcePiece.GetColor()}
+		return errNotAllowedToCastle(sourcePiece.GetColor())
 	}
 
 	return nil
 }
 
 // applyQueensideCastleToLocations handles a QUEENSIDE_CASTLE move.
-func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePiece piece) errortypes.TypedError {
+func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePiece piece) error {
 	// Check that castling is allowed.
 	if sourcePiece.GetColor() == board.WHITE && !b.whiteAllowedQueensideCastle {
-		return errNotAllowedToCastle{color: sourcePiece.GetColor()}
+		return errNotAllowedToCastle(sourcePiece.GetColor())
 	} else if sourcePiece.GetColor() == board.BLACK && !b.blackAllowedQueensideCastle {
-		return errNotAllowedToCastle{color: sourcePiece.GetColor()}
+		return errNotAllowedToCastle(sourcePiece.GetColor())
 	}
 
 	// Handle the king movement.
@@ -263,14 +262,14 @@ func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePi
 		b.locations[7][3] = b.locations[7][0]
 		b.locations[7][0] = nil
 	default:
-		return errInvalidColor{color: sourcePiece.GetColor()}
+		return errInvalidColor(sourcePiece.GetColor())
 	}
 
 	return nil
 }
 
 // updateCastlingFlag updates the castling flag for a player if neccessary.
-func (b *ClassicBoard) updateCastlingFlag(move board.Move, sourcePiece piece) errortypes.TypedError {
+func (b *ClassicBoard) updateCastlingFlag(move board.Move, sourcePiece piece) error {
 	if sourcePiece.GetType() == board.KING {
 		switch sourcePiece.GetColor() {
 		case board.BLACK:
@@ -280,7 +279,7 @@ func (b *ClassicBoard) updateCastlingFlag(move board.Move, sourcePiece piece) er
 			b.whiteAllowedKingsideCastle = false
 			b.whiteAllowedQueensideCastle = false
 		default:
-			return errInvalidColor{color: sourcePiece.GetColor()}
+			return errInvalidColor(sourcePiece.GetColor())
 		}
 	} else if sourcePiece.GetType() == board.ROOK {
 		switch sourcePiece.GetColor() {
@@ -297,7 +296,7 @@ func (b *ClassicBoard) updateCastlingFlag(move board.Move, sourcePiece piece) er
 				b.blackAllowedKingsideCastle = false
 			}
 		default:
-			return errInvalidColor{color: sourcePiece.GetColor()}
+			return errInvalidColor(sourcePiece.GetColor())
 		}
 	}
 

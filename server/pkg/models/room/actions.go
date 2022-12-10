@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/pkg/errortypes"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/models/game"
 )
@@ -17,9 +16,9 @@ type RequestNewRoom struct {
 }
 
 // PerformAction creates a new Room.
-func (r *RequestNewRoom) PerformAction() (*Room, errortypes.TypedError) {
+func (r *RequestNewRoom) PerformAction() (*Room, error) {
 	if r.Name == "" {
-		return nil, errMissingName{}
+		return nil, errMissingName
 	}
 
 	room := &Room{
@@ -31,7 +30,7 @@ func (r *RequestNewRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 	handler, err := models.NewUpdatePub(room.ID, roomUpdateBus)
 	if err != nil {
-		return nil, models.ErrFailedUpdatePub{}
+		return nil, models.ErrFailedUpdatePub("Room")
 	}
 	room.updateHandler = handler
 
@@ -50,14 +49,14 @@ type RequestGetRoom struct {
 }
 
 // PerformAction loads a Room.
-func (r *RequestGetRoom) PerformAction() (*Room, errortypes.TypedError) {
+func (r *RequestGetRoom) PerformAction() (*Room, error) {
 	roomStore := getRoomStore()
 	roomStore.Lock()
 	defer roomStore.Unlock()
 
 	room := roomStore.GetByID(r.RoomID)
 	if room == nil {
-		return nil, errRoomNotFound{}
+		return nil, errRoomNotFound
 	}
 
 	return room, nil
@@ -67,14 +66,14 @@ func (r *RequestGetRoom) PerformAction() (*Room, errortypes.TypedError) {
 type RequestGetRooms struct{}
 
 // PerformAction gets all rooms.
-func (r *RequestGetRooms) PerformAction() ([]*Room, errortypes.TypedError) {
+func (r *RequestGetRooms) PerformAction() ([]*Room, error) {
 	roomStore := getRoomStore()
 	roomStore.Lock()
 	defer roomStore.Unlock()
 
 	rooms := roomStore.GetAll()
 	if rooms == nil {
-		return nil, errRoomNotFound{}
+		return nil, errRoomNotFound
 	}
 
 	return rooms, nil
@@ -86,7 +85,7 @@ type RequestJoinRoom struct {
 	PlayerID uuid.UUID `json:"player_id"`
 }
 
-func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
+func (r *RequestJoinRoom) PerformAction() (*Room, error) {
 	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
@@ -94,7 +93,7 @@ func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
 
 	for _, p := range room.Players {
 		if p == r.PlayerID {
-			return nil, ErrDuplicatePlayer{playerID: r.PlayerID}
+			return nil, errDuplicatePlayer(r.PlayerID.String())
 		}
 	}
 	room.Players = append(room.Players, r.PlayerID)
@@ -124,7 +123,7 @@ type RequestLeaveRoom struct {
 }
 
 // RequestLeaveRoom handles a RequestRoomAddPlayer.
-func (r *RequestLeaveRoom) PerformAction() (*Room, errortypes.TypedError) {
+func (r *RequestLeaveRoom) PerformAction() (*Room, error) {
 	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
@@ -161,7 +160,7 @@ type RequestStartGame struct {
 }
 
 // PerformAction starts a game.Game in a Room.
-func (r *RequestStartGame) PerformAction() (*game.Game, errortypes.TypedError) {
+func (r *RequestStartGame) PerformAction() (*game.Game, error) {
 	room, err := (&RequestGetRoom{RoomID: r.RoomID}).PerformAction()
 	if err != nil || room == nil {
 		return nil, err
@@ -216,7 +215,7 @@ type CommandRoomSubscribe struct {
 	EventWriter models.EventWriter
 }
 
-func (c *CommandRoomSubscribe) PerformAction() errortypes.TypedError {
+func (c *CommandRoomSubscribe) PerformAction() error {
 	models.Subscribe(roomUpdateBus, c.RoomID, MessageChannel, c.EventWriter)
 	return nil
 }
@@ -227,12 +226,12 @@ type CommandRoomUnsubscribe struct {
 	RoomID uuid.UUID `json:"room_id"`
 }
 
-func (c *CommandRoomUnsubscribe) PerformAction() errortypes.TypedError {
+func (c *CommandRoomUnsubscribe) PerformAction() error {
 	return nil
 }
 
-// HandleCommand handles all incoming room writer messages.
-func HandleCommand(writer models.EventWriter, command, body string) errortypes.TypedError {
+// HandleCommand handles all incoming room websocket messages.
+func HandleCommand(writer models.EventWriter, command, body string) error {
 	switch {
 	case command == RoomSubscribe:
 		return models.HandleCommand(models.MarshallCommand(body, &CommandRoomSubscribe{EventWriter: writer}))
@@ -240,6 +239,6 @@ func HandleCommand(writer models.EventWriter, command, body string) errortypes.T
 		c := CommandRoomUnsubscribe{}
 		return c.PerformAction()
 	default:
-		return models.ErrInvalidCommand{}
+		return models.ErrInvalidCommand
 	}
 }

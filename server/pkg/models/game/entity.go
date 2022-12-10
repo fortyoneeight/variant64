@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/pkg/errortypes"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/timer"
 )
@@ -64,7 +63,7 @@ func (g *Game) GetID() uuid.UUID {
 }
 
 // start initializes the game and starts it.
-func (g *Game) start() errortypes.TypedError {
+func (g *Game) start() error {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
@@ -94,7 +93,7 @@ func (g *Game) passTurn() {
 }
 
 // declareLoser sets one player as the loser and all other players as winners.
-func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
+func (g *Game) declareLoser(playerID uuid.UUID) error {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
@@ -114,7 +113,7 @@ func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
 	}
 
 	if len(losers) == 0 {
-		return errPlayerNotInGame{}
+		return errPlayerNotInGame
 	}
 
 	g.playerTimers[g.ActivePlayer].Pause()
@@ -140,7 +139,7 @@ func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
 
 // approveDraw marks the player as having accepeted a draw,
 // if all players have accepeted a draw the game is considered a draw.
-func (g *Game) approveDraw(playerID uuid.UUID) errortypes.TypedError {
+func (g *Game) approveDraw(playerID uuid.UUID) error {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
@@ -190,14 +189,14 @@ func (g *Game) approveDraw(playerID uuid.UUID) errortypes.TypedError {
 				})
 		}
 	} else {
-		return errPlayerNotInGame{}
+		return errPlayerNotInGame
 	}
 
 	return nil
 }
 
 // rejectDraw marks all the players as having not accepted a draw.
-func (g *Game) rejectDraw() errortypes.TypedError {
+func (g *Game) rejectDraw() error {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
@@ -224,9 +223,9 @@ func (g *Game) rejectDraw() errortypes.TypedError {
 }
 
 // isGameInState checks if the Game is in the correct state.
-func (g *Game) isGameInState(required gameState) errortypes.TypedError {
+func (g *Game) isGameInState(required gameState) error {
 	if g.State != required {
-		return errIncorrectGameState{requiredState: required, currentState: g.State}
+		return errIncorrectGameState(required, g.State)
 	}
 	return nil
 }

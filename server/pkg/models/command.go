@@ -2,13 +2,11 @@ package models
 
 import (
 	"encoding/json"
-
-	"github.com/variant64/server/pkg/errortypes"
 )
 
 // commander represent an command object that can perform an action.
 type commander interface {
-	PerformAction() errortypes.TypedError
+	PerformAction() error
 }
 
 // Command represents a command type.
@@ -17,7 +15,7 @@ type Command struct {
 }
 
 // HandleCommand performs the command action.
-func HandleCommand(c commander, err errortypes.TypedError) errortypes.TypedError {
+func HandleCommand(c commander, err error) error {
 	if err != nil {
 		return err
 	}
@@ -26,10 +24,10 @@ func HandleCommand(c commander, err errortypes.TypedError) errortypes.TypedError
 }
 
 // MarshallCommand generically marshalls a command to a type.
-func MarshallCommand[T any](command string, t *T) (*T, errortypes.TypedError) {
+func MarshallCommand[T any](command string, t *T) (*T, error) {
 	err := json.Unmarshal([]byte(command), t)
 	if err != nil {
-		return nil, ErrFailedCommandMarshall{}
+		return nil, ErrFailedCommandMarshall
 	}
 
 	return t, nil
