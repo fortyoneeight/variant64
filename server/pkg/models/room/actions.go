@@ -4,13 +4,12 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/pkg/bus"
 	"github.com/variant64/server/pkg/errortypes"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/models/game"
 )
 
-var roomUpdateBus = bus.NewBus[RoomUpdate]([]uuid.UUID{})
+var roomUpdateBus = models.NewUpdateBus[RoomUpdate]()
 
 // RequestNewRoom is used to create a new Room.
 type RequestNewRoom struct {
@@ -107,11 +106,14 @@ func (r *RequestJoinRoom) PerformAction() (*Room, errortypes.TypedError) {
 	roomStore.Store(room)
 
 	room.updateHandler.Publish(
-		RoomUpdate{
-			ID:      &r.RoomID,
-			Players: &room.Players,
-		},
-	)
+		models.UpdateMessage[RoomUpdate]{
+			Channel: MessageChannel,
+			Type:    models.UpdateType_DELTA,
+			Data: RoomUpdate{
+				ID:      &r.RoomID,
+				Players: &room.Players,
+			},
+		})
 	return room, nil
 }
 
@@ -141,11 +143,14 @@ func (r *RequestLeaveRoom) PerformAction() (*Room, errortypes.TypedError) {
 	roomStore.Store(room)
 
 	room.updateHandler.Publish(
-		RoomUpdate{
-			ID:      &r.RoomID,
-			Players: &room.Players,
-		},
-	)
+		models.UpdateMessage[RoomUpdate]{
+			Channel: MessageChannel,
+			Type:    models.UpdateType_DELTA,
+			Data: RoomUpdate{
+				ID:      &r.RoomID,
+				Players: &room.Players,
+			},
+		})
 	return room, nil
 }
 
@@ -187,12 +192,14 @@ func (r *RequestStartGame) PerformAction() (*game.Game, errortypes.TypedError) {
 	roomStore.Store(room)
 
 	room.updateHandler.Publish(
-		RoomUpdate{
-			ID:      &r.RoomID,
-			Players: &room.Players,
-			GameID:  room.GameID,
-		},
-	)
+		models.UpdateMessage[RoomUpdate]{
+			Channel: MessageChannel,
+			Type:    models.UpdateType_DELTA,
+			Data: RoomUpdate{
+				ID:      &r.RoomID,
+				Players: &room.Players,
+			},
+		})
 	return gameEntity, nil
 }
 
@@ -210,7 +217,7 @@ type CommandRoomSubscribe struct {
 }
 
 func (c *CommandRoomSubscribe) PerformAction() errortypes.TypedError {
-	roomUpdateBus.Subscribe(c.RoomID, models.NewMessageSubscriber[RoomUpdate](c.EventWriter))
+	models.Subscribe(roomUpdateBus, c.RoomID, MessageChannel, c.EventWriter)
 	return nil
 }
 

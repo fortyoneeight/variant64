@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/variant64/server/pkg/bus"
 	"github.com/variant64/server/pkg/errortypes"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/timer"
@@ -12,7 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var gameUpdateBus = bus.NewBus[GameUpdate]([]uuid.UUID{})
+var gameUpdateBus = models.NewUpdateBus[GameUpdate]()
 
 // RequestNewGame is a used to create a new Game.
 type RequestNewGame struct {
@@ -178,7 +177,7 @@ type CommandGameSubscribe struct {
 }
 
 func (c *CommandGameSubscribe) PerformAction() errortypes.TypedError {
-	gameUpdateBus.Subscribe(c.GameID, models.NewMessageSubscriber[GameUpdate](c.EventWriter))
+	models.Subscribe(gameUpdateBus, c.GameID, MessageChannel, c.EventWriter)
 	return nil
 }
 
