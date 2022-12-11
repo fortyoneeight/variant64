@@ -51,10 +51,6 @@ export default function Gamepage() {
   const handleStartClick = () => {
     homepageService.startRoom(room.id, defaultClockMillis).then((game) => {
       homepageService.subscribeToGameUpdates(game.id);
-      // setRoom({
-      //   ...room,
-      //   ...game,
-      // });
     });
   };
 
@@ -72,9 +68,19 @@ export default function Gamepage() {
 
   const cb = (data: any) => {
     console.log('[COMPONENT_DATA]', data);
-    // setGame({
-    //   ...data,
-    // });
+    if (data.channel === 'room') {
+      setRoom({
+        ...room,
+        ...data,
+      });
+    }
+
+    if (data.channel === 'game') {
+      setGameUpdate({
+        ...gameUpdate,
+        ...data,
+      });
+    }
   };
 
   useEffect(() => {
