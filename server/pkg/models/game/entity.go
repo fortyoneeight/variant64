@@ -123,14 +123,17 @@ func (g *Game) declareLoser(playerID uuid.UUID) errortypes.TypedError {
 	g.State = StateFinished
 
 	g.updateHandler.Publish(
-		GameUpdate{
-			GameID:  g.ID,
-			Winners: &g.Winners,
-			Losers:  &g.Losers,
-			Drawn:   &g.Drawn,
-			State:   &g.State,
-		},
-	)
+		models.UpdateMessage[GameUpdate]{
+			Channel: MessageChannel,
+			Type:    models.UpdateType_DELTA,
+			Data: GameUpdate{
+				GameID:  g.ID,
+				Winners: &g.Winners,
+				Losers:  &g.Losers,
+				Drawn:   &g.Drawn,
+				State:   &g.State,
+			},
+		})
 
 	return nil
 }
@@ -161,21 +164,30 @@ func (g *Game) approveDraw(playerID uuid.UUID) errortypes.TypedError {
 			g.Drawn = g.playerOrder
 			g.State = StateFinished
 			g.updateHandler.Publish(
-				GameUpdate{
-					GameID:  g.ID,
-					Winners: &g.Winners,
-					Losers:  &g.Losers,
-					Drawn:   &g.Drawn,
-					State:   &g.State,
-				},
-			)
+				models.UpdateMessage[GameUpdate]{
+					Channel: MessageChannel,
+					Type:    models.UpdateType_DELTA,
+					Data: GameUpdate{
+						GameID:  g.ID,
+						Winners: &g.Winners,
+						Losers:  &g.Losers,
+						Drawn:   &g.Drawn,
+						State:   &g.State,
+					},
+				})
 		} else {
 			g.updateHandler.Publish(
-				GameUpdate{
-					GameID:       g.ID,
-					ApprovedDraw: &g.ApprovedDraw,
-				},
-			)
+				models.UpdateMessage[GameUpdate]{
+					Channel: MessageChannel,
+					Type:    models.UpdateType_DELTA,
+					Data: GameUpdate{
+						GameID:  g.ID,
+						Winners: &g.Winners,
+						Losers:  &g.Losers,
+						Drawn:   &g.Drawn,
+						State:   &g.State,
+					},
+				})
 		}
 	} else {
 		return errPlayerNotInGame{}
@@ -199,11 +211,14 @@ func (g *Game) rejectDraw() errortypes.TypedError {
 	}
 
 	g.updateHandler.Publish(
-		GameUpdate{
-			GameID:       g.ID,
-			ApprovedDraw: &g.ApprovedDraw,
-		},
-	)
+		models.UpdateMessage[GameUpdate]{
+			Channel: MessageChannel,
+			Type:    models.UpdateType_DELTA,
+			Data: GameUpdate{
+				GameID:       g.ID,
+				ApprovedDraw: &g.ApprovedDraw,
+			},
+		})
 
 	return nil
 }
@@ -229,11 +244,14 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *timer.Timer) {
 		select {
 		case val := <-t.TimerChan:
 			g.updateHandler.Publish(
-				GameUpdate{
-					GameID: g.ID,
-					Clocks: &map[uuid.UUID]int64{playerID: val},
-				},
-			)
+				models.UpdateMessage[GameUpdate]{
+					Channel: MessageChannel,
+					Type:    models.UpdateType_DELTA,
+					Data: GameUpdate{
+						GameID: g.ID,
+						Clocks: &map[uuid.UUID]int64{playerID: val},
+					},
+				})
 		}
 	}
 }
