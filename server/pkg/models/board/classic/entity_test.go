@@ -13,8 +13,8 @@ func TestCheckPawnMoves(t *testing.T) {
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
 		locations: map[int]map[int]piece{
-			1: {0: &board.Pawn{Color: board.WHITE}},
-			6: {0: &board.Pawn{Color: board.BLACK}},
+			1: {0: board.NewPawn(board.WHITE)},
+			6: {0: board.NewPawn(board.BLACK)},
 		},
 	}
 
@@ -27,7 +27,7 @@ func TestCheckPawnMoves(t *testing.T) {
 		{
 			name:     "White pawn start.",
 			position: board.Position{Rank: 1, File: 0},
-			piece:    &board.Pawn{Color: board.WHITE},
+			piece:    board.NewPawn(board.WHITE),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 2, File: 0},
@@ -36,6 +36,7 @@ func TestCheckPawnMoves(t *testing.T) {
 					{Rank: 3, File: 0},
 				},
 				board.CAPTURE:          []board.Position{},
+				board.RAY:              []board.Position{},
 				board.KINGSIDE_CASTLE:  []board.Position{},
 				board.QUEENSIDE_CASTLE: []board.Position{},
 			},
@@ -43,7 +44,7 @@ func TestCheckPawnMoves(t *testing.T) {
 		{
 			name:     "Black pawn start.",
 			position: board.Position{Rank: 6, File: 0},
-			piece:    &board.Pawn{Color: board.BLACK},
+			piece:    board.NewPawn(board.BLACK),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 5, File: 0},
@@ -52,6 +53,7 @@ func TestCheckPawnMoves(t *testing.T) {
 					{Rank: 4, File: 0},
 				},
 				board.CAPTURE:          []board.Position{},
+				board.RAY:              []board.Position{},
 				board.KINGSIDE_CASTLE:  []board.Position{},
 				board.QUEENSIDE_CASTLE: []board.Position{},
 			},
@@ -70,7 +72,7 @@ func TestCheckKnightMoves(t *testing.T) {
 	classicBoard := &ClassicBoard{
 		Bounds: board.Bounds{Rank: 8, File: 8},
 		locations: map[int]map[int]piece{
-			3: {3: &board.Knight{Color: board.WHITE}},
+			3: {3: board.NewKnight(board.WHITE)},
 		},
 	}
 
@@ -83,7 +85,7 @@ func TestCheckKnightMoves(t *testing.T) {
 		{
 			name:     "Knight in the middle of the board.",
 			position: board.Position{Rank: 3, File: 3},
-			piece:    &board.Knight{Color: board.WHITE},
+			piece:    board.NewKnight(board.WHITE),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 5, File: 4},
@@ -117,7 +119,7 @@ func TestCheckQueenMoves(t *testing.T) {
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
 		locations: map[int]map[int]piece{
-			3: {3: &board.Queen{Bounds: bounds, Color: board.WHITE}},
+			3: {3: board.NewQueen(board.WHITE, bounds)},
 		},
 	}
 
@@ -130,7 +132,7 @@ func TestCheckQueenMoves(t *testing.T) {
 		{
 			name:     "Queen in the middle of the board.",
 			position: board.Position{Rank: 3, File: 3},
-			piece:    &board.Queen{Color: board.WHITE},
+			piece:    board.NewQueen(board.WHITE, bounds),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 0, File: 3},
@@ -188,17 +190,17 @@ func TestCheckKingMoves(t *testing.T) {
 		blackAllowedQueensideCastle: true,
 		locations: map[int]map[int]piece{
 			0: {
-				0: &board.Rook{Bounds: bounds, Color: board.WHITE},
-				4: &board.King{Color: board.WHITE},
-				7: &board.Rook{Bounds: bounds, Color: board.WHITE},
+				0: board.NewRook(board.WHITE, bounds),
+				4: board.NewKing(board.WHITE),
+				7: board.NewRook(board.WHITE, bounds),
 			},
 			4: {
-				4: &board.King{Color: board.WHITE},
+				4: board.NewKing(board.WHITE),
 			},
 			7: {
-				0: &board.Rook{Bounds: bounds, Color: board.BLACK},
-				4: &board.King{Color: board.BLACK},
-				7: &board.Rook{Bounds: bounds, Color: board.BLACK},
+				0: board.NewRook(board.BLACK, bounds),
+				4: board.NewKing(board.BLACK),
+				7: board.NewRook(board.BLACK, bounds),
 			},
 		},
 	}
@@ -212,7 +214,7 @@ func TestCheckKingMoves(t *testing.T) {
 		{
 			name:     "King in the middle of the board.",
 			position: board.Position{Rank: 4, File: 4},
-			piece:    &board.King{Color: board.WHITE},
+			piece:    board.NewKing(board.WHITE),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 5, File: 5},
@@ -232,7 +234,7 @@ func TestCheckKingMoves(t *testing.T) {
 		{
 			name:     "White king in the original position.",
 			position: board.Position{Rank: 0, File: 4},
-			piece:    &board.King{Color: board.WHITE},
+			piece:    board.NewKing(board.WHITE),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 0, File: 3},
@@ -253,7 +255,7 @@ func TestCheckKingMoves(t *testing.T) {
 		{
 			name:     "Black king in the original position.",
 			position: board.Position{Rank: 7, File: 4},
-			piece:    &board.King{Color: board.BLACK},
+			piece:    board.NewKing(board.BLACK),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 7, File: 3},
@@ -297,7 +299,7 @@ func TestCheckRookMoves(t *testing.T) {
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
 		locations: map[int]map[int]piece{
-			3: {3: &board.Rook{Bounds: bounds, Color: board.WHITE}},
+			3: {3: board.NewRook(board.WHITE, bounds)},
 		},
 	}
 
@@ -310,7 +312,7 @@ func TestCheckRookMoves(t *testing.T) {
 		{
 			name:     "Rook in the middle of the board.",
 			position: board.Position{Rank: 3, File: 3},
-			piece:    &board.Rook{Bounds: bounds, Color: board.WHITE},
+			piece:    board.NewRook(board.WHITE, bounds),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 0, File: 3},
@@ -350,7 +352,7 @@ func TestCheckBishopMoves(t *testing.T) {
 	classicBoard := &ClassicBoard{
 		Bounds: board.Bounds{Rank: 8, File: 8},
 		locations: map[int]map[int]piece{
-			3: {3: &board.Bishop{Bounds: bounds, Color: board.WHITE}},
+			3: {3: board.NewBishop(board.WHITE, bounds)},
 		},
 	}
 
@@ -363,7 +365,7 @@ func TestCheckBishopMoves(t *testing.T) {
 		{
 			name:     "Bishop in the middle of the board.",
 			position: board.Position{Rank: 3, File: 3},
-			piece:    &board.Bishop{Bounds: bounds, Color: board.WHITE},
+			piece:    board.NewBishop(board.WHITE, bounds),
 			expectedLegalMoves: board.MoveMap{
 				board.NORMAL: []board.Position{
 					{Rank: 0, File: 0},
@@ -430,10 +432,10 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						0: {
-							0: &board.Pawn{Color: board.WHITE},
+							0: board.NewPawn(board.WHITE),
 						},
 						6: {
-							0: &board.Pawn{Color: board.BLACK},
+							0: board.NewPawn(board.BLACK),
 						},
 					},
 				),
@@ -448,10 +450,10 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						1: {
-							0: &board.Pawn{Color: board.WHITE},
+							0: board.NewPawn(board.WHITE),
 						},
 						5: {
-							0: &board.Pawn{Color: board.BLACK},
+							0: board.NewPawn(board.BLACK),
 						},
 					},
 				),
@@ -482,10 +484,10 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						1: {
-							0: &board.Pawn{Color: board.WHITE},
+							0: board.NewPawn(board.WHITE),
 						},
 						6: {
-							0: &board.Pawn{Color: board.BLACK},
+							0: board.NewPawn(board.BLACK),
 						},
 					},
 				),
@@ -500,10 +502,10 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						3: {
-							0: &board.Pawn{Color: board.WHITE},
+							0: board.NewPawn(board.WHITE),
 						},
 						4: {
-							0: &board.Pawn{Color: board.BLACK},
+							0: board.NewPawn(board.BLACK),
 						},
 					},
 				),
@@ -534,12 +536,12 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						0: {
-							4: &board.King{Color: board.WHITE},
-							7: &board.Rook{Color: board.WHITE},
+							4: board.NewKing(board.WHITE),
+							7: board.NewRook(board.WHITE, bounds),
 						},
 						7: {
-							4: &board.King{Color: board.BLACK},
-							7: &board.Rook{Color: board.BLACK},
+							4: board.NewKing(board.BLACK),
+							7: board.NewRook(board.BLACK, bounds),
 						},
 					},
 				),
@@ -554,12 +556,12 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						0: {
-							6: &board.King{Color: board.WHITE},
-							5: &board.Rook{Color: board.WHITE},
+							6: board.NewKing(board.WHITE),
+							5: board.NewRook(board.WHITE, bounds),
 						},
 						7: {
-							6: &board.King{Color: board.BLACK},
-							5: &board.Rook{Color: board.BLACK},
+							6: board.NewKing(board.BLACK),
+							5: board.NewRook(board.BLACK, bounds),
 						},
 					},
 				),
@@ -590,12 +592,12 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						0: {
-							0: &board.Rook{Color: board.WHITE},
-							4: &board.King{Color: board.WHITE},
+							0: board.NewRook(board.WHITE, bounds),
+							4: board.NewKing(board.WHITE),
 						},
 						7: {
-							0: &board.Rook{Color: board.BLACK},
-							4: &board.King{Color: board.BLACK},
+							0: board.NewRook(board.BLACK, bounds),
+							4: board.NewKing(board.BLACK),
 						},
 					},
 				),
@@ -610,12 +612,12 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						0: {
-							2: &board.King{Color: board.WHITE},
-							3: &board.Rook{Color: board.WHITE},
+							2: board.NewKing(board.WHITE),
+							3: board.NewRook(board.WHITE, bounds),
 						},
 						7: {
-							2: &board.King{Color: board.BLACK},
-							3: &board.Rook{Color: board.BLACK},
+							2: board.NewKing(board.BLACK),
+							3: board.NewRook(board.BLACK, bounds),
 						},
 					},
 				),
@@ -646,16 +648,16 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						1: {
-							0: &board.Pawn{Color: board.WHITE},
+							0: board.NewPawn(board.WHITE),
 						},
 						2: {
-							1: &board.Pawn{Color: board.BLACK},
+							1: board.NewPawn(board.BLACK),
 						},
 						6: {
-							1: &board.Pawn{Color: board.WHITE},
+							1: board.NewPawn(board.WHITE),
 						},
 						7: {
-							0: &board.Pawn{Color: board.BLACK},
+							0: board.NewPawn(board.BLACK),
 						},
 					},
 				),
@@ -670,10 +672,10 @@ func TestHandleMove(t *testing.T) {
 					bounds,
 					locationMap{
 						2: {
-							1: &board.Pawn{Color: board.WHITE},
+							1: board.NewPawn(board.WHITE),
 						},
 						6: {
-							1: &board.Pawn{Color: board.BLACK},
+							1: board.NewPawn(board.BLACK),
 						},
 					},
 				),

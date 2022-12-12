@@ -84,6 +84,7 @@ func NewMoveMap() MoveMap {
 		NORMAL:           make([]Position, 0),
 		CAPTURE:          make([]Position, 0),
 		PAWN_DOUBLE_PUSH: make([]Position, 0),
+		RAY:              make([]Position, 0),
 		KINGSIDE_CASTLE:  make([]Position, 0),
 		QUEENSIDE_CASTLE: make([]Position, 0),
 	}

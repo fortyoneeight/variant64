@@ -61,49 +61,49 @@ func New() *ClassicBoard {
 		piece piece
 	}{
 		// white rooks
-		{Rank: 0, File: 0, piece: &board.Rook{Bounds: bounds, Color: board.WHITE}},
-		{Rank: 0, File: 7, piece: &board.Rook{Bounds: bounds, Color: board.WHITE}},
-		// white bishops
-		{Rank: 0, File: 1, piece: &board.Bishop{Bounds: bounds, Color: board.WHITE}},
-		{Rank: 0, File: 6, piece: &board.Bishop{Bounds: bounds, Color: board.WHITE}},
+		{Rank: 0, File: 0, piece: board.NewRook(board.WHITE, bounds)},
+		{Rank: 0, File: 7, piece: board.NewRook(board.WHITE, bounds)},
 		// white kights
-		{Rank: 0, File: 2, piece: &board.Knight{Color: board.WHITE}},
-		{Rank: 0, File: 5, piece: &board.Knight{Color: board.WHITE}},
+		{Rank: 0, File: 1, piece: board.NewKnight(board.WHITE)},
+		{Rank: 0, File: 6, piece: board.NewKnight(board.WHITE)},
+		// white bishops
+		{Rank: 0, File: 2, piece: board.NewBishop(board.WHITE, bounds)},
+		{Rank: 0, File: 5, piece: board.NewBishop(board.WHITE, bounds)},
 		// white queen
-		{Rank: 0, File: 3, piece: &board.Queen{Bounds: bounds, Color: board.WHITE}},
+		{Rank: 0, File: 3, piece: board.NewQueen(board.WHITE, bounds)},
 		// white king
-		{Rank: 0, File: 4, piece: &board.King{Bounds: bounds, Color: board.WHITE}},
+		{Rank: 0, File: 4, piece: board.NewKing(board.WHITE)},
 		// white pawns
-		{Rank: 1, File: 0, piece: &board.Pawn{Color: board.WHITE}},
-		{Rank: 1, File: 1, piece: &board.Pawn{Color: board.WHITE}},
-		{Rank: 1, File: 2, piece: &board.Pawn{Color: board.WHITE}},
-		{Rank: 1, File: 3, piece: &board.Pawn{Color: board.WHITE}},
-		{Rank: 1, File: 4, piece: &board.Pawn{Color: board.WHITE}},
-		{Rank: 1, File: 5, piece: &board.Pawn{Color: board.WHITE}},
-		{Rank: 1, File: 6, piece: &board.Pawn{Color: board.WHITE}},
-		{Rank: 1, File: 7, piece: &board.Pawn{Color: board.WHITE}},
+		{Rank: 1, File: 0, piece: board.NewPawn(board.WHITE)},
+		{Rank: 1, File: 1, piece: board.NewPawn(board.WHITE)},
+		{Rank: 1, File: 2, piece: board.NewPawn(board.WHITE)},
+		{Rank: 1, File: 3, piece: board.NewPawn(board.WHITE)},
+		{Rank: 1, File: 4, piece: board.NewPawn(board.WHITE)},
+		{Rank: 1, File: 5, piece: board.NewPawn(board.WHITE)},
+		{Rank: 1, File: 6, piece: board.NewPawn(board.WHITE)},
+		{Rank: 1, File: 7, piece: board.NewPawn(board.WHITE)},
 		// black pawns
-		{Rank: 6, File: 0, piece: &board.Pawn{Color: board.BLACK}},
-		{Rank: 6, File: 1, piece: &board.Pawn{Color: board.BLACK}},
-		{Rank: 6, File: 2, piece: &board.Pawn{Color: board.BLACK}},
-		{Rank: 6, File: 3, piece: &board.Pawn{Color: board.BLACK}},
-		{Rank: 6, File: 4, piece: &board.Pawn{Color: board.BLACK}},
-		{Rank: 6, File: 5, piece: &board.Pawn{Color: board.BLACK}},
-		{Rank: 6, File: 6, piece: &board.Pawn{Color: board.BLACK}},
-		{Rank: 6, File: 7, piece: &board.Pawn{Color: board.BLACK}},
+		{Rank: 6, File: 0, piece: board.NewPawn(board.BLACK)},
+		{Rank: 6, File: 1, piece: board.NewPawn(board.BLACK)},
+		{Rank: 6, File: 2, piece: board.NewPawn(board.BLACK)},
+		{Rank: 6, File: 3, piece: board.NewPawn(board.BLACK)},
+		{Rank: 6, File: 4, piece: board.NewPawn(board.BLACK)},
+		{Rank: 6, File: 5, piece: board.NewPawn(board.BLACK)},
+		{Rank: 6, File: 6, piece: board.NewPawn(board.BLACK)},
+		{Rank: 6, File: 7, piece: board.NewPawn(board.BLACK)},
 		// black rooks
-		{Rank: 7, File: 0, piece: &board.Rook{Bounds: bounds, Color: board.BLACK}},
-		{Rank: 7, File: 7, piece: &board.Rook{Bounds: bounds, Color: board.BLACK}},
-		// black bishops
-		{Rank: 7, File: 1, piece: &board.Bishop{Bounds: bounds, Color: board.BLACK}},
-		{Rank: 7, File: 6, piece: &board.Bishop{Bounds: bounds, Color: board.BLACK}},
+		{Rank: 7, File: 0, piece: board.NewRook(board.BLACK, bounds)},
+		{Rank: 7, File: 7, piece: board.NewRook(board.BLACK, bounds)},
 		// black kights
-		{Rank: 7, File: 2, piece: &board.Knight{Color: board.BLACK}},
-		{Rank: 7, File: 5, piece: &board.Knight{Color: board.BLACK}},
+		{Rank: 7, File: 1, piece: board.NewKnight(board.BLACK)},
+		{Rank: 7, File: 6, piece: board.NewKnight(board.BLACK)},
+		// black bishops
+		{Rank: 7, File: 2, piece: board.NewBishop(board.BLACK, bounds)},
+		{Rank: 7, File: 5, piece: board.NewBishop(board.BLACK, bounds)},
 		// black queen
-		{Rank: 7, File: 3, piece: &board.Queen{Bounds: bounds, Color: board.BLACK}},
+		{Rank: 7, File: 3, piece: board.NewQueen(board.BLACK, bounds)},
 		// black king
-		{Rank: 7, File: 4, piece: &board.King{Bounds: bounds, Color: board.BLACK}},
+		{Rank: 7, File: 4, piece: board.NewKing(board.BLACK)},
 	}
 	for _, p := range pieces {
 		locations[p.Rank][p.File] = p.piece

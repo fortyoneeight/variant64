@@ -1,309 +1,119 @@
 package board
 
-type Pawn struct {
-	Color Color
+type moveGenerator interface {
+	GetMoves(source Position) MoveMap
 }
 
-func (p *Pawn) GetType() PieceType {
-	return PAWN
+// Piece is used to represent a movable entity on a board.
+type Piece struct {
+	color          Color
+	pieceType      PieceType
+	moveGenerators []moveGenerator
 }
 
-func (p *Pawn) GetColor() Color {
-	return p.Color
+// GetColor returns the Piece's Color.
+func (p *Piece) GetColor() Color {
+	return p.color
 }
 
-func (p *Pawn) GetMoves(source Position) MoveMap {
-	moves := NewMoveMap()
+// GetType returns the Piece's PieceType.
+func (p *Piece) GetType() PieceType {
+	return p.pieceType
+}
 
-	var rankDirection int
-	if p.Color == WHITE {
-		rankDirection = 1
-	} else {
-		rankDirection = -1
+// GetMoves returns a list of possible moves for the Piece at the given position.
+func (p *Piece) GetMoves(source Position) MoveMap {
+	moveMap := NewMoveMap()
+	for _, generator := range p.moveGenerators {
+		JoinMoveMaps(moveMap, generator.GetMoves(source))
 	}
-
-	doublePushPosition := Position{Rank: source.Rank + rankDirection*2, File: source.File}
-	moves[PAWN_DOUBLE_PUSH] = append(moves[PAWN_DOUBLE_PUSH], doublePushPosition)
-
-	forwardPosition := Position{Rank: source.Rank + rankDirection, File: source.File}
-	moves[NORMAL] = append(moves[NORMAL], forwardPosition)
-
-	leftDiagonalCapture := Position{Rank: source.Rank + rankDirection, File: source.File - 1}
-	moves[CAPTURE] = append(moves[CAPTURE], leftDiagonalCapture)
-
-	rightDiagonalCapture := Position{Rank: source.Rank + rankDirection, File: source.File + 1}
-	moves[CAPTURE] = append(moves[CAPTURE], rightDiagonalCapture)
-
-	return moves
+	return moveMap
 }
 
-type Knight struct {
-	Color Color
-}
-
-func (k *Knight) GetType() PieceType {
-	return KNIGHT
-}
-
-func (k *Knight) GetColor() Color {
-	return k.Color
-}
-
-func (k *Knight) GetMoves(source Position) MoveMap {
-	moves := NewMoveMap()
-
-	nextPositionList := []Position{
-		{Rank: source.Rank + 2, File: source.File + 1},
-		{Rank: source.Rank + 2, File: source.File - 1},
-		{Rank: source.Rank + 1, File: source.File + 2},
-		{Rank: source.Rank + 1, File: source.File - 2},
-		{Rank: source.Rank - 1, File: source.File + 2},
-		{Rank: source.Rank - 1, File: source.File - 2},
-		{Rank: source.Rank - 2, File: source.File + 1},
-		{Rank: source.Rank - 2, File: source.File - 1},
-	}
-
-	for _, nextPosition := range nextPositionList {
-		moves[NORMAL] = append(moves[NORMAL], nextPosition)
-		moves[CAPTURE] = append(moves[CAPTURE], nextPosition)
-	}
-
-	return moves
-}
-
-type Rook struct {
-	Bounds
-	Color Color
-}
-
-func (r *Rook) GetType() PieceType {
-	return ROOK
-}
-
-func (r *Rook) GetColor() Color {
-	return r.Color
-}
-
-func (r *Rook) GetMoves(source Position) MoveMap {
-	moves := NewMoveMap()
-
-	rays := []Position{
-		GenerateTerminalRayPosition(source, North, r.Bounds),
-		GenerateTerminalRayPosition(source, East, r.Bounds),
-		GenerateTerminalRayPosition(source, South, r.Bounds),
-		GenerateTerminalRayPosition(source, West, r.Bounds),
-	}
-
-	for _, position := range rays {
-		moves[RAY] = append(moves[RAY], position)
-	}
-
-	return moves
-}
-
-type Bishop struct {
-	Bounds
-	Color Color
-}
-
-func (b *Bishop) GetType() PieceType {
-	return BISHOP
-}
-
-func (b *Bishop) GetColor() Color {
-	return b.Color
-}
-
-func (b *Bishop) GetMoves(source Position) MoveMap {
-	moves := NewMoveMap()
-
-	rays := []Position{
-		GenerateTerminalRayPosition(source, NorthEast, b.Bounds),
-		GenerateTerminalRayPosition(source, SouthEast, b.Bounds),
-		GenerateTerminalRayPosition(source, SouthWest, b.Bounds),
-		GenerateTerminalRayPosition(source, NorthWest, b.Bounds),
-	}
-
-	for _, position := range rays {
-		moves[RAY] = append(moves[RAY], position)
-	}
-
-	return moves
-}
-
-type Queen struct {
-	Bounds
-	Color Color
-}
-
-func (q *Queen) GetType() PieceType {
-	return QUEEN
-}
-
-func (q *Queen) GetColor() Color {
-	return q.Color
-}
-
-func (q *Queen) GetMoves(source Position) MoveMap {
-	moves := NewMoveMap()
-
-	rays := []Position{
-		GenerateTerminalRayPosition(source, North, q.Bounds),
-		GenerateTerminalRayPosition(source, NorthEast, q.Bounds),
-		GenerateTerminalRayPosition(source, East, q.Bounds),
-		GenerateTerminalRayPosition(source, SouthEast, q.Bounds),
-		GenerateTerminalRayPosition(source, South, q.Bounds),
-		GenerateTerminalRayPosition(source, SouthWest, q.Bounds),
-		GenerateTerminalRayPosition(source, West, q.Bounds),
-		GenerateTerminalRayPosition(source, NorthWest, q.Bounds),
-	}
-
-	for _, position := range rays {
-		moves[RAY] = append(moves[RAY], position)
-	}
-
-	return moves
-}
-
-type King struct {
-	Bounds
-	Color Color
-}
-
-func (k *King) GetType() PieceType {
-	return KING
-}
-
-func (k *King) GetColor() Color {
-	return k.Color
-}
-
-func (k *King) GetMoves(source Position) MoveMap {
-	moves := NewMoveMap()
-
-	nextPositionList := []Position{
-		{Rank: source.Rank + 1, File: source.File},
-		{Rank: source.Rank + 1, File: source.File + 1},
-		{Rank: source.Rank, File: source.File + 1},
-		{Rank: source.Rank - 1, File: source.File + 1},
-		{Rank: source.Rank - 1, File: source.File},
-		{Rank: source.Rank - 1, File: source.File - 1},
-		{Rank: source.Rank, File: source.File - 1},
-		{Rank: source.Rank + 1, File: source.File - 1},
-	}
-
-	for _, nextPosition := range nextPositionList {
-		moves[NORMAL] = append(moves[NORMAL], nextPosition)
-		moves[CAPTURE] = append(moves[CAPTURE], nextPosition)
-	}
-
-	castleOptions := []struct {
-		requiredColor Color
-		moveType      MoveType
-		destination   Position
-	}{
-		{
-			WHITE,
-			KINGSIDE_CASTLE,
-			Position{Rank: 0, File: 6},
-		},
-		{
-			WHITE,
-			QUEENSIDE_CASTLE,
-			Position{Rank: 0, File: 2},
-		},
-		{
-			BLACK,
-			KINGSIDE_CASTLE,
-			Position{Rank: 7, File: 6},
-		},
-		{
-			BLACK,
-			QUEENSIDE_CASTLE,
-			Position{Rank: 7, File: 2},
-		},
-	}
-	for _, option := range castleOptions {
-		if option.requiredColor == k.Color {
-			moves[option.moveType] = append(moves[option.moveType], option.destination)
-		}
-	}
-
-	return moves
-}
-
-// GenerateTerminalRayPosition determines the terminal position in a ray by moving in the
-// provided direction until the bounds are breached.
-func GenerateTerminalRayPosition(source Position, direction Direction, bounds Bounds) Position {
-	previousTerminalPosition := source
-	terminalPosition := source
-	for {
-		switch direction {
-		case North:
-			terminalPosition.Rank += 1
-		case NorthEast:
-			terminalPosition.Rank += 1
-			terminalPosition.File += 1
-		case East:
-			terminalPosition.File += 1
-		case SouthEast:
-			terminalPosition.Rank -= 1
-			terminalPosition.File += 1
-		case South:
-			terminalPosition.Rank -= 1
-		case SouthWest:
-			terminalPosition.Rank -= 1
-			terminalPosition.File -= 1
-		case West:
-			terminalPosition.File -= 1
-		case NorthWest:
-			terminalPosition.Rank += 1
-			terminalPosition.File -= 1
-		}
-		if bounds.IsInboundsPosition(terminalPosition) {
-			previousTerminalPosition = terminalPosition
-		} else {
-			return previousTerminalPosition
-		}
+// NewPiece creates a new Piece based on the input parameters.
+func NewPiece(color Color, pieceType PieceType, moveGenerators ...moveGenerator) *Piece {
+	return &Piece{
+		color:          color,
+		pieceType:      pieceType,
+		moveGenerators: moveGenerators,
 	}
 }
 
-// GenerateRay generates a list of Positions by moving from the source in the provided direction,
-// it continues until a board boundary is encountered.
-func GenerateRay(source Position, direction Direction, bounds Bounds) []Position {
-	positionList := []Position{}
-
-	nextPosition := source
-	for {
-		switch direction {
-		case North:
-			nextPosition.Rank += 1
-		case NorthEast:
-			nextPosition.Rank += 1
-			nextPosition.File += 1
-		case East:
-			nextPosition.File += 1
-		case SouthEast:
-			nextPosition.Rank -= 1
-			nextPosition.File += 1
-		case South:
-			nextPosition.Rank -= 1
-		case SouthWest:
-			nextPosition.Rank -= 1
-			nextPosition.File -= 1
-		case West:
-			nextPosition.File -= 1
-		case NorthWest:
-			nextPosition.Rank += 1
-			nextPosition.File -= 1
-		case None:
-			return []Position{}
-		}
-
-		if !bounds.IsInboundsPosition(nextPosition) {
-			return positionList
-		}
-
-		positionList = append(positionList, nextPosition)
+// NewPawn creates a Piece with type PAWN.
+func NewPawn(color Color) *Piece {
+	var direction Direction
+	switch color {
+	case WHITE:
+		direction = North
+	case BLACK:
+		direction = South
 	}
+
+	return NewPiece(
+		color,
+		PAWN,
+		&SingleNormalMoveGenerator{direction: direction},
+		&DoublePushMoveGenerator{color: color},
+		&SingleDiagonalCaputureMoveGenerator{color: color},
+	)
+}
+
+// NewKnight creates a Piece with type KNIGHT.
+func NewKnight(color Color) *Piece {
+	return NewPiece(
+		color,
+		KNIGHT,
+		&KnightMoveGenerator{},
+	)
+}
+
+// NewRook creates a Piece with type ROOK.
+func NewRook(color Color, bounds Bounds) *Piece {
+	return NewPiece(
+		color,
+		ROOK,
+		&RayMoveGenerator{direction: North, bounds: bounds},
+		&RayMoveGenerator{direction: East, bounds: bounds},
+		&RayMoveGenerator{direction: South, bounds: bounds},
+		&RayMoveGenerator{direction: West, bounds: bounds},
+	)
+}
+
+// NewBishop creates a Piece with type BISHOP.
+func NewBishop(color Color, bounds Bounds) *Piece {
+	return NewPiece(
+		color,
+		BISHOP,
+		&RayMoveGenerator{direction: NorthEast, bounds: bounds},
+		&RayMoveGenerator{direction: SouthEast, bounds: bounds},
+		&RayMoveGenerator{direction: SouthWest, bounds: bounds},
+		&RayMoveGenerator{direction: NorthWest, bounds: bounds},
+	)
+}
+
+// NewQueen creates a Piece with type QUEEN.
+func NewQueen(color Color, bounds Bounds) *Piece {
+	return NewPiece(
+		color,
+		QUEEN,
+		NewBishop(color, bounds),
+		NewRook(color, bounds),
+	)
+}
+
+// NewKing creates a Piece with type KING.
+func NewKing(color Color) *Piece {
+	return NewPiece(
+		color,
+		KING,
+		&SingleNormalMoveGenerator{direction: North},
+		&SingleNormalMoveGenerator{direction: NorthEast},
+		&SingleNormalMoveGenerator{direction: East},
+		&SingleNormalMoveGenerator{direction: SouthEast},
+		&SingleNormalMoveGenerator{direction: South},
+		&SingleNormalMoveGenerator{direction: SouthWest},
+		&SingleNormalMoveGenerator{direction: West},
+		&SingleNormalMoveGenerator{direction: NorthWest},
+		&CastleMoveGenerator{color: color},
+	)
 }
