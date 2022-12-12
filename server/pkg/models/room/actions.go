@@ -1,6 +1,7 @@
 package room
 
 import (
+	"encoding/json"
 	"sync"
 
 	"github.com/google/uuid"
@@ -91,18 +92,15 @@ func (r *RequestJoinRoom) PerformAction() (*Room, error) {
 		return nil, err
 	}
 
+	room.mux.Lock()
+	defer room.mux.Unlock()
+
 	for _, p := range room.Players {
 		if p == r.PlayerID {
 			return nil, errDuplicatePlayer(r.PlayerID.String())
 		}
 	}
 	room.Players = append(room.Players, r.PlayerID)
-
-	roomStore := getRoomStore()
-	roomStore.Lock()
-	defer roomStore.Unlock()
-
-	roomStore.Store(room)
 
 	room.updateHandler.Publish(
 		models.UpdateMessage[RoomUpdate]{
@@ -112,7 +110,9 @@ func (r *RequestJoinRoom) PerformAction() (*Room, error) {
 				ID:      &r.RoomID,
 				Players: &room.Players,
 			},
-		})
+		},
+	)
+
 	return room, nil
 }
 
@@ -129,17 +129,14 @@ func (r *RequestLeaveRoom) PerformAction() (*Room, error) {
 		return nil, err
 	}
 
+	room.mux.Lock()
+	defer room.mux.Unlock()
+
 	for i, p := range room.Players {
 		if p == r.PlayerID {
 			room.Players = append(room.Players[:i], room.Players[i+1:]...)
 		}
 	}
-
-	roomStore := getRoomStore()
-	roomStore.Lock()
-	defer roomStore.Unlock()
-
-	roomStore.Store(room)
 
 	room.updateHandler.Publish(
 		models.UpdateMessage[RoomUpdate]{
@@ -149,7 +146,9 @@ func (r *RequestLeaveRoom) PerformAction() (*Room, error) {
 				ID:      &r.RoomID,
 				Players: &room.Players,
 			},
-		})
+		},
+	)
+
 	return room, nil
 }
 
@@ -165,6 +164,9 @@ func (r *RequestStartGame) PerformAction() (*game.Game, error) {
 	if err != nil || room == nil {
 		return nil, err
 	}
+
+	room.mux.Lock()
+	defer room.mux.Unlock()
 
 	gameEntity, err := (&game.RequestNewGame{
 		PlayerOrder:     room.Players,
@@ -184,12 +186,6 @@ func (r *RequestStartGame) PerformAction() (*game.Game, error) {
 	gameID := gameEntity.GetID()
 	room.GameID = &gameID
 
-	roomStore := getRoomStore()
-	roomStore.Lock()
-	defer roomStore.Unlock()
-
-	roomStore.Store(room)
-
 	room.updateHandler.Publish(
 		models.UpdateMessage[RoomUpdate]{
 			Channel: MessageChannel,
@@ -198,7 +194,9 @@ func (r *RequestStartGame) PerformAction() (*game.Game, error) {
 				ID:      &r.RoomID,
 				Players: &room.Players,
 			},
-		})
+		},
+	)
+
 	return gameEntity, nil
 }
 
@@ -216,7 +214,23 @@ type CommandRoomSubscribe struct {
 }
 
 func (c *CommandRoomSubscribe) PerformAction() error {
+	room, err := (&RequestGetRoom{RoomID: c.RoomID}).PerformAction()
+	if err != nil {
+		return err
+	}
+
+	// Subscribe to updates.
 	models.Subscribe(roomUpdateBus, c.RoomID, MessageChannel, c.EventWriter)
+
+	// Send Room snapshot upon subscription.
+	snapshot := models.UpdateMessage[RoomUpdate]{
+		Channel: MessageChannel,
+		Type:    models.UpdateType_SNAPSHOT,
+		Data:    room.getSnapshot(),
+	}
+	snapshotBytes, err := json.Marshal(snapshot)
+	c.EventWriter.WriteMessage(1, snapshotBytes)
+
 	return nil
 }
 

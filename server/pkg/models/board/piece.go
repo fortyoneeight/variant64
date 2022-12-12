@@ -6,19 +6,19 @@ type moveGenerator interface {
 
 // Piece is used to represent a movable entity on a board.
 type Piece struct {
-	color          Color
-	pieceType      PieceType
+	Color          Color     `json:"color"`
+	PieceType      PieceType `json:"piece_type"`
 	moveGenerators []moveGenerator
 }
 
 // GetColor returns the Piece's Color.
 func (p *Piece) GetColor() Color {
-	return p.color
+	return p.Color
 }
 
 // GetType returns the Piece's PieceType.
 func (p *Piece) GetType() PieceType {
-	return p.pieceType
+	return p.PieceType
 }
 
 // GetMoves returns a list of possible moves for the Piece at the given position.
@@ -33,8 +33,8 @@ func (p *Piece) GetMoves(source Position) MoveMap {
 // NewPiece creates a new Piece based on the input parameters.
 func NewPiece(color Color, pieceType PieceType, moveGenerators ...moveGenerator) *Piece {
 	return &Piece{
-		color:          color,
-		pieceType:      pieceType,
+		Color:          color,
+		PieceType:      pieceType,
 		moveGenerators: moveGenerators,
 	}
 }

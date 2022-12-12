@@ -12,7 +12,7 @@ func TestCheckPawnMoves(t *testing.T) {
 	bounds := board.Bounds{Rank: 8, File: 8}
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
-		locations: map[int]map[int]piece{
+		locations: map[int]map[int]*board.Piece{
 			1: {0: board.NewPawn(board.WHITE)},
 			6: {0: board.NewPawn(board.BLACK)},
 		},
@@ -21,7 +21,7 @@ func TestCheckPawnMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -71,7 +71,7 @@ func TestCheckPawnMoves(t *testing.T) {
 func TestCheckKnightMoves(t *testing.T) {
 	classicBoard := &ClassicBoard{
 		Bounds: board.Bounds{Rank: 8, File: 8},
-		locations: map[int]map[int]piece{
+		locations: map[int]map[int]*board.Piece{
 			3: {3: board.NewKnight(board.WHITE)},
 		},
 	}
@@ -79,7 +79,7 @@ func TestCheckKnightMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -118,7 +118,7 @@ func TestCheckQueenMoves(t *testing.T) {
 	bounds := board.Bounds{Rank: 8, File: 8}
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
-		locations: map[int]map[int]piece{
+		locations: map[int]map[int]*board.Piece{
 			3: {3: board.NewQueen(board.WHITE, bounds)},
 		},
 	}
@@ -126,7 +126,7 @@ func TestCheckQueenMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -188,7 +188,7 @@ func TestCheckKingMoves(t *testing.T) {
 		whiteAllowedQueensideCastle: true,
 		blackAllowedKingsideCastle:  true,
 		blackAllowedQueensideCastle: true,
-		locations: map[int]map[int]piece{
+		locations: map[int]map[int]*board.Piece{
 			0: {
 				0: board.NewRook(board.WHITE, bounds),
 				4: board.NewKing(board.WHITE),
@@ -208,7 +208,7 @@ func TestCheckKingMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -298,7 +298,7 @@ func TestCheckRookMoves(t *testing.T) {
 	bounds := board.Bounds{Rank: 8, File: 8}
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
-		locations: map[int]map[int]piece{
+		locations: map[int]map[int]*board.Piece{
 			3: {3: board.NewRook(board.WHITE, bounds)},
 		},
 	}
@@ -306,7 +306,7 @@ func TestCheckRookMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -351,7 +351,7 @@ func TestCheckBishopMoves(t *testing.T) {
 	bounds := board.Bounds{Rank: 8, File: 8}
 	classicBoard := &ClassicBoard{
 		Bounds: board.Bounds{Rank: 8, File: 8},
-		locations: map[int]map[int]piece{
+		locations: map[int]map[int]*board.Piece{
 			3: {3: board.NewBishop(board.WHITE, bounds)},
 		},
 	}
@@ -359,7 +359,7 @@ func TestCheckBishopMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{

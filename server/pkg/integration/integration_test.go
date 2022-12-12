@@ -31,7 +31,7 @@ func TestIntegrationJoinRoomSubscription(t *testing.T) {
 			requests: []*room.RequestJoinRoom{
 				{RoomID: room1.GetID(), PlayerID: playerID1},
 			},
-			expectedMessages: 2,
+			expectedMessages: 3,
 		},
 	}
 
@@ -57,7 +57,7 @@ func TestIntegrationJoinRoomSubscription(t *testing.T) {
 			assert.Nil(t, err)
 			tc.room = newRoom
 
-			assert.Equal(t, len(mockWriter.SentMessages), 2)
+			assert.Equal(t, len(mockWriter.SentMessages), 3)
 		})
 	}
 }

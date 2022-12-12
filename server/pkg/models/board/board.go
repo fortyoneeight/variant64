@@ -1,11 +1,20 @@
 package board
 
+import "encoding/json"
+
 type GameboardType string
 
 const (
 	GameboardTypeDefault GameboardType = ""
 	GameboardTypeClassic GameboardType = "classic"
 )
+
+type GameboardState = map[int]map[int]Square
+
+type Square struct {
+	Piece          *Piece   `json:"piece,omitempty"`
+	AvailableMoves *MoveMap `json:"available_moves,omitempty"`
+}
 
 type PieceType int
 
@@ -19,21 +28,52 @@ const (
 	QUEEN
 )
 
+func (p PieceType) String() string {
+	switch p {
+	case NONE:
+		return "none"
+	case PAWN:
+		return "pawn"
+	case ROOK:
+		return "rook"
+	case BISHOP:
+		return "bishop"
+	case KNIGHT:
+		return "knight"
+	case KING:
+		return "king"
+	case QUEEN:
+		return "queen"
+	}
+	return "invalid"
+}
+
+func (p PieceType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.String())
+}
+
 type Color int
 
 const (
-	BLACK = iota
+	NO_COLOR = iota
+	BLACK
 	WHITE
 )
 
 func (c Color) String() string {
 	switch c {
+	case NO_COLOR:
+		return "none"
 	case WHITE:
 		return "white"
 	case BLACK:
 		return "black"
 	}
 	return "invalid"
+}
+
+func (c Color) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
 }
 
 type MoveType int
@@ -71,10 +111,18 @@ func (m MoveType) String() string {
 	return "invalid"
 }
 
+func (m MoveType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(m.String())
+}
+
+func (m MoveType) MarshalText() ([]byte, error) {
+	return []byte(m.String()), nil
+}
+
 type Move struct {
-	Source      Position
-	Destination Position
-	MoveType    MoveType
+	Source      Position `json:"source"`
+	Destination Position `json:"destination"`
+	MoveType    MoveType `json:"type"`
 }
 
 type MoveMap = map[MoveType][]Position
@@ -142,13 +190,13 @@ const (
 )
 
 type Position struct {
-	Rank int
-	File int
+	Rank int `json:"rank"`
+	File int `json:"file"`
 }
 
 type Bounds struct {
-	Rank int
-	File int
+	Rank int `json:"rank"`
+	File int `json:"file"`
 }
 
 func (b Bounds) IsInboundsPosition(position Position) bool {

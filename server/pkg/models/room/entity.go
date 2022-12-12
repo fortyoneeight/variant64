@@ -30,3 +30,12 @@ type RoomUpdate struct {
 	Players *[]uuid.UUID `json:"players,omitempty"`
 	GameID  *uuid.UUID   `json:"game_id,omitempty"`
 }
+
+// getSnapshot returns a RoomUpdate that is a snapshot of the Room.
+func (r *Room) getSnapshot() RoomUpdate {
+	return RoomUpdate{
+		ID:      &r.ID,
+		Players: &r.Players,
+		GameID:  r.GameID,
+	}
+}
