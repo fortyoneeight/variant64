@@ -18,7 +18,7 @@ const (
 )
 
 type gameboard interface {
-	GetAllMoves() map[int]map[int]board.MoveMap
+	GetState() board.GameboardState
 	HandleMove(move board.Move) error
 }
 
@@ -26,7 +26,8 @@ type gameboard interface {
 type Game struct {
 	ID uuid.UUID `json:"id"`
 
-	ActivePlayer uuid.UUID `json:"active_player"`
+	ActivePlayer uuid.UUID           `json:"active_player"`
+	Clocks       map[uuid.UUID]int64 `json:"clocks,omitempty"`
 	playerTimers map[uuid.UUID]*timer.Timer
 	playerOrder  []uuid.UUID
 
@@ -41,7 +42,7 @@ type Game struct {
 
 	updateHandler *models.UpdatePublisher[GameUpdate]
 
-	mux *sync.Mutex
+	mux *sync.RWMutex
 }
 
 // GameUpdate represents a change in a Game's state.
@@ -58,6 +59,8 @@ type GameUpdate struct {
 	ApprovedDraw *map[uuid.UUID]bool `json:"approved_draw_players,omitempty"`
 
 	State *gameState `json:"state,omitempty"`
+
+	BoardState board.GameboardState `json:"gameboard_state,omitempty"`
 }
 
 // Build returns a GameUpdate.
@@ -86,6 +89,19 @@ func (g *Game) start() error {
 	}
 	g.playerTimers[g.ActivePlayer].Unpause()
 	g.State = StateStarted
+
+	g.updateHandler.Publish(
+		models.UpdateMessage[GameUpdate]{
+			Channel: MessageChannel,
+			Type:    models.UpdateType_DELTA,
+			Data: GameUpdate{
+				GameID:       g.ID,
+				ActivePlayer: &g.ActivePlayer,
+				State:        &g.State,
+				BoardState:   nil,
+			},
+		},
+	)
 
 	return nil
 }
@@ -140,7 +156,8 @@ func (g *Game) declareLoser(playerID uuid.UUID) error {
 				Drawn:   &g.Drawn,
 				State:   &g.State,
 			},
-		})
+		},
+	)
 
 	return nil
 }
@@ -181,7 +198,8 @@ func (g *Game) approveDraw(playerID uuid.UUID) error {
 						Drawn:   &g.Drawn,
 						State:   &g.State,
 					},
-				})
+				},
+			)
 		} else {
 			g.updateHandler.Publish(
 				models.UpdateMessage[GameUpdate]{
@@ -194,7 +212,8 @@ func (g *Game) approveDraw(playerID uuid.UUID) error {
 						Drawn:   &g.Drawn,
 						State:   &g.State,
 					},
-				})
+				},
+			)
 		}
 	} else {
 		return errPlayerNotInGame
@@ -225,7 +244,8 @@ func (g *Game) rejectDraw() error {
 				GameID:       g.ID,
 				ApprovedDraw: &g.ApprovedDraw,
 			},
-		})
+		},
+	)
 
 	return nil
 }
@@ -251,6 +271,16 @@ func (g *Game) makeMove(playerID uuid.UUID, move board.Move) error {
 
 	g.passTurn()
 
+	g.updateHandler.Publish(
+		models.UpdateMessage[GameUpdate]{
+			Channel: MessageChannel,
+			Type:    models.UpdateType_DELTA,
+			Data: GameUpdate{
+				GameID: g.ID,
+			},
+		},
+	)
+
 	return nil
 }
 
@@ -274,6 +304,10 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *timer.Timer) {
 	for {
 		select {
 		case val := <-t.TimerChan:
+			g.mux.Lock()
+
+			g.Clocks[playerID] = val
+
 			g.updateHandler.Publish(
 				models.UpdateMessage[GameUpdate]{
 					Channel: MessageChannel,
@@ -282,7 +316,28 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *timer.Timer) {
 						GameID: g.ID,
 						Clocks: &map[uuid.UUID]int64{playerID: val},
 					},
-				})
+				},
+			)
+
+			g.mux.Unlock()
 		}
+	}
+}
+
+// getSnapshot returns a snapshot of the game state.
+func (g *Game) getSnapshot() GameUpdate {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+
+	return GameUpdate{
+		GameID:       g.ID,
+		ActivePlayer: &g.ActivePlayer,
+		Clocks:       &g.Clocks,
+		Winners:      &g.Winners,
+		Losers:       &g.Losers,
+		Drawn:        &g.Drawn,
+		ApprovedDraw: &g.ApprovedDraw,
+		State:        &g.State,
+		BoardState:   g.board.GetState(),
 	}
 }

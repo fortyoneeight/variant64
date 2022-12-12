@@ -30,6 +30,7 @@ func (r *RequestNewGame) PerformAction() (*Game, error) {
 	game := &Game{
 		ID:           uuid.New(),
 		ActivePlayer: r.PlayerOrder[0],
+		Clocks:       map[uuid.UUID]int64{},
 		playerOrder:  append(r.PlayerOrder[1:], r.PlayerOrder[0]),
 		playerTimers: make(map[uuid.UUID]*timer.Timer),
 		Winners:      []uuid.UUID{},
@@ -37,14 +38,20 @@ func (r *RequestNewGame) PerformAction() (*Game, error) {
 		Drawn:        []uuid.UUID{},
 		ApprovedDraw: map[uuid.UUID]bool{},
 		State:        StateNotStarted,
-		mux:          &sync.Mutex{},
+		mux:          &sync.RWMutex{},
 	}
+
 	handler, err := models.NewUpdatePub(game.ID, gameUpdateBus)
 	if err != nil {
 		return nil, models.ErrFailedUpdatePub("Game")
 	}
-
 	game.updateHandler = handler
+
+	gameboard, err := newGameboard(r.GameboardType)
+	if err != nil {
+		return nil, err
+	}
+	game.board = gameboard
 
 	for _, player := range r.PlayerOrder {
 		game.ApprovedDraw[player] = false
@@ -53,14 +60,10 @@ func (r *RequestNewGame) PerformAction() (*Game, error) {
 			StartingTimeMilis: r.PlayerTimeMilis,
 			DecrementMilis:    1_000,
 		}
-		game.playerTimers[player] = timer.NewTimer(timerRequest)
-	}
 
-	gameboard, err := newGameboard(r.GameboardType)
-	if err != nil {
-		return nil, err
+		game.playerTimers[player] = timer.NewTimer(timerRequest)
+		game.Clocks[player] = r.PlayerTimeMilis
 	}
-	game.board = gameboard
 
 	gameStore := getGameStore()
 	gameStore.Lock()
@@ -217,8 +220,16 @@ type CommandGameSubscribe struct {
 }
 
 func (c *CommandGameSubscribe) PerformAction() error {
-	models.Subscribe(gameUpdateBus, c.GameID, MessageChannel, c.EventWriter)
-	return nil
+	game, err := (&RequestGetGame{GameID: c.GameID}).PerformAction()
+	if err != nil {
+		return err
+	}
+
+	game.mux.RLock()
+	defer game.mux.RUnlock()
+
+	// Subscribe to updates.
+	return models.SubscribeWithSnapshot(gameUpdateBus, c.GameID, MessageChannel, game.getSnapshot(), c.EventWriter)
 }
 
 // CommandGameUnsubscribe represents an game unsubscribe command.

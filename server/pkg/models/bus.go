@@ -2,6 +2,8 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/variant64/server/pkg/bus"
@@ -98,19 +100,12 @@ func NewMessageSubscriber[T any](channel string, eventWriter EventWriter) *subsc
 
 // OnMessage handles subscribers incoming messages from message bus.
 func (s *subscriber[any]) OnMessage(update any) error {
-	message, err := json.Marshal(s.NewMessage(update))
+	message, err := json.Marshal(update)
 	if err != nil {
 		return err
 	}
 	s.eventWriter.WriteMessage(1, message)
 	return nil
-}
-
-func (s subscriber[T]) NewMessage(data T) *UpdateMessage[T] {
-	return &UpdateMessage[T]{
-		Channel: s.channel,
-		Data:    data,
-	}
 }
 
 type UpdateType int32
@@ -120,6 +115,26 @@ const (
 	UpdateType_SNAPSHOT
 	UpdateType_DELTA
 )
+
+func (t UpdateType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.String())
+}
+
+func (t *UpdateType) UnmarshalJSON(byte []byte) error {
+	switch strings.Trim(string(byte), "\"") {
+	case UpdateType_NONE.String():
+		*t = UpdateType_NONE
+		return nil
+	case UpdateType_SNAPSHOT.String():
+		*t = UpdateType_SNAPSHOT
+		return nil
+	case UpdateType_DELTA.String():
+		*t = UpdateType_DELTA
+		return nil
+	default:
+		return errors.New("invalid string value for UpdateType")
+	}
+}
 
 func (t UpdateType) String() string {
 	switch t {
@@ -137,4 +152,22 @@ func (t UpdateType) String() string {
 // Subscribe subscribes to the bus.Bus.
 func Subscribe[T any](b *bus.Bus[UpdateMessage[T]], topic uuid.UUID, channel string, pub EventWriter) {
 	b.Subscribe(topic, NewMessageSubscriber[UpdateMessage[T]](channel, pub))
+}
+
+// SubscribeWithSnapshot subscribes to the bus.Bus.
+func SubscribeWithSnapshot[T any](b *bus.Bus[UpdateMessage[T]], topic uuid.UUID, channel string, snapshot T, pub EventWriter) error {
+	// Create subscriber.
+	subscriber := NewMessageSubscriber[UpdateMessage[T]](channel, pub)
+
+	// Subscribe to updates topic.
+	b.Subscribe(topic, subscriber)
+
+	// Send snapshot.
+	return subscriber.OnMessage(
+		UpdateMessage[T]{
+			Channel: channel,
+			Type:    UpdateType_SNAPSHOT,
+			Data:    snapshot,
+		},
+	)
 }

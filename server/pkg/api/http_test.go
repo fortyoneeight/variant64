@@ -722,7 +722,7 @@ func TestGamePlayerMakeMove(t *testing.T) {
 		{
 			"Valid gameID and move.",
 			testEntities1.game1.GetID().String(),
-			fmt.Sprintf("{\"player_id\":\"%s\",\"move\":{\"source\":{\"rank\":1,\"file\":1},\"destination\":{\"rank\":2,\"file\":1},\"move_type\":\"NORMAL\"}}", testEntities1.player1.GetID()),
+			fmt.Sprintf("{\"player_id\":\"%s\",\"move\":{\"source\":{\"rank\":1,\"file\":1},\"destination\":{\"rank\":2,\"file\":1},\"move_type\":\"normal\"}}", testEntities1.player1.GetID()),
 			[]string{
 				"\"winning_players\":[]",
 				"\"losing_players\":[]",

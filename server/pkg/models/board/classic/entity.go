@@ -7,19 +7,11 @@ import (
 	"github.com/variant64/server/pkg/models/board"
 )
 
-type piece interface {
-	GetType() board.PieceType
-	GetColor() board.Color
-	GetMoves(source board.Position) board.MoveMap
-}
-
-type locationMap = map[int]map[int]piece
-
-func NewPieceLocations(bounds board.Bounds, pieceLocations locationMap) locationMap {
-	boardPieceLocations := locationMap{}
-	for rank := 0; rank < bounds.Rank; rank += 1 {
-		boardPieceLocations[rank] = map[int]piece{}
-		for file := 0; file < bounds.File; file += 1 {
+func NewGameboardState(bounds board.Bounds, pieceLocations board.GameboardState) board.GameboardState {
+	boardPieceLocations := board.GameboardState{}
+	for rank := 0; rank < bounds.RankCount; rank += 1 {
+		boardPieceLocations[rank] = map[int]*board.Piece{}
+		for file := 0; file < bounds.FileCount; file += 1 {
 			boardPieceLocations[rank][file] = nil
 		}
 	}
@@ -39,18 +31,17 @@ type ClassicBoard struct {
 	whiteAllowedQueensideCastle bool
 	blackAllowedKingsideCastle  bool
 	blackAllowedQueensideCastle bool
-	locations                   map[int]map[int]piece
+	gameboardState              board.GameboardState
 }
 
 // New creates a new ClassicBoard and returns it.
 func New() *ClassicBoard {
-	bounds := board.Bounds{Rank: 8, File: 8}
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 
-	locations := map[int]map[int]piece{}
-	for rank := 0; rank < bounds.Rank; rank += 1 {
-		locations[rank] = map[int]piece{}
-
-		for file := 0; file < bounds.File; file += 1 {
+	locations := board.GameboardState{}
+	for rank := 0; rank < bounds.RankCount; rank += 1 {
+		locations[rank] = map[int]*board.Piece{}
+		for file := 0; file < bounds.FileCount; file += 1 {
 			locations[rank][file] = nil
 		}
 	}
@@ -58,7 +49,7 @@ func New() *ClassicBoard {
 	pieces := []struct {
 		Rank  int
 		File  int
-		piece piece
+		piece *board.Piece
 	}{
 		// white rooks
 		{Rank: 0, File: 0, piece: board.NewRook(board.WHITE, bounds)},
@@ -115,27 +106,16 @@ func New() *ClassicBoard {
 		whiteAllowedQueensideCastle: true,
 		blackAllowedKingsideCastle:  true,
 		blackAllowedQueensideCastle: true,
-		locations:                   locations,
+		gameboardState:              locations,
 	}
+	board.updateAvailableMoves()
 
 	return board
 }
 
-// GetAllMoves returns a map, by rank and file of all legal moves
-// a piece at that position can take delineated by MoveType.
-func (b *ClassicBoard) GetAllMoves() map[int]map[int]board.MoveMap {
-	allMoves := map[int]map[int]board.MoveMap{}
-
-	for rank, files := range b.locations {
-		allMoves[rank] = map[int]board.MoveMap{}
-		for file, piece := range files {
-			if piece != nil {
-				allMoves[rank][file] = b.getMovesAtPosition(board.Position{Rank: rank, File: file})
-			}
-		}
-	}
-
-	return allMoves
+// GetState returns a board.GameboardState for the ClassicBoard.
+func (b *ClassicBoard) GetState() board.GameboardState {
+	return b.gameboardState
 }
 
 // HandleMove handles a Move submitted by the client.
@@ -173,19 +153,26 @@ func (b *ClassicBoard) HandleMove(move board.Move) error {
 	}
 
 	// Update the castle flags if necessary.
-	return b.updateCastlingFlag(move, sourcePiece)
+	err = b.updateCastlingFlag(move, sourcePiece)
+	if err != nil {
+		return err
+	}
+
+	// Update the available moves for each piece.
+	b.updateAvailableMoves()
+
+	return nil
 }
 
 // isMoveAllowed checks if a move is legal.
-func (b *ClassicBoard) isMoveAllowed(move board.Move, sourcePiece piece) error {
+func (b *ClassicBoard) isMoveAllowed(move board.Move, sourcePiece *board.Piece) error {
 	// Check if the source and destination positions are within the board's boundaries.
 	if !b.IsInboundsPosition(move.Source) || !b.IsInboundsPosition(move.Destination) {
 		return errors.New("invalid move: position out of bounds")
 	}
 
 	// Check if the piece at the source position can make the move specified by the move type.
-	legalMoves := b.getMovesAtPosition(move.Source)
-	legalMovesByType, ok := legalMoves[move.MoveType]
+	legalMovesByType, ok := sourcePiece.AvailableMoves[move.MoveType]
 	if !ok {
 		return fmt.Errorf("invalid move: %s cannot be made with %d at source position", move.MoveType, sourcePiece.GetType())
 	}
@@ -205,15 +192,27 @@ func (b *ClassicBoard) isMoveAllowed(move board.Move, sourcePiece piece) error {
 	return nil
 }
 
+// updateAvailableMoves sets the available moves for each piece in the game.
+func (b *ClassicBoard) updateAvailableMoves() {
+	for rank, files := range b.gameboardState {
+		for file, piece := range files {
+			if piece != nil {
+				moves := b.getMovesAtPosition(board.Position{Rank: rank, File: file})
+				piece.AvailableMoves = moves
+			}
+		}
+	}
+}
+
 // applySingleMoveToLocations handles moving a single piece from one square to another.
-func (b *ClassicBoard) applySingleMoveToLocations(move board.Move, sourcePiece piece) error {
-	b.locations[move.Destination.Rank][move.Destination.File] = sourcePiece
-	b.locations[move.Source.Rank][move.Source.File] = nil
+func (b *ClassicBoard) applySingleMoveToLocations(move board.Move, sourcePiece *board.Piece) error {
+	b.gameboardState[move.Destination.Rank][move.Destination.File] = sourcePiece
+	b.gameboardState[move.Source.Rank][move.Source.File] = nil
 	return nil
 }
 
 // applyKingsideCastleToLocations handles a KINGSIDE_CASTLE move.
-func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePiece piece) error {
+func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePiece *board.Piece) error {
 	// Check that castling is allowed.
 	if sourcePiece.GetColor() == board.WHITE && !b.whiteAllowedKingsideCastle {
 		return errNotAllowedToCastle(sourcePiece.GetColor())
@@ -222,17 +221,17 @@ func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePie
 	}
 
 	// Handle the king movement.
-	b.locations[move.Destination.Rank][move.Destination.File] = sourcePiece
-	b.locations[move.Source.Rank][move.Source.File] = nil
+	b.gameboardState[move.Destination.Rank][move.Destination.File] = sourcePiece
+	b.gameboardState[move.Source.Rank][move.Source.File] = nil
 
 	// Handle the rook movement.
 	switch sourcePiece.GetColor() {
 	case board.WHITE:
-		b.locations[0][5] = b.locations[0][7]
-		b.locations[0][7] = nil
+		b.gameboardState[0][5] = b.gameboardState[0][7]
+		b.gameboardState[0][7] = nil
 	case board.BLACK:
-		b.locations[7][5] = b.locations[7][7]
-		b.locations[7][7] = nil
+		b.gameboardState[7][5] = b.gameboardState[7][7]
+		b.gameboardState[7][7] = nil
 	default:
 		return errNotAllowedToCastle(sourcePiece.GetColor())
 	}
@@ -241,7 +240,7 @@ func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePie
 }
 
 // applyQueensideCastleToLocations handles a QUEENSIDE_CASTLE move.
-func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePiece piece) error {
+func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePiece *board.Piece) error {
 	// Check that castling is allowed.
 	if sourcePiece.GetColor() == board.WHITE && !b.whiteAllowedQueensideCastle {
 		return errNotAllowedToCastle(sourcePiece.GetColor())
@@ -250,17 +249,17 @@ func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePi
 	}
 
 	// Handle the king movement.
-	b.locations[move.Destination.Rank][move.Destination.File] = sourcePiece
-	b.locations[move.Source.Rank][move.Source.File] = nil
+	b.gameboardState[move.Destination.Rank][move.Destination.File] = sourcePiece
+	b.gameboardState[move.Source.Rank][move.Source.File] = nil
 
 	// Handle the rook movement.
 	switch sourcePiece.GetColor() {
 	case board.WHITE:
-		b.locations[0][3] = b.locations[0][0]
-		b.locations[0][0] = nil
+		b.gameboardState[0][3] = b.gameboardState[0][0]
+		b.gameboardState[0][0] = nil
 	case board.BLACK:
-		b.locations[7][3] = b.locations[7][0]
-		b.locations[7][0] = nil
+		b.gameboardState[7][3] = b.gameboardState[7][0]
+		b.gameboardState[7][0] = nil
 	default:
 		return errInvalidColor(sourcePiece.GetColor())
 	}
@@ -269,7 +268,7 @@ func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePi
 }
 
 // updateCastlingFlag updates the castling flag for a player if neccessary.
-func (b *ClassicBoard) updateCastlingFlag(move board.Move, sourcePiece piece) error {
+func (b *ClassicBoard) updateCastlingFlag(move board.Move, sourcePiece *board.Piece) error {
 	if sourcePiece.GetType() == board.KING {
 		switch sourcePiece.GetColor() {
 		case board.BLACK:
@@ -304,8 +303,8 @@ func (b *ClassicBoard) updateCastlingFlag(move board.Move, sourcePiece piece) er
 }
 
 // getPiece returns the piece at the provided Position.
-func (b *ClassicBoard) getPiece(position board.Position) piece {
-	return b.locations[position.Rank][position.File]
+func (b *ClassicBoard) getPiece(position board.Position) *board.Piece {
+	return b.gameboardState[position.Rank][position.File]
 }
 
 // getMovesAtPosition returns a board.MoveMap for the piece at the provided position.
@@ -328,7 +327,7 @@ func (b *ClassicBoard) getMovesAtPosition(source board.Position) board.MoveMap {
 }
 
 // filterNormalMoves filters board.NORMAL moves for a provided position.
-func (b *ClassicBoard) filterNormalMoves(moveMap board.MoveMap, source board.Position, piece piece) {
+func (b *ClassicBoard) filterNormalMoves(moveMap board.MoveMap, source board.Position, piece *board.Piece) {
 	allowedMoves := []board.Position{}
 
 	for _, position := range moveMap[board.NORMAL] {
@@ -341,7 +340,7 @@ func (b *ClassicBoard) filterNormalMoves(moveMap board.MoveMap, source board.Pos
 }
 
 // filterCaptureMoves filters board.CAPTURE moves for a provided position.
-func (b *ClassicBoard) filterCaptureMoves(moveMap board.MoveMap, source board.Position, piece piece) {
+func (b *ClassicBoard) filterCaptureMoves(moveMap board.MoveMap, source board.Position, piece *board.Piece) {
 	allowedMoves := []board.Position{}
 
 	for _, position := range moveMap[board.CAPTURE] {
@@ -355,7 +354,7 @@ func (b *ClassicBoard) filterCaptureMoves(moveMap board.MoveMap, source board.Po
 }
 
 // filterPawnDoublePushMoves filters board.PAWN_DOUBLE_PUSH moves for a provided position.
-func (b *ClassicBoard) filterPawnDoublePushMoves(moveMap board.MoveMap, source board.Position, piece piece) {
+func (b *ClassicBoard) filterPawnDoublePushMoves(moveMap board.MoveMap, source board.Position, piece *board.Piece) {
 	allowedMoves := []board.Position{}
 
 	for _, position := range moveMap[board.PAWN_DOUBLE_PUSH] {
@@ -372,7 +371,7 @@ func (b *ClassicBoard) filterPawnDoublePushMoves(moveMap board.MoveMap, source b
 }
 
 // filterKingsideCastleMoves filters board.KINGSIDE_CASTLE moves for a provided position.
-func (b *ClassicBoard) filterKingsideCastleMoves(moveMap board.MoveMap, source board.Position, piece piece) {
+func (b *ClassicBoard) filterKingsideCastleMoves(moveMap board.MoveMap, source board.Position, piece *board.Piece) {
 	allowedMoves := []board.Position{}
 
 	allowed := false
@@ -408,7 +407,7 @@ func (b *ClassicBoard) filterKingsideCastleMoves(moveMap board.MoveMap, source b
 }
 
 // filterQueensideCastleMoves filters board.QUEENSIDE_CASTLE moves for a provided position.
-func (b *ClassicBoard) filterQueensideCastleMoves(moveMap board.MoveMap, source board.Position, piece piece) {
+func (b *ClassicBoard) filterQueensideCastleMoves(moveMap board.MoveMap, source board.Position, piece *board.Piece) {
 	allowedMoves := []board.Position{}
 
 	allowed := false
@@ -446,7 +445,7 @@ func (b *ClassicBoard) filterQueensideCastleMoves(moveMap board.MoveMap, source 
 }
 
 // filterRayMoves filter board.RAY moves for a provided position.
-func (b *ClassicBoard) filterRayMoves(moveMap board.MoveMap, source board.Position, piece piece) {
+func (b *ClassicBoard) filterRayMoves(moveMap board.MoveMap, source board.Position, piece *board.Piece) {
 	moves := board.NewMoveMap()
 
 	for _, position := range moveMap[board.RAY] {
@@ -466,6 +465,7 @@ func (b *ClassicBoard) filterRayMoves(moveMap board.MoveMap, source board.Positi
 			}
 		}
 	}
+	moveMap[board.RAY] = []board.Position{}
 
 	board.JoinMoveMaps(moveMap, moves)
 }

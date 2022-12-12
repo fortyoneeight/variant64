@@ -9,10 +9,10 @@ import (
 )
 
 func TestCheckPawnMoves(t *testing.T) {
-	bounds := board.Bounds{Rank: 8, File: 8}
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
-		locations: map[int]map[int]piece{
+		gameboardState: board.GameboardState{
 			1: {0: board.NewPawn(board.WHITE)},
 			6: {0: board.NewPawn(board.BLACK)},
 		},
@@ -21,7 +21,7 @@ func TestCheckPawnMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -70,8 +70,8 @@ func TestCheckPawnMoves(t *testing.T) {
 
 func TestCheckKnightMoves(t *testing.T) {
 	classicBoard := &ClassicBoard{
-		Bounds: board.Bounds{Rank: 8, File: 8},
-		locations: map[int]map[int]piece{
+		Bounds: board.Bounds{RankCount: 8, FileCount: 8},
+		gameboardState: board.GameboardState{
 			3: {3: board.NewKnight(board.WHITE)},
 		},
 	}
@@ -79,7 +79,7 @@ func TestCheckKnightMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -115,10 +115,10 @@ func TestCheckKnightMoves(t *testing.T) {
 }
 
 func TestCheckQueenMoves(t *testing.T) {
-	bounds := board.Bounds{Rank: 8, File: 8}
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
-		locations: map[int]map[int]piece{
+		gameboardState: board.GameboardState{
 			3: {3: board.NewQueen(board.WHITE, bounds)},
 		},
 	}
@@ -126,7 +126,7 @@ func TestCheckQueenMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -181,14 +181,14 @@ func TestCheckQueenMoves(t *testing.T) {
 }
 
 func TestCheckKingMoves(t *testing.T) {
-	bounds := board.Bounds{Rank: 8, File: 8}
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 	classicBoard := &ClassicBoard{
 		Bounds:                      bounds,
 		whiteAllowedKingsideCastle:  true,
 		whiteAllowedQueensideCastle: true,
 		blackAllowedKingsideCastle:  true,
 		blackAllowedQueensideCastle: true,
-		locations: map[int]map[int]piece{
+		gameboardState: board.GameboardState{
 			0: {
 				0: board.NewRook(board.WHITE, bounds),
 				4: board.NewKing(board.WHITE),
@@ -208,7 +208,7 @@ func TestCheckKingMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -295,10 +295,10 @@ func TestCheckKingMoves(t *testing.T) {
 }
 
 func TestCheckRookMoves(t *testing.T) {
-	bounds := board.Bounds{Rank: 8, File: 8}
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 	classicBoard := &ClassicBoard{
 		Bounds: bounds,
-		locations: map[int]map[int]piece{
+		gameboardState: board.GameboardState{
 			3: {3: board.NewRook(board.WHITE, bounds)},
 		},
 	}
@@ -306,7 +306,7 @@ func TestCheckRookMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -348,10 +348,10 @@ func TestCheckRookMoves(t *testing.T) {
 }
 
 func TestCheckBishopMoves(t *testing.T) {
-	bounds := board.Bounds{Rank: 8, File: 8}
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 	classicBoard := &ClassicBoard{
-		Bounds: board.Bounds{Rank: 8, File: 8},
-		locations: map[int]map[int]piece{
+		Bounds: board.Bounds{RankCount: 8, FileCount: 8},
+		gameboardState: board.GameboardState{
 			3: {3: board.NewBishop(board.WHITE, bounds)},
 		},
 	}
@@ -359,7 +359,7 @@ func TestCheckBishopMoves(t *testing.T) {
 	tests := []struct {
 		name               string
 		position           board.Position
-		piece              piece
+		piece              *board.Piece
 		expectedLegalMoves board.MoveMap
 	}{
 		{
@@ -400,7 +400,7 @@ func TestCheckBishopMoves(t *testing.T) {
 }
 
 func TestHandleMove(t *testing.T) {
-	bounds := board.Bounds{Rank: 8, File: 8}
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 	testCases := []struct {
 		name          string
 		moves         []board.Move
@@ -428,9 +428,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						0: {
 							0: board.NewPawn(board.WHITE),
 						},
@@ -446,9 +446,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						1: {
 							0: board.NewPawn(board.WHITE),
 						},
@@ -480,9 +480,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						1: {
 							0: board.NewPawn(board.WHITE),
 						},
@@ -498,9 +498,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						3: {
 							0: board.NewPawn(board.WHITE),
 						},
@@ -532,9 +532,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						0: {
 							4: board.NewKing(board.WHITE),
 							7: board.NewRook(board.WHITE, bounds),
@@ -552,9 +552,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: false,
 				blackAllowedKingsideCastle:  false,
 				blackAllowedQueensideCastle: false,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						0: {
 							6: board.NewKing(board.WHITE),
 							5: board.NewRook(board.WHITE, bounds),
@@ -588,9 +588,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						0: {
 							0: board.NewRook(board.WHITE, bounds),
 							4: board.NewKing(board.WHITE),
@@ -608,9 +608,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: false,
 				blackAllowedKingsideCastle:  false,
 				blackAllowedQueensideCastle: false,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						0: {
 							2: board.NewKing(board.WHITE),
 							3: board.NewRook(board.WHITE, bounds),
@@ -644,9 +644,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						1: {
 							0: board.NewPawn(board.WHITE),
 						},
@@ -668,9 +668,9 @@ func TestHandleMove(t *testing.T) {
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				locations: NewPieceLocations(
+				gameboardState: NewGameboardState(
 					bounds,
-					locationMap{
+					board.GameboardState{
 						2: {
 							1: board.NewPawn(board.WHITE),
 						},
@@ -686,6 +686,8 @@ func TestHandleMove(t *testing.T) {
 
 	for _, tc := range testCases {
 		// Create a new board for each test case to avoid modifying the initial board.
+		tc.initialBoard.updateAvailableMoves()
+		tc.expectedBoard.updateAvailableMoves()
 		board := tc.initialBoard
 
 		// Call the HandleMove method on the board.
