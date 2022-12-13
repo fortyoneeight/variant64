@@ -94,9 +94,16 @@ type RayMoveGenerator struct {
 }
 
 func (g *RayMoveGenerator) GetMoves(source Position) MoveMap {
-	return map[MoveType][]Position{
-		RAY: {generateTerminalRayPosition(source, g.direction, g.bounds)},
+	moves := map[MoveType][]Position{
+		RAY: {},
 	}
+
+	terminalRayPostion := generateTerminalRayPosition(source, g.direction, g.bounds)
+	if terminalRayPostion != source {
+		moves[RAY] = append(moves[RAY], terminalRayPostion)
+	}
+
+	return moves
 }
 
 // CastleMoveGenerator generates KINGSIDE_CASTLE and QUEENSIDE_CASTLE moves.

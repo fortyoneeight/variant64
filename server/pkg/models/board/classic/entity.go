@@ -452,6 +452,8 @@ func (b *ClassicBoard) filterRayMoves(moveMap board.MoveMap, source board.Positi
 	for _, position := range moveMap[board.RAY] {
 		direction := board.GetDirection(source, position)
 		ray := board.GenerateRay(source, direction, b.Bounds)
+
+	forPositionInRay:
 		for _, nextPosition := range ray {
 			nextPositionPiece := b.getPiece(nextPosition)
 			switch {
@@ -460,7 +462,7 @@ func (b *ClassicBoard) filterRayMoves(moveMap board.MoveMap, source board.Positi
 			case nextPositionPiece.GetColor() != piece.GetColor():
 				moves[board.CAPTURE] = append(moves[board.CAPTURE], nextPosition)
 			default:
-				break
+				break forPositionInRay
 			}
 		}
 	}
