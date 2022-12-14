@@ -401,6 +401,11 @@ func TestCheckBishopMoves(t *testing.T) {
 
 func TestHandleMove(t *testing.T) {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
+	moveApplicator := board.NewMoveApplicator(
+		&board.SinglePieceMoveApplicator{},
+		&board.KingsideCastleMoveApplicator{},
+		&board.QueensideCastleMoveApplicator{},
+	)
 	testCases := []struct {
 		name          string
 		moves         []board.Move
@@ -423,12 +428,13 @@ func TestHandleMove(t *testing.T) {
 				},
 			},
 			initialBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						0: {
@@ -441,12 +447,13 @@ func TestHandleMove(t *testing.T) {
 				),
 			},
 			expectedBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						1: {
@@ -475,12 +482,13 @@ func TestHandleMove(t *testing.T) {
 				},
 			},
 			initialBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						1: {
@@ -493,12 +501,13 @@ func TestHandleMove(t *testing.T) {
 				),
 			},
 			expectedBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						3: {
@@ -527,12 +536,13 @@ func TestHandleMove(t *testing.T) {
 				},
 			},
 			initialBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						0: {
@@ -547,12 +557,13 @@ func TestHandleMove(t *testing.T) {
 				),
 			},
 			expectedBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  false,
 				whiteAllowedQueensideCastle: false,
 				blackAllowedKingsideCastle:  false,
 				blackAllowedQueensideCastle: false,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						0: {
@@ -583,12 +594,13 @@ func TestHandleMove(t *testing.T) {
 				},
 			},
 			initialBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						0: {
@@ -603,12 +615,13 @@ func TestHandleMove(t *testing.T) {
 				),
 			},
 			expectedBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  false,
 				whiteAllowedQueensideCastle: false,
 				blackAllowedKingsideCastle:  false,
 				blackAllowedQueensideCastle: false,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						0: {
@@ -639,12 +652,13 @@ func TestHandleMove(t *testing.T) {
 				},
 			},
 			initialBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						1: {
@@ -663,12 +677,13 @@ func TestHandleMove(t *testing.T) {
 				),
 			},
 			expectedBoard: ClassicBoard{
+				MoveApplicator:              moveApplicator,
 				Bounds:                      bounds,
 				whiteAllowedKingsideCastle:  true,
 				whiteAllowedQueensideCastle: true,
 				blackAllowedKingsideCastle:  true,
 				blackAllowedQueensideCastle: true,
-				gameboardState: NewGameboardState(
+				gameboardState: board.NewGameboardState(
 					bounds,
 					board.GameboardState{
 						2: {

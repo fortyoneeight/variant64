@@ -7,25 +7,8 @@ import (
 	"github.com/variant64/server/pkg/models/board"
 )
 
-func NewGameboardState(bounds board.Bounds, pieceLocations board.GameboardState) board.GameboardState {
-	boardPieceLocations := board.GameboardState{}
-	for rank := 0; rank < bounds.RankCount; rank += 1 {
-		boardPieceLocations[rank] = map[int]*board.Piece{}
-		for file := 0; file < bounds.FileCount; file += 1 {
-			boardPieceLocations[rank][file] = nil
-		}
-	}
-
-	for rank := range pieceLocations {
-		for file := range pieceLocations[rank] {
-			boardPieceLocations[rank][file] = pieceLocations[rank][file]
-		}
-	}
-
-	return boardPieceLocations
-}
-
 type ClassicBoard struct {
+	board.MoveApplicator
 	board.Bounds
 	whiteAllowedKingsideCastle  bool
 	whiteAllowedQueensideCastle bool
@@ -37,12 +20,17 @@ type ClassicBoard struct {
 // New creates a new ClassicBoard and returns it.
 func New() *ClassicBoard {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
+	moveHandler := board.NewMoveApplicator(
+		&board.SinglePieceMoveApplicator{},
+		&board.KingsideCastleMoveApplicator{},
+		&board.QueensideCastleMoveApplicator{},
+	)
 
-	locations := board.GameboardState{}
+	gameboardState := map[int]map[int]*board.Piece{}
 	for rank := 0; rank < bounds.RankCount; rank += 1 {
-		locations[rank] = map[int]*board.Piece{}
+		gameboardState[rank] = map[int]*board.Piece{}
 		for file := 0; file < bounds.FileCount; file += 1 {
-			locations[rank][file] = nil
+			gameboardState[rank][file] = nil
 		}
 	}
 
@@ -97,16 +85,17 @@ func New() *ClassicBoard {
 		{Rank: 7, File: 4, piece: board.NewKing(board.BLACK)},
 	}
 	for _, p := range pieces {
-		locations[p.Rank][p.File] = p.piece
+		gameboardState[p.Rank][p.File] = p.piece
 	}
 
 	board := &ClassicBoard{
+		MoveApplicator:              moveHandler,
 		Bounds:                      bounds,
 		whiteAllowedKingsideCastle:  true,
 		whiteAllowedQueensideCastle: true,
 		blackAllowedKingsideCastle:  true,
 		blackAllowedQueensideCastle: true,
-		gameboardState:              locations,
+		gameboardState:              gameboardState,
 	}
 	board.updateAvailableMoves()
 
@@ -133,21 +122,7 @@ func (b *ClassicBoard) HandleMove(move board.Move) error {
 	}
 
 	// Update the board state.
-	var moveErr error
-	switch move.MoveType {
-	case board.NORMAL:
-		moveErr = b.applySingleMoveToLocations(move, sourcePiece)
-	case board.CAPTURE:
-		moveErr = b.applySingleMoveToLocations(move, sourcePiece)
-	case board.PAWN_DOUBLE_PUSH:
-		moveErr = b.applySingleMoveToLocations(move, sourcePiece)
-	case board.KINGSIDE_CASTLE:
-		moveErr = b.applyKingsideCastleToLocations(move, sourcePiece)
-	case board.QUEENSIDE_CASTLE:
-		moveErr = b.applyQueensideCastleToLocations(move, sourcePiece)
-	default:
-		moveErr = errMoveNotAllowed
-	}
+	moveErr := b.ApplyMove(move, b.gameboardState)
 	if moveErr != nil {
 		return moveErr
 	}
@@ -202,69 +177,6 @@ func (b *ClassicBoard) updateAvailableMoves() {
 			}
 		}
 	}
-}
-
-// applySingleMoveToLocations handles moving a single piece from one square to another.
-func (b *ClassicBoard) applySingleMoveToLocations(move board.Move, sourcePiece *board.Piece) error {
-	b.gameboardState[move.Destination.Rank][move.Destination.File] = sourcePiece
-	b.gameboardState[move.Source.Rank][move.Source.File] = nil
-	return nil
-}
-
-// applyKingsideCastleToLocations handles a KINGSIDE_CASTLE move.
-func (b *ClassicBoard) applyKingsideCastleToLocations(move board.Move, sourcePiece *board.Piece) error {
-	// Check that castling is allowed.
-	if sourcePiece.GetColor() == board.WHITE && !b.whiteAllowedKingsideCastle {
-		return errNotAllowedToCastle(sourcePiece.GetColor())
-	} else if sourcePiece.GetColor() == board.BLACK && !b.blackAllowedKingsideCastle {
-		return errNotAllowedToCastle(sourcePiece.GetColor())
-	}
-
-	// Handle the king movement.
-	b.gameboardState[move.Destination.Rank][move.Destination.File] = sourcePiece
-	b.gameboardState[move.Source.Rank][move.Source.File] = nil
-
-	// Handle the rook movement.
-	switch sourcePiece.GetColor() {
-	case board.WHITE:
-		b.gameboardState[0][5] = b.gameboardState[0][7]
-		b.gameboardState[0][7] = nil
-	case board.BLACK:
-		b.gameboardState[7][5] = b.gameboardState[7][7]
-		b.gameboardState[7][7] = nil
-	default:
-		return errNotAllowedToCastle(sourcePiece.GetColor())
-	}
-
-	return nil
-}
-
-// applyQueensideCastleToLocations handles a QUEENSIDE_CASTLE move.
-func (b *ClassicBoard) applyQueensideCastleToLocations(move board.Move, sourcePiece *board.Piece) error {
-	// Check that castling is allowed.
-	if sourcePiece.GetColor() == board.WHITE && !b.whiteAllowedQueensideCastle {
-		return errNotAllowedToCastle(sourcePiece.GetColor())
-	} else if sourcePiece.GetColor() == board.BLACK && !b.blackAllowedQueensideCastle {
-		return errNotAllowedToCastle(sourcePiece.GetColor())
-	}
-
-	// Handle the king movement.
-	b.gameboardState[move.Destination.Rank][move.Destination.File] = sourcePiece
-	b.gameboardState[move.Source.Rank][move.Source.File] = nil
-
-	// Handle the rook movement.
-	switch sourcePiece.GetColor() {
-	case board.WHITE:
-		b.gameboardState[0][3] = b.gameboardState[0][0]
-		b.gameboardState[0][0] = nil
-	case board.BLACK:
-		b.gameboardState[7][3] = b.gameboardState[7][0]
-		b.gameboardState[7][0] = nil
-	default:
-		return errInvalidColor(sourcePiece.GetColor())
-	}
-
-	return nil
 }
 
 // updateCastlingFlag updates the castling flag for a player if neccessary.

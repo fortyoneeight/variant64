@@ -15,6 +15,24 @@ const (
 
 type GameboardState = map[int]map[int]*Piece
 
+func NewGameboardState(bounds Bounds, pieceLocations GameboardState) GameboardState {
+	state := GameboardState{}
+	for rank := 0; rank < bounds.RankCount; rank += 1 {
+		state[rank] = map[int]*Piece{}
+		for file := 0; file < bounds.FileCount; file += 1 {
+			state[rank][file] = nil
+		}
+	}
+
+	for rank := range pieceLocations {
+		for file := range pieceLocations[rank] {
+			state[rank][file] = pieceLocations[rank][file]
+		}
+	}
+
+	return state
+}
+
 type PieceType int
 
 const (
