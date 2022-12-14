@@ -98,19 +98,12 @@ func NewMessageSubscriber[T any](channel string, eventWriter EventWriter) *subsc
 
 // OnMessage handles subscribers incoming messages from message bus.
 func (s *subscriber[any]) OnMessage(update any) error {
-	message, err := json.Marshal(s.NewMessage(update))
+	message, err := json.Marshal(update)
 	if err != nil {
 		return err
 	}
 	s.eventWriter.WriteMessage(1, message)
 	return nil
-}
-
-func (s subscriber[T]) NewMessage(data T) *UpdateMessage[T] {
-	return &UpdateMessage[T]{
-		Channel: s.channel,
-		Data:    data,
-	}
 }
 
 type UpdateType int32
@@ -132,6 +125,10 @@ func (t UpdateType) String() string {
 	default:
 		return ""
 	}
+}
+
+func (t UpdateType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.String())
 }
 
 // Subscribe subscribes to the bus.Bus.
