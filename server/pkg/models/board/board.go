@@ -97,7 +97,8 @@ type MoveType int
 
 const (
 	NORMAL MoveType = iota
-	RAY
+	JUMP
+	JUMP_CAPTURE
 	CAPTURE
 	PAWN_DOUBLE_PUSH
 	QUEENSIDE_CASTLE
@@ -110,8 +111,10 @@ func (m MoveType) String() string {
 	switch m {
 	case NORMAL:
 		return "normal"
-	case RAY:
-		return "ray"
+	case JUMP:
+		return "jump"
+	case JUMP_CAPTURE:
+		return "jump_capture"
 	case CAPTURE:
 		return "capture"
 	case PAWN_DOUBLE_PUSH:
@@ -133,11 +136,14 @@ func (t *MoveType) UnmarshalJSON(data []byte) error {
 	case NORMAL.String():
 		*t = NORMAL
 		return nil
-	case RAY.String():
-		*t = RAY
-		return nil
 	case CAPTURE.String():
 		*t = CAPTURE
+		return nil
+	case JUMP.String():
+		*t = JUMP
+		return nil
+	case JUMP_CAPTURE.String():
+		*t = JUMP
 		return nil
 	case PAWN_DOUBLE_PUSH.String():
 		*t = PAWN_DOUBLE_PUSH
@@ -178,8 +184,9 @@ func NewMoveMap() MoveMap {
 	return map[MoveType][]Position{
 		NORMAL:           make([]Position, 0),
 		CAPTURE:          make([]Position, 0),
+		JUMP:             make([]Position, 0),
+		JUMP_CAPTURE:     make([]Position, 0),
 		PAWN_DOUBLE_PUSH: make([]Position, 0),
-		RAY:              make([]Position, 0),
 		KINGSIDE_CASTLE:  make([]Position, 0),
 		QUEENSIDE_CASTLE: make([]Position, 0),
 	}

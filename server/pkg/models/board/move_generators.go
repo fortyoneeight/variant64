@@ -63,8 +63,8 @@ type KnightMoveGenerator struct{}
 
 func (g *KnightMoveGenerator) GetMoves(source Position) MoveMap {
 	moves := map[MoveType][]Position{
-		NORMAL:  {},
-		CAPTURE: {},
+		JUMP:         {},
+		JUMP_CAPTURE: {},
 	}
 
 	nextPositionList := []Position{
@@ -79,14 +79,14 @@ func (g *KnightMoveGenerator) GetMoves(source Position) MoveMap {
 	}
 
 	for _, nextPosition := range nextPositionList {
-		moves[NORMAL] = append(moves[NORMAL], nextPosition)
-		moves[CAPTURE] = append(moves[CAPTURE], nextPosition)
+		moves[JUMP] = append(moves[JUMP], nextPosition)
+		moves[JUMP_CAPTURE] = append(moves[JUMP_CAPTURE], nextPosition)
 	}
 
 	return moves
 }
 
-// RayMoveGenerator generates RAY moves in a single direction where
+// RayMoveGenerator generates NORMAL and CAPTURE moves in a single direction where
 // the generated position is the edge of the provided bounds.
 type RayMoveGenerator struct {
 	direction Direction
@@ -94,16 +94,11 @@ type RayMoveGenerator struct {
 }
 
 func (g *RayMoveGenerator) GetMoves(source Position) MoveMap {
-	moves := map[MoveType][]Position{
-		RAY: {},
+	ray := GenerateRay(source, g.direction, g.bounds)
+	return map[MoveType][]Position{
+		NORMAL:  ray,
+		CAPTURE: ray,
 	}
-
-	terminalRayPostion := generateTerminalRayPosition(source, g.direction, g.bounds)
-	if terminalRayPostion != source {
-		moves[RAY] = append(moves[RAY], terminalRayPostion)
-	}
-
-	return moves
 }
 
 // CastleMoveGenerator generates KINGSIDE_CASTLE and QUEENSIDE_CASTLE moves.
@@ -196,21 +191,5 @@ func GenerateRay(source Position, direction Direction, bounds Bounds) []Position
 		}
 
 		positionList = append(positionList, nextPosition)
-	}
-}
-
-// generateTerminalRayPosition determines the terminal position in a ray by moving in the
-// provided direction until the bounds are breached.
-func generateTerminalRayPosition(source Position, direction Direction, bounds Bounds) Position {
-	previousTerminalPosition := source
-	terminalPosition := source
-	for {
-		terminalPosition = StepInDirection(terminalPosition, direction)
-
-		if bounds.IsInboundsPosition(terminalPosition) {
-			previousTerminalPosition = terminalPosition
-		} else {
-			return previousTerminalPosition
-		}
 	}
 }

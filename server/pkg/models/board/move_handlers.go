@@ -41,6 +41,8 @@ func (h *SinglePieceMoveApplicator) GetTypesToHandle() map[MoveType]bool {
 	return map[MoveType]bool{
 		NORMAL:           true,
 		CAPTURE:          true,
+		JUMP:             true,
+		JUMP_CAPTURE:     true,
 		PAWN_DOUBLE_PUSH: true,
 	}
 }

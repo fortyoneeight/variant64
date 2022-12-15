@@ -9,14 +9,14 @@ import (
 )
 
 func TestCheckPawnMoves(t *testing.T) {
-	bounds := board.Bounds{RankCount: 8, FileCount: 8}
-	classicBoard := &ClassicBoard{
-		Bounds: bounds,
-		gameboardState: board.GameboardState{
-			1: {0: board.NewPawn(board.WHITE)},
-			6: {0: board.NewPawn(board.BLACK)},
-		},
-	}
+	classicBoard := BuildClassicBoard(
+		WithGameboardState(
+			board.GameboardState{
+				1: {0: board.NewPawn(board.WHITE)},
+				6: {0: board.NewPawn(board.BLACK)},
+			},
+		),
+	)
 
 	tests := []struct {
 		name               string
@@ -36,7 +36,8 @@ func TestCheckPawnMoves(t *testing.T) {
 					{Rank: 3, File: 0},
 				},
 				board.CAPTURE:          []board.Position{},
-				board.RAY:              []board.Position{},
+				board.JUMP:             []board.Position{},
+				board.JUMP_CAPTURE:     []board.Position{},
 				board.KINGSIDE_CASTLE:  []board.Position{},
 				board.QUEENSIDE_CASTLE: []board.Position{},
 			},
@@ -53,7 +54,8 @@ func TestCheckPawnMoves(t *testing.T) {
 					{Rank: 4, File: 0},
 				},
 				board.CAPTURE:          []board.Position{},
-				board.RAY:              []board.Position{},
+				board.JUMP:             []board.Position{},
+				board.JUMP_CAPTURE:     []board.Position{},
 				board.KINGSIDE_CASTLE:  []board.Position{},
 				board.QUEENSIDE_CASTLE: []board.Position{},
 			},
@@ -69,12 +71,13 @@ func TestCheckPawnMoves(t *testing.T) {
 }
 
 func TestCheckKnightMoves(t *testing.T) {
-	classicBoard := &ClassicBoard{
-		Bounds: board.Bounds{RankCount: 8, FileCount: 8},
-		gameboardState: board.GameboardState{
-			3: {3: board.NewKnight(board.WHITE)},
-		},
-	}
+	classicBoard := BuildClassicBoard(
+		WithGameboardState(
+			board.GameboardState{
+				3: {3: board.NewKnight(board.WHITE)},
+			},
+		),
+	)
 
 	tests := []struct {
 		name               string
@@ -87,7 +90,7 @@ func TestCheckKnightMoves(t *testing.T) {
 			position: board.Position{Rank: 3, File: 3},
 			piece:    board.NewKnight(board.WHITE),
 			expectedLegalMoves: board.MoveMap{
-				board.NORMAL: []board.Position{
+				board.JUMP: []board.Position{
 					{Rank: 5, File: 4},
 					{Rank: 5, File: 2},
 					{Rank: 4, File: 5},
@@ -116,12 +119,14 @@ func TestCheckKnightMoves(t *testing.T) {
 
 func TestCheckQueenMoves(t *testing.T) {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
-	classicBoard := &ClassicBoard{
-		Bounds: bounds,
-		gameboardState: board.GameboardState{
-			3: {3: board.NewQueen(board.WHITE, bounds)},
-		},
-	}
+	classicBoard := BuildClassicBoard(
+		WithBounds(bounds),
+		WithGameboardState(
+			board.GameboardState{
+				3: {3: board.NewQueen(board.WHITE, bounds)},
+			},
+		),
+	)
 
 	tests := []struct {
 		name               string
@@ -182,28 +187,26 @@ func TestCheckQueenMoves(t *testing.T) {
 
 func TestCheckKingMoves(t *testing.T) {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
-	classicBoard := &ClassicBoard{
-		Bounds:                      bounds,
-		whiteAllowedKingsideCastle:  true,
-		whiteAllowedQueensideCastle: true,
-		blackAllowedKingsideCastle:  true,
-		blackAllowedQueensideCastle: true,
-		gameboardState: board.GameboardState{
-			0: {
-				0: board.NewRook(board.WHITE, bounds),
-				4: board.NewKing(board.WHITE),
-				7: board.NewRook(board.WHITE, bounds),
+	classicBoard := BuildClassicBoard(
+		WithBounds(bounds),
+		WithGameboardState(
+			board.GameboardState{
+				0: {
+					0: board.NewRook(board.WHITE, bounds),
+					4: board.NewKing(board.WHITE),
+					7: board.NewRook(board.WHITE, bounds),
+				},
+				4: {
+					4: board.NewKing(board.WHITE),
+				},
+				7: {
+					0: board.NewRook(board.BLACK, bounds),
+					4: board.NewKing(board.BLACK),
+					7: board.NewRook(board.BLACK, bounds),
+				},
 			},
-			4: {
-				4: board.NewKing(board.WHITE),
-			},
-			7: {
-				0: board.NewRook(board.BLACK, bounds),
-				4: board.NewKing(board.BLACK),
-				7: board.NewRook(board.BLACK, bounds),
-			},
-		},
-	}
+		),
+	)
 
 	tests := []struct {
 		name               string
@@ -296,12 +299,14 @@ func TestCheckKingMoves(t *testing.T) {
 
 func TestCheckRookMoves(t *testing.T) {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
-	classicBoard := &ClassicBoard{
-		Bounds: bounds,
-		gameboardState: board.GameboardState{
-			3: {3: board.NewRook(board.WHITE, bounds)},
-		},
-	}
+	classicBoard := BuildClassicBoard(
+		WithBounds(bounds),
+		WithGameboardState(
+			board.GameboardState{
+				3: {3: board.NewRook(board.WHITE, bounds)},
+			},
+		),
+	)
 
 	tests := []struct {
 		name               string
@@ -349,12 +354,14 @@ func TestCheckRookMoves(t *testing.T) {
 
 func TestCheckBishopMoves(t *testing.T) {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
-	classicBoard := &ClassicBoard{
-		Bounds: board.Bounds{RankCount: 8, FileCount: 8},
-		gameboardState: board.GameboardState{
-			3: {3: board.NewBishop(board.WHITE, bounds)},
-		},
-	}
+	classicBoard := BuildClassicBoard(
+		WithBounds(bounds),
+		WithGameboardState(
+			board.GameboardState{
+				3: {3: board.NewBishop(board.WHITE, bounds)},
+			},
+		),
+	)
 
 	tests := []struct {
 		name               string
@@ -401,16 +408,11 @@ func TestCheckBishopMoves(t *testing.T) {
 
 func TestHandleMove(t *testing.T) {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
-	moveApplicator := board.NewMoveApplicator(
-		&board.SinglePieceMoveApplicator{},
-		&board.KingsideCastleMoveApplicator{},
-		&board.QueensideCastleMoveApplicator{},
-	)
 	testCases := []struct {
 		name          string
 		moves         []board.Move
-		initialBoard  ClassicBoard
-		expectedBoard ClassicBoard
+		initialBoard  *ClassicBoard
+		expectedBoard *ClassicBoard
 		expectedErr   error
 	}{
 		{
@@ -427,15 +429,9 @@ func TestHandleMove(t *testing.T) {
 					MoveType:    board.NORMAL,
 				},
 			},
-			initialBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			initialBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						0: {
 							0: board.NewPawn(board.WHITE),
@@ -445,16 +441,10 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
-			expectedBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			),
+			expectedBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						1: {
 							0: board.NewPawn(board.WHITE),
@@ -464,7 +454,7 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
+			),
 			expectedErr: nil,
 		},
 		{
@@ -481,15 +471,9 @@ func TestHandleMove(t *testing.T) {
 					MoveType:    board.PAWN_DOUBLE_PUSH,
 				},
 			},
-			initialBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			initialBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						1: {
 							0: board.NewPawn(board.WHITE),
@@ -499,16 +483,10 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
-			expectedBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			),
+			expectedBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						3: {
 							0: board.NewPawn(board.WHITE),
@@ -518,7 +496,7 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
+			),
 			expectedErr: nil,
 		},
 		{
@@ -535,15 +513,9 @@ func TestHandleMove(t *testing.T) {
 					MoveType:    board.KINGSIDE_CASTLE,
 				},
 			},
-			initialBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			initialBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						0: {
 							4: board.NewKing(board.WHITE),
@@ -555,16 +527,10 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
-			expectedBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  false,
-				whiteAllowedQueensideCastle: false,
-				blackAllowedKingsideCastle:  false,
-				blackAllowedQueensideCastle: false,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			),
+			expectedBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						0: {
 							6: board.NewKing(board.WHITE),
@@ -576,7 +542,57 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
+				WithCastlingState(
+					NewCastlingState(
+						map[board.MoveType]map[board.Color]bool{
+							board.KINGSIDE_CASTLE: {
+								board.WHITE: false,
+								board.BLACK: false,
+							},
+							board.QUEENSIDE_CASTLE: {
+								board.WHITE: false,
+								board.BLACK: false,
+							},
+						},
+					),
+				),
+				WithMoveFilter(
+					board.NewMoveFilter(
+						&board.FilterOutOfBounds{Bounds: bounds},
+						&board.FilterPieceCollision{},
+						&board.FilterFriendlyCapture{},
+						&board.FilterInvalidPawnDoublePush{},
+						&board.FilterIllegalKingsideCastle{
+							CastlingState: NewCastlingState(
+								map[board.MoveType]map[board.Color]bool{
+									board.KINGSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+									board.QUEENSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+								},
+							),
+						},
+						&board.FilterIllegalQueensideCastle{
+							CastlingState: NewCastlingState(
+								map[board.MoveType]map[board.Color]bool{
+									board.KINGSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+									board.QUEENSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+								},
+							),
+						},
+					),
+				),
+			),
 			expectedErr: nil,
 		},
 		{
@@ -593,15 +609,9 @@ func TestHandleMove(t *testing.T) {
 					MoveType:    board.QUEENSIDE_CASTLE,
 				},
 			},
-			initialBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			initialBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						0: {
 							0: board.NewRook(board.WHITE, bounds),
@@ -613,16 +623,10 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
-			expectedBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  false,
-				whiteAllowedQueensideCastle: false,
-				blackAllowedKingsideCastle:  false,
-				blackAllowedQueensideCastle: false,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			),
+			expectedBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						0: {
 							2: board.NewKing(board.WHITE),
@@ -634,7 +638,57 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
+				WithCastlingState(
+					NewCastlingState(
+						map[board.MoveType]map[board.Color]bool{
+							board.KINGSIDE_CASTLE: {
+								board.WHITE: false,
+								board.BLACK: false,
+							},
+							board.QUEENSIDE_CASTLE: {
+								board.WHITE: false,
+								board.BLACK: false,
+							},
+						},
+					),
+				),
+				WithMoveFilter(
+					board.NewMoveFilter(
+						&board.FilterOutOfBounds{Bounds: bounds},
+						&board.FilterPieceCollision{},
+						&board.FilterFriendlyCapture{},
+						&board.FilterInvalidPawnDoublePush{},
+						&board.FilterIllegalKingsideCastle{
+							CastlingState: NewCastlingState(
+								map[board.MoveType]map[board.Color]bool{
+									board.KINGSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+									board.QUEENSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+								},
+							),
+						},
+						&board.FilterIllegalQueensideCastle{
+							CastlingState: NewCastlingState(
+								map[board.MoveType]map[board.Color]bool{
+									board.KINGSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+									board.QUEENSIDE_CASTLE: {
+										board.WHITE: false,
+										board.BLACK: false,
+									},
+								},
+							),
+						},
+					),
+				),
+			),
 			expectedErr: nil,
 		},
 		{
@@ -651,15 +705,9 @@ func TestHandleMove(t *testing.T) {
 					MoveType:    board.CAPTURE,
 				},
 			},
-			initialBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			initialBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						1: {
 							0: board.NewPawn(board.WHITE),
@@ -675,16 +723,10 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
-			expectedBoard: ClassicBoard{
-				MoveApplicator:              moveApplicator,
-				Bounds:                      bounds,
-				whiteAllowedKingsideCastle:  true,
-				whiteAllowedQueensideCastle: true,
-				blackAllowedKingsideCastle:  true,
-				blackAllowedQueensideCastle: true,
-				gameboardState: board.NewGameboardState(
-					bounds,
+			),
+			expectedBoard: BuildClassicBoard(
+				WithBounds(bounds),
+				WithGameboardState(
 					board.GameboardState{
 						2: {
 							1: board.NewPawn(board.WHITE),
@@ -694,7 +736,7 @@ func TestHandleMove(t *testing.T) {
 						},
 					},
 				),
-			},
+			),
 			expectedErr: nil,
 		},
 	}
@@ -718,4 +760,119 @@ func TestHandleMove(t *testing.T) {
 			t.Errorf("Test case %s: expected board %v but got %v", tc.name, tc.expectedBoard, board)
 		}
 	}
+}
+
+type builderOption = func(c *ClassicBoardBuilder)
+
+type ClassicBoardBuilder struct {
+	bounds         board.Bounds
+	castlingState  *board.CastlingState
+	moveApplicator board.MoveApplicator
+	moveFilter     *board.MoveFilter
+	gameboardState board.GameboardState
+}
+
+func WithBounds(bounds board.Bounds) builderOption {
+	return func(c *ClassicBoardBuilder) {
+		c.bounds = bounds
+	}
+}
+
+func WithGameboardState(state board.GameboardState) builderOption {
+	return func(c *ClassicBoardBuilder) {
+		c.gameboardState = board.NewGameboardState(c.bounds, state)
+	}
+}
+
+func WithCastlingState(castlingState *board.CastlingState) builderOption {
+	return func(c *ClassicBoardBuilder) {
+		c.castlingState = castlingState
+	}
+}
+
+func WithMoveFilter(moveFilter *board.MoveFilter) builderOption {
+	return func(c *ClassicBoardBuilder) {
+		c.moveFilter = moveFilter
+	}
+}
+
+func BuildClassicBoard(options ...builderOption) *ClassicBoard {
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
+	castlingState := NewCastlingState(map[board.MoveType]map[board.Color]bool{
+		board.KINGSIDE_CASTLE: {
+			board.WHITE: true,
+			board.BLACK: true,
+		},
+		board.QUEENSIDE_CASTLE: {
+			board.WHITE: true,
+			board.BLACK: true,
+		},
+	})
+	moveApplicator := board.NewMoveApplicator(
+		&board.SinglePieceMoveApplicator{},
+		&board.KingsideCastleMoveApplicator{},
+		&board.QueensideCastleMoveApplicator{},
+	)
+	moveFilter := board.NewMoveFilter(
+		&board.FilterOutOfBounds{Bounds: bounds},
+		&board.FilterPieceCollision{},
+		&board.FilterFriendlyCapture{},
+		&board.FilterInvalidPawnDoublePush{},
+		&board.FilterIllegalKingsideCastle{
+			CastlingState: castlingState,
+		},
+		&board.FilterIllegalQueensideCastle{
+			CastlingState: castlingState,
+		},
+	)
+	classicBoardBuilder := &ClassicBoardBuilder{
+		bounds:         bounds,
+		castlingState:  castlingState,
+		moveApplicator: moveApplicator,
+		moveFilter:     moveFilter,
+	}
+	for _, option := range options {
+		option(classicBoardBuilder)
+	}
+	return &ClassicBoard{
+		Bounds:         classicBoardBuilder.bounds,
+		MoveApplicator: classicBoardBuilder.moveApplicator,
+		MoveFilter:     classicBoardBuilder.moveFilter,
+		CastlingState:  classicBoardBuilder.castlingState,
+		gameboardState: classicBoardBuilder.gameboardState,
+	}
+}
+
+func NewCastlingState(state map[board.MoveType]map[board.Color]bool) *board.CastlingState {
+	return &board.CastlingState{
+		CastlingStateMap: state,
+	}
+}
+
+func NewClassicBoard(state board.GameboardState) *ClassicBoard {
+	bounds := board.Bounds{RankCount: 8, FileCount: 8}
+	castlingState := board.NewCastlingState()
+	classicBoard := &ClassicBoard{
+		Bounds:         bounds,
+		CastlingState:  castlingState,
+		gameboardState: state,
+		MoveApplicator: board.NewMoveApplicator(
+			&board.SinglePieceMoveApplicator{},
+			&board.KingsideCastleMoveApplicator{},
+			&board.QueensideCastleMoveApplicator{},
+		),
+		MoveFilter: board.NewMoveFilter(
+			&board.FilterOutOfBounds{Bounds: bounds},
+			&board.FilterPieceCollision{},
+			&board.FilterFriendlyCapture{},
+			&board.FilterInvalidPawnDoublePush{},
+			&board.FilterIllegalKingsideCastle{
+				CastlingState: castlingState,
+			},
+			&board.FilterIllegalQueensideCastle{
+				CastlingState: castlingState,
+			},
+		),
+	}
+	return classicBoard
 }
