@@ -11,8 +11,8 @@ type MoveApplicator struct {
 }
 
 // NewMoveApplicator returns a MoveApplicator composed of all provided moveApplicator.
-func NewMoveApplicator(moveHandlers ...moveApplicator) MoveApplicator {
-	newMoveApplicator := MoveApplicator{
+func NewMoveApplicator(moveHandlers ...moveApplicator) *MoveApplicator {
+	newMoveApplicator := &MoveApplicator{
 		moveApplicatorMap: make(map[MoveType]moveApplicator),
 	}
 

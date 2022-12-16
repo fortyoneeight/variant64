@@ -15,22 +15,22 @@ const (
 
 type GameboardState = map[int]map[int]*Piece
 
-func NewGameboardState(bounds Bounds, pieceLocations GameboardState) GameboardState {
-	state := GameboardState{}
+func NewGameboardState(bounds Bounds, state GameboardState) GameboardState {
+	gameboardState := GameboardState{}
 	for rank := 0; rank < bounds.RankCount; rank += 1 {
-		state[rank] = map[int]*Piece{}
+		gameboardState[rank] = map[int]*Piece{}
 		for file := 0; file < bounds.FileCount; file += 1 {
-			state[rank][file] = nil
+			gameboardState[rank][file] = nil
 		}
 	}
 
-	for rank := range pieceLocations {
-		for file := range pieceLocations[rank] {
-			state[rank][file] = pieceLocations[rank][file]
+	for rank := range state {
+		for file := range state[rank] {
+			gameboardState[rank][file] = state[rank][file]
 		}
 	}
 
-	return state
+	return gameboardState
 }
 
 type PieceType int
@@ -258,4 +258,186 @@ func (b Bounds) IsInboundsPosition(position Position) bool {
 		position.File >= 0 &&
 		position.Rank < b.RankCount &&
 		position.File < b.FileCount
+}
+
+type builderOption = func(c *Builder)
+
+type Builder struct {
+	bounds         Bounds
+	castlingState  *CastlingState
+	moveApplicator *MoveApplicator
+	moveFilter     *MoveFilter
+	gameboardState GameboardState
+}
+
+func NewBuilder() *Builder {
+	bounds := Bounds{RankCount: 8, FileCount: 8}
+	castlingState := NewDefaultCastlingState()
+	return &Builder{
+		bounds:        bounds,
+		castlingState: castlingState,
+		moveApplicator: NewMoveApplicator(
+			&SinglePieceMoveApplicator{},
+			&KingsideCastleMoveApplicator{},
+			&QueensideCastleMoveApplicator{},
+		),
+		moveFilter: NewMoveFilter(
+			&FilterOutOfBounds{Bounds: bounds},
+			&FilterPieceCollision{},
+			&FilterFriendlyCapture{},
+			&FilterInvalidPawnDoublePush{},
+			&FilterIllegalKingsideCastle{
+				CastlingState: castlingState,
+			},
+			&FilterIllegalQueensideCastle{
+				CastlingState: castlingState,
+			},
+		),
+		gameboardState: NewGameboardState(bounds, GameboardState{}),
+	}
+}
+
+func WithBounds(bounds Bounds) builderOption {
+	return func(c *Builder) {
+		c.bounds = bounds
+	}
+}
+
+func WithCastlingState(castlingState *CastlingState) builderOption {
+	return func(c *Builder) {
+		c.castlingState = castlingState
+	}
+}
+
+func WithMoveApplicator(moveApplicator *MoveApplicator) builderOption {
+	return func(c *Builder) {
+		c.moveApplicator = moveApplicator
+	}
+}
+
+func WithMoveFilter(moveFilter *MoveFilter) builderOption {
+	return func(c *Builder) {
+		c.moveFilter = moveFilter
+	}
+}
+
+func WithGameboardState(state GameboardState) builderOption {
+	return func(c *Builder) {
+		c.gameboardState = NewGameboardState(c.bounds, state)
+	}
+}
+
+func Build(options ...builderOption) *Board {
+	boardBuilder := NewBuilder()
+	for _, option := range options {
+		option(boardBuilder)
+	}
+	board := &Board{
+		Bounds:         boardBuilder.bounds,
+		MoveApplicator: boardBuilder.moveApplicator,
+		MoveFilter:     boardBuilder.moveFilter,
+		CastlingState:  boardBuilder.castlingState,
+		GameboardState: boardBuilder.gameboardState,
+	}
+	board.updateAvailableMoves()
+	return board
+}
+
+type Board struct {
+	Bounds
+	*MoveApplicator
+	*MoveFilter
+	*CastlingState
+	GameboardState
+}
+
+// GetState returns a GameboardState for the Board.
+func (b *Board) GetState() GameboardState {
+	return b.GameboardState
+}
+
+// HandleMove handles a Move submitted by the client.
+func (b *Board) HandleMove(move Move) error {
+	// Check if there is a piece at the source position.
+	sourcePiece := b.GameboardState[move.Source.Rank][move.Source.File]
+	if sourcePiece == nil {
+		return errPieceNotFound
+	}
+
+	// Verify move is legal.
+	err := b.isMoveAllowed(move, sourcePiece)
+	if err != nil {
+		return errMoveNotAllowed
+	}
+
+	// Update the castle flags if necessary.
+	b.UpdateCastleState(move, b.GameboardState)
+
+	// Update the board state.
+	moveErr := b.ApplyMove(move, b.GameboardState)
+	if moveErr != nil {
+		return moveErr
+	}
+
+	// Update the available moves for each piece
+	b.updateAvailableMoves()
+
+	return nil
+}
+
+// isMoveAllowed checks if a move is legal.
+func (b *Board) isMoveAllowed(move Move, sourcePiece *Piece) error {
+	if destinations, ok := sourcePiece.AvailableMoves[move.MoveType]; ok {
+		for _, destination := range destinations {
+			if destination == move.Destination {
+				return nil
+			}
+		}
+	}
+	return errors.New("invalid move: destination position is not a valid destination for the specified move type")
+}
+
+// updateAvailableMoves sets the available moves for each piece in the game.
+func (b *Board) updateAvailableMoves() {
+	b.forEachPiece(
+		func(source Position, piece *Piece) {
+			if piece != nil {
+				piece.AvailableMoves = b.filterMoveMap(source, piece.GetMoves(source))
+			}
+		},
+	)
+}
+
+// forEachPiece applies the function to each piece on the board.
+func (b *Board) forEachPiece(fn func(position Position, piece *Piece)) {
+	for rank, files := range b.GameboardState {
+		for file, piece := range files {
+			fn(Position{Rank: rank, File: file}, piece)
+		}
+	}
+}
+
+// filterMoveMap filters all illegal moves from possibleMoves for the source piece.
+func (b *Board) filterMoveMap(source Position, possibleMoves MoveMap) MoveMap {
+	availableMoves := NewMoveMap()
+
+	for moveType, moveListByType := range possibleMoves {
+		availableMoves[moveType] = b.filterMoveList(source, moveType, moveListByType)
+	}
+
+	return availableMoves
+}
+
+// filterMoveList filters each move in the list by legality.
+func (b *Board) filterMoveList(source Position, moveType MoveType, moveList []Position) []Position {
+	availableMoves := []Position{}
+
+	for _, destination := range moveList {
+		move := Move{Source: source, Destination: destination, MoveType: moveType}
+		if b.IsLegalMove(move, b.GameboardState) {
+			availableMoves = append(availableMoves, destination)
+		}
+	}
+
+	return availableMoves
 }

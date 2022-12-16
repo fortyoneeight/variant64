@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/models/board"
-	"github.com/variant64/server/pkg/models/board/classic"
+	"github.com/variant64/server/pkg/models/board/variants"
 	"github.com/variant64/server/pkg/timer"
 
 	"github.com/gorilla/websocket"
@@ -78,7 +78,7 @@ func (r *RequestNewGame) PerformAction() (*Game, error) {
 func newGameboard(gameboardType board.GameboardType) (gameboard, error) {
 	switch gameboardType {
 	case board.GameboardTypeDefault, board.GameboardTypeClassic:
-		return (&classic.RequestNewBoard{}).PerformAction()
+		return (&variants.RequestNewClassicBoard{}).PerformAction()
 	default:
 		return nil, errUnableToCreateBoard
 	}

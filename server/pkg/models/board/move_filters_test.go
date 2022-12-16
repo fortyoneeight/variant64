@@ -850,18 +850,3 @@ func TestFilterIllegalQueensideCastle(t *testing.T) {
 		})
 	}
 }
-
-func createCastlingState(whiteKingside, whiteQueenside, blackKingside, blackQueenside bool) *CastlingState {
-	return &CastlingState{
-		map[MoveType]map[Color]bool{
-			KINGSIDE_CASTLE: map[Color]bool{
-				WHITE: whiteKingside,
-				BLACK: blackKingside,
-			},
-			QUEENSIDE_CASTLE: map[Color]bool{
-				WHITE: whiteQueenside,
-				BLACK: blackQueenside,
-			},
-		},
-	}
-}
