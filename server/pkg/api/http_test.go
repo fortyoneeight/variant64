@@ -28,7 +28,13 @@ func TestPlayerPost(t *testing.T) {
 			200,
 		},
 		{
-			"Invalid user.",
+			"Invalid user, display_name too long.",
+			"{\"display_name\":\"useruseruseruseruser\"}",
+			[]string{" display_name longer than limit"},
+			400,
+		},
+		{
+			"Invalid user, missing display_name.",
 			"{}",
 			[]string{"missing display_name"},
 			400,
@@ -131,7 +137,15 @@ func TestRoomPost(t *testing.T) {
 			200,
 		},
 		{
-			"Invalid room.",
+			"Invalid room, name too long.",
+			"{\"room_name\":\"roomroomroomoroomroom\"}",
+			[]string{
+				"room_name longer than limit",
+			},
+			400,
+		},
+		{
+			"Invalid room, missing name.",
 			"{}",
 			[]string{
 				"room_name is required",

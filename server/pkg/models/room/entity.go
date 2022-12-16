@@ -9,6 +9,7 @@ import (
 
 const (
 	PLAYER_LIMIT_DEFAULT = 2
+	NAME_MAX_LENGTH = 16
 )
 
 // Room represents a room in which Players can play and watch Games.

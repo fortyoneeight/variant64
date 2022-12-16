@@ -12,6 +12,8 @@ var errPlayerLimit = errortypes.New(errortypes.BadRequest, fmt.Sprintf("Room err
 
 var errMissingName = errortypes.New(errortypes.BadRequest, "Room error: room_name is required")
 
+var errNameTooLong = errortypes.New(errortypes.BadRequest, fmt.Sprintf("Player error: room_name longer than limit: %d", NAME_MAX_LENGTH))
+
 var errDuplicatePlayer = func(playerID string) errortypes.TypedError {
 	return errortypes.New(errortypes.BadRequest, fmt.Sprintf("Room error: duplicate player %s", playerID))
 }

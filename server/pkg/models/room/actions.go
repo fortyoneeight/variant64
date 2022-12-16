@@ -21,6 +21,10 @@ func (r *RequestNewRoom) PerformAction() (*Room, error) {
 		return nil, errMissingName
 	}
 
+	if len(r.Name) > NAME_MAX_LENGTH {
+		return nil, errNameTooLong
+	}
+
 	room := &Room{
 		ID:          uuid.New(),
 		Name:        r.Name,

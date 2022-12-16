@@ -15,6 +15,10 @@ func (r *RequestNewPlayer) PerformAction() (*Player, error) {
 		return nil, errMissingDisplayName
 	}
 
+	if len(r.DisplayName) > DISPLAY_NAME_MAX_LENGTH {
+		return nil, errDisplayNameTooLong
+	}
+
 	player := &Player{
 		ID:          uuid.New(),
 		DisplayName: r.DisplayName,
