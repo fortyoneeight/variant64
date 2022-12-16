@@ -22,10 +22,11 @@ func (r *RequestNewRoom) PerformAction() (*Room, error) {
 	}
 
 	room := &Room{
-		ID:      uuid.New(),
-		Name:    r.Name,
-		Players: make([]uuid.UUID, 0),
-		mux:     &sync.RWMutex{},
+		ID:          uuid.New(),
+		Name:        r.Name,
+		Players:     make([]uuid.UUID, 0),
+		PlayerLimit: PLAYER_LIMIT_DEFAULT,
+		mux:         &sync.RWMutex{},
 	}
 
 	handler, err := models.NewUpdatePub(room.ID, roomUpdateBus)
@@ -93,6 +94,10 @@ func (r *RequestJoinRoom) PerformAction() (*Room, error) {
 
 	room.mux.Lock()
 	defer room.mux.Unlock()
+
+	if len(room.Players) == room.PlayerLimit {
+		return nil, errPlayerLimit
+	}
 
 	for _, p := range room.Players {
 		if p == r.PlayerID {

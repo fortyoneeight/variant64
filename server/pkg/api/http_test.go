@@ -269,6 +269,12 @@ func TestRoomAddPlayer(t *testing.T) {
 		WithRoom(),
 	)
 
+	testEntities2 := Setup(
+		WithPlayers(2),
+		WithPlayersInRoom(2),
+		WithRoom(),
+	)
+
 	testcases := []struct {
 		description              string
 		id                       string
@@ -287,6 +293,13 @@ func TestRoomAddPlayer(t *testing.T) {
 				"\"game_id\":null",
 			},
 			200,
+		},
+		{
+			"Valid room ID, but full.",
+			testEntities2.room1.ID.String(),
+			fmt.Sprintf("{\"player_id\":\"%s\"}", uuid.New()),
+			[]string{"room has reached player_limit"},
+			400,
 		},
 		{
 			"Invalid body.",

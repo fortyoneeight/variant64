@@ -16,14 +16,20 @@ func TestRequestJoinRoom(t *testing.T) {
 	room2, err := newRoomRequest2.PerformAction()
 	assert.Nil(t, err)
 
+	newRoomRequest3 := &RequestNewRoom{Name: "room3"}
+	room3, err := newRoomRequest3.PerformAction()
+	assert.Nil(t, err)
+
 	playerID1 := uuid.New()
 	playerID2 := uuid.New()
+	playerID3 := uuid.New()
 
 	testcases := []struct {
-		name            string
-		room            *Room
-		requests        []*RequestJoinRoom
-		expectedPlayers []uuid.UUID
+		name                  string
+		room                  *Room
+		requests              []*RequestJoinRoom
+		expectedPlayers       []uuid.UUID
+		expectedRequestErrors []error
 	}{
 		{
 			name: "Add one player.",
@@ -31,7 +37,8 @@ func TestRequestJoinRoom(t *testing.T) {
 			requests: []*RequestJoinRoom{
 				{RoomID: room1.GetID(), PlayerID: playerID1},
 			},
-			expectedPlayers: []uuid.UUID{playerID1},
+			expectedRequestErrors: []error{nil, nil, nil},
+			expectedPlayers:       []uuid.UUID{playerID1},
 		},
 		{
 			name: "Add multiple players.",
@@ -40,16 +47,27 @@ func TestRequestJoinRoom(t *testing.T) {
 				{RoomID: room2.GetID(), PlayerID: playerID1},
 				{RoomID: room2.GetID(), PlayerID: playerID2},
 			},
-			expectedPlayers: []uuid.UUID{playerID1, playerID2},
+			expectedRequestErrors: []error{nil, nil, nil},
+			expectedPlayers:       []uuid.UUID{playerID1, playerID2},
+		},
+		{
+			name: "Add too many players.",
+			room: room2,
+			requests: []*RequestJoinRoom{
+				{RoomID: room3.GetID(), PlayerID: playerID1},
+				{RoomID: room3.GetID(), PlayerID: playerID2},
+				{RoomID: room3.GetID(), PlayerID: playerID3},
+			},
+			expectedRequestErrors: []error{nil, nil, errPlayerLimit},
+			expectedPlayers:       []uuid.UUID{playerID1, playerID2},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			for _, r := range tc.requests {
-				room, err := r.PerformAction()
-				assert.Nil(t, err)
-				tc.room = room
+			for i, r := range tc.requests {
+				_, err := r.PerformAction()
+				assert.Equal(t, err, tc.expectedRequestErrors[i])
 			}
 
 			assert.Equal(t, tc.expectedPlayers, tc.room.Players)
