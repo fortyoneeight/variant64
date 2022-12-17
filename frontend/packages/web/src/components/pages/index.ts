@@ -1,5 +1,5 @@
 import Homepage from './Homepage/Homepage';
-import Gamepage from './Gamepage';
-import Onboarding from './Onboarding';
+import Gamepage from './Gamepage/Gamepage';
+import Onboarding from './Onboarding/Onboarding';
 
 export { Homepage, Gamepage, Onboarding };

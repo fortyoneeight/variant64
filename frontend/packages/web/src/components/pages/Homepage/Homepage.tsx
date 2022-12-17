@@ -1,19 +1,19 @@
 import React from 'react';
 import { useRecoilState } from 'recoil';
 import { playerState } from '../../../store/atoms';
-import { RoomForm, RoomList } from '../../features';
-import './Homepage.css';
+import { CreateRoomForm, RoomList } from '../../features';
+import { FlexRow, FlexColumn } from './Homepage.styled';
 
 export default function Homepage() {
   const [player, _] = useRecoilState(playerState);
 
   return (
-    <div className="column">
+    <FlexColumn>
       <h1 className="welcomeHeader">Welcome: {player.display_name}</h1>
-      <div className="row">
+      <FlexRow>
         <RoomList />
-        <RoomForm />
-      </div>
-    </div>
+        <CreateRoomForm />
+      </FlexRow>
+    </FlexColumn>
   );
 }

@@ -1,12 +1,12 @@
 import { atom } from 'recoil';
 import { Player, Room, Game } from '../../models';
 
-export const roomsState = atom({
+export const roomsState = atom<Array<Room>>({
   key: 'roomsState',
   default: [] as Array<Room>,
 });
 
-export const roomState = atom({
+export const roomState = atom<Room>({
   key: 'roomState',
   default: {} as Room,
 });

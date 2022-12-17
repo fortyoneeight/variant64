@@ -5,9 +5,10 @@ import { useRecoilState } from 'recoil';
 import { playerState } from '../../../store/atoms';
 import { HomepageService } from '../../pages/hompage-service';
 import { ServicesContext } from '../../../store/context';
-import './PlayerForm.css';
+import { WhiteButton, TextInput } from '../../atoms';
+import { OnboardingFormContainer } from './OnboardingForm.styled';
 
-export default function PlayerForm() {
+export default function OnboardingForm() {
   const [form, setForm] = useState<Player>({
     display_name: localStorage.getItem('playerName')!,
   } as Player);
@@ -39,19 +40,16 @@ export default function PlayerForm() {
   };
 
   return (
-    <form className="onboardingForm gradientBackground">
-      <input
+    <OnboardingFormContainer>
+      <TextInput
         id="playerForm_display_name"
         title="playerForm_display_name"
         name="playerForm_display_name"
         placeholder="Enter Name"
-        className="textInput"
         defaultValue={localStorage.getItem('playerName')!}
         onChange={(e) => handleOnchange(e)}
-      ></input>
-      <button className="submitButton" onClick={(e) => handleOnSubmit(e)}>
-        Submit
-      </button>
-    </form>
+      ></TextInput>
+      <WhiteButton onClick={(e) => handleOnSubmit(e)}>Submit</WhiteButton>
+    </OnboardingFormContainer>
   );
 }
