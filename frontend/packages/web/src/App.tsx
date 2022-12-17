@@ -1,9 +1,9 @@
 import React from 'react';
-import './App.css';
 import Routing from './Routing';
 import { RecoilRoot } from 'recoil';
 import { ServicesContext } from './store/context';
 import { RoomAPIRoutesConfig, HttpService, WebSocketService } from './services';
+import { GlobalStyles } from './GlobalStyles.styled';
 
 const { REACT_APP_BE_SERVER, REACT_APP_DEVELOPMENT_PROXY } = process.env;
 const proxyUrl = REACT_APP_DEVELOPMENT_PROXY ? REACT_APP_DEVELOPMENT_PROXY : '';
@@ -21,6 +21,7 @@ let roomWebSocketService = new WebSocketService({
 function App() {
   return (
     <>
+      <GlobalStyles />
       <RecoilRoot>
         <ServicesContext.Provider
           value={{ roomHttpService: roomHttpService, roomWebSocketService: roomWebSocketService }}

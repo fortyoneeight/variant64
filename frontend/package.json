@@ -9,6 +9,7 @@
     "start": "npx lerna run start"
   },
   "devDependencies": {
+    "@types/styled-components": "^5.1.26",
     "lerna": "^6.0.1"
   },
   "dependencies": {

@@ -1,7 +1,8 @@
-import PlayerForm from './PlayerForm/PlayerForm';
-import RoomForm from './RoomForm/RoomForm';
+import OnboardingForm from './OnboardingForm/OnboardingForm';
+import CreateRoomForm from './CreateRoomForm/CreateRoomForm';
 import RoomList from './RoomList/RoomList';
-import Gameboard from './gameboard';
-import DrawButton from './DrawButton/DrawButton';
+import BoardDisplay from './BoardDisplay/BoardDisplay';
+import GameplayButtons from './GameplayButtons/GameplayButtons';
+import PlayerInfo from './PlayerInfo/PlayerInfo';
 
-export { PlayerForm, RoomForm, RoomList, Gameboard, DrawButton };
+export { OnboardingForm, CreateRoomForm, RoomList, BoardDisplay, GameplayButtons, PlayerInfo };
