@@ -1,7 +1,7 @@
 package board
 
 type moveGenerator interface {
-	GetMoves(source Position) MoveMap
+	GenerateMoves(source Position) MoveMap
 }
 
 // Piece is used to represent a movable entity on a board.
@@ -23,12 +23,24 @@ func (p *Piece) GetType() PieceType {
 }
 
 // GetMoves returns a list of possible moves for the Piece at the given position.
-func (p *Piece) GetMoves(source Position) MoveMap {
+func (p *Piece) GenerateMoves(source Position) MoveMap {
 	moveMap := NewMoveMap()
 	for _, generator := range p.moveGenerators {
-		JoinMoveMaps(moveMap, generator.GetMoves(source))
+		JoinMoveMaps(moveMap, generator.GenerateMoves(source))
 	}
 	return moveMap
+}
+
+// IsAvailableMove returns true if the provided moveDestination is an AvailableMove.
+func (p *Piece) IsAvailableMove(move Move) bool {
+	if destinations, ok := p.AvailableMoves[move.MoveType]; ok {
+		for _, availableDestination := range destinations {
+			if move.Destination == availableDestination {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // NewPiece creates a new Piece based on the input parameters.

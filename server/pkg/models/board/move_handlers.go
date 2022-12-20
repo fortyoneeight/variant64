@@ -25,13 +25,19 @@ func NewMoveApplicator(moveHandlers ...moveApplicator) *MoveApplicator {
 	return newMoveApplicator
 }
 
-func (h *MoveApplicator) ApplyMove(move Move, state GameboardState) error {
+func (h *MoveApplicator) ApplyMove(move Move, state GameboardState) (GameboardState, error) {
 	handler, ok := h.moveApplicatorMap[move.MoveType]
 	if !ok {
-		return errCannotHandleMoveType(move.MoveType)
+		return nil, errCannotHandleMoveType(move.MoveType)
 	}
 
-	return handler.ApplyMove(move, state)
+	stateCopy := CopyGameboardState(state)
+	err := handler.ApplyMove(move, stateCopy)
+	if err != nil {
+		return nil, err
+	}
+
+	return stateCopy, nil
 }
 
 // SinglePieceMoveApplicator applies a single piece movement to a StateMap.

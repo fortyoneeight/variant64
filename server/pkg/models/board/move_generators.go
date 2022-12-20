@@ -6,7 +6,7 @@ type SingleNormalMoveGenerator struct {
 	direction Direction
 }
 
-func (g *SingleNormalMoveGenerator) GetMoves(source Position) MoveMap {
+func (g *SingleNormalMoveGenerator) GenerateMoves(source Position) MoveMap {
 	return map[MoveType][]Position{
 		NORMAL: {
 			StepInDirection(source, g.direction),
@@ -20,7 +20,7 @@ type SingleDiagonalCaputureMoveGenerator struct {
 	color Color
 }
 
-func (g *SingleDiagonalCaputureMoveGenerator) GetMoves(source Position) MoveMap {
+func (g *SingleDiagonalCaputureMoveGenerator) GenerateMoves(source Position) MoveMap {
 	var rankDirection int
 	if g.color == WHITE {
 		rankDirection = 1
@@ -42,7 +42,7 @@ type DoublePushMoveGenerator struct {
 	color Color
 }
 
-func (g *DoublePushMoveGenerator) GetMoves(source Position) MoveMap {
+func (g *DoublePushMoveGenerator) GenerateMoves(source Position) MoveMap {
 	var rankDirection int
 	if g.color == WHITE {
 		rankDirection = 1
@@ -61,7 +61,7 @@ func (g *DoublePushMoveGenerator) GetMoves(source Position) MoveMap {
 // in one direction and one square in an orthogonal direction.
 type KnightMoveGenerator struct{}
 
-func (g *KnightMoveGenerator) GetMoves(source Position) MoveMap {
+func (g *KnightMoveGenerator) GenerateMoves(source Position) MoveMap {
 	moves := map[MoveType][]Position{
 		JUMP:         {},
 		JUMP_CAPTURE: {},
@@ -93,7 +93,7 @@ type RayMoveGenerator struct {
 	bounds    Bounds
 }
 
-func (g *RayMoveGenerator) GetMoves(source Position) MoveMap {
+func (g *RayMoveGenerator) GenerateMoves(source Position) MoveMap {
 	ray := GenerateRay(source, g.direction, g.bounds)
 	return map[MoveType][]Position{
 		NORMAL:  ray,
@@ -106,7 +106,7 @@ type CastleMoveGenerator struct {
 	color Color
 }
 
-func (g *CastleMoveGenerator) GetMoves(source Position) MoveMap {
+func (g *CastleMoveGenerator) GenerateMoves(source Position) MoveMap {
 	moves := map[MoveType][]Position{
 		KINGSIDE_CASTLE:  {},
 		QUEENSIDE_CASTLE: {},

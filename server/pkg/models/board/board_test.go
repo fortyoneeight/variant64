@@ -87,7 +87,7 @@ func TestKnightMoves(t *testing.T) {
 		expectedLegalMoves MoveMap
 	}{
 		{
-			name:     "Knight in the middle of the ",
+			name:     "Knight in the middle of the board.",
 			position: Position{Rank: 3, File: 3},
 			piece:    NewKnight(WHITE),
 			expectedLegalMoves: MoveMap{
@@ -136,7 +136,7 @@ func TestQueenMoves(t *testing.T) {
 		expectedLegalMoves MoveMap
 	}{
 		{
-			name:     "Queen in the middle of the ",
+			name:     "Queen in the middle of the board.",
 			position: Position{Rank: 3, File: 3},
 			piece:    NewQueen(WHITE, bounds),
 			expectedLegalMoves: MoveMap{
@@ -221,7 +221,7 @@ func TestKingMoves(t *testing.T) {
 		expectedLegalMoves MoveMap
 	}{
 		{
-			name:     "King in the middle of the ",
+			name:     "King in the middle of the board.",
 			position: Position{Rank: 4, File: 4},
 			piece:    NewKing(WHITE),
 			expectedLegalMoves: MoveMap{
@@ -314,7 +314,7 @@ func TestRookMoves(t *testing.T) {
 		expectedLegalMoves MoveMap
 	}{
 		{
-			name:     "Rook in the middle of the ",
+			name:     "Rook in the middle of the board.",
 			position: Position{Rank: 3, File: 3},
 			piece:    NewRook(WHITE, bounds),
 			expectedLegalMoves: MoveMap{
@@ -371,7 +371,7 @@ func TestBishopMoves(t *testing.T) {
 		expectedLegalMoves MoveMap
 	}{
 		{
-			name:     "Bishop in the middle of the ",
+			name:     "Bishop in the middle of the board.",
 			position: Position{Rank: 3, File: 3},
 			piece:    NewBishop(WHITE, bounds),
 			expectedLegalMoves: MoveMap{
@@ -691,8 +691,8 @@ func TestHandleMove(t *testing.T) {
 		}
 
 		// Check that the board is in the expected state.
-		if !reflect.DeepEqual(board.CastlingState, tc.expectedBoard.CastlingState) {
-			t.Errorf("Test case %s: expected board %v but got %v", tc.name, tc.expectedBoard.CastlingState, board.CastlingState)
+		if !reflect.DeepEqual(board.GameboardState, tc.expectedBoard.GameboardState) {
+			t.Errorf("Test case %s: expected board %v but got %v", tc.name, tc.expectedBoard, board)
 		}
 	}
 }
