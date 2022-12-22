@@ -8,6 +8,10 @@ import (
 func NewClassicBoard() *board.Board {
 	bounds := board.Bounds{RankCount: 8, FileCount: 8}
 	castlingState := board.NewDefaultCastlingState()
+	turnState := &board.TurnState{
+		Active:    board.WHITE,
+		TurnOrder: []board.Color{board.BLACK, board.WHITE},
+	}
 
 	return board.Build(
 		board.WithBounds(bounds),
@@ -77,5 +81,13 @@ func NewClassicBoard() *board.Board {
 				},
 			},
 		),
+		board.WithIllegalStateFilter(
+			board.NewIllegalStateFilter(
+				&board.IllegalCheckStateFilter{
+					TurnState: turnState,
+				},
+			),
+		),
+		board.WithTurnState(turnState),
 	)
 }

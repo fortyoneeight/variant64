@@ -287,6 +287,34 @@ func (b Bounds) IsInboundsPosition(position Position) bool {
 		position.File < b.FileCount
 }
 
+type TurnState struct {
+	Active    Color
+	TurnOrder []Color
+}
+
+func (t *TurnState) GetActivePlayer() Color {
+	return t.Active
+}
+
+func (t *TurnState) PassTurn() {
+	t.Active = t.TurnOrder[0]
+	t.TurnOrder = append(t.TurnOrder[1:], t.TurnOrder[0])
+}
+
+type EndStateType string
+
+const (
+	EndStateNone      EndStateType = "none"
+	EndStateCheckmate EndStateType = "checkmate"
+	EndStateStalemate EndStateType = "stalemate"
+)
+
+type GameEndState struct {
+	EndStateType
+	Winner Color
+	Loser  Color
+}
+
 type builderOption = func(c *Builder)
 
 type Builder struct {
@@ -296,11 +324,17 @@ type Builder struct {
 	moveFilter         *MoveFilter
 	illegalStateFilter *IllegalStateFilter
 	gameboardState     GameboardState
+	turnState          *TurnState
+	gameEndState       GameEndState
 }
 
 func NewBuilder() *Builder {
 	bounds := Bounds{RankCount: 8, FileCount: 8}
 	castlingState := NewDefaultCastlingState()
+	turnState := &TurnState{
+		Active:    WHITE,
+		TurnOrder: []Color{BLACK, WHITE},
+	}
 	return &Builder{
 		bounds:        bounds,
 		castlingState: castlingState,
@@ -322,9 +356,17 @@ func NewBuilder() *Builder {
 			},
 		),
 		illegalStateFilter: NewIllegalStateFilter(
-			&IllegalCheckStateFilter{},
+			&IllegalCheckStateFilter{
+				TurnState: turnState,
+			},
 		),
 		gameboardState: NewGameboardState(bounds, GameboardState{}),
+		turnState:      turnState,
+		gameEndState: GameEndState{
+			EndStateType: EndStateNone,
+			Winner:       NO_COLOR,
+			Loser:        NO_COLOR,
+		},
 	}
 }
 
@@ -364,6 +406,12 @@ func WithGameboardState(state GameboardState) builderOption {
 	}
 }
 
+func WithTurnState(state *TurnState) builderOption {
+	return func(c *Builder) {
+		c.turnState = state
+	}
+}
+
 func Build(options ...builderOption) *Board {
 	builder := NewBuilder()
 	for _, option := range options {
@@ -376,6 +424,8 @@ func Build(options ...builderOption) *Board {
 		IllegalStateFilter: builder.illegalStateFilter,
 		CastlingState:      builder.castlingState,
 		GameboardState:     builder.gameboardState,
+		TurnState:          builder.turnState,
+		GameEndState:       builder.gameEndState,
 	}
 	board.updateMoves()
 	return board
@@ -388,6 +438,8 @@ type Board struct {
 	*IllegalStateFilter
 	*CastlingState
 	GameboardState
+	*TurnState
+	GameEndState
 }
 
 // GetState returns a GameboardState for the Board.
@@ -421,8 +473,21 @@ func (b *Board) HandleMove(move Move) error {
 	}
 	b.GameboardState = updatedState
 
+	// Pass the turn.
+	b.PassTurn()
+
 	// Update the available moves for each piece.
 	b.updateMoves()
+
+	// Check for game ending.
+	switch b.checkGameEnd() {
+	case EndStateCheckmate:
+		b.GameEndState.EndStateType = EndStateCheckmate
+		b.Winner = b.TurnState.TurnOrder[0]
+		b.Loser = b.TurnState.Active
+	case EndStateStalemate:
+		b.GameEndState.EndStateType = EndStateStalemate
+	}
 
 	return nil
 }
@@ -495,6 +560,20 @@ func (b *Board) generatePossibleMoves(state GameboardState) AvailableMoveMap {
 	return availableMoveMap
 }
 
+// getAvailableMoves gets the available moves for each piece in the game.
+func (b *Board) getAvailableMoves() AvailableMoveMap {
+	availableMoveMap := NewAvailableMoveMap(b.Bounds)
+	b.forEachPiece(
+		b.GameboardState,
+		func(source Position, piece *Piece) {
+			if piece != nil {
+				availableMoveMap[source.Rank][source.File] = piece.AvailableMoves
+			}
+		},
+	)
+	return availableMoveMap
+}
+
 // setAvailableMoves sets the available moves for each piece in the game.
 func (b *Board) setAvailableMoves(availableMoveMap AvailableMoveMap, state GameboardState) {
 	b.forEachPiece(
@@ -538,5 +617,43 @@ func (b *Board) forEachPiece(state GameboardState, fn func(position Position, pi
 		for file, piece := range files {
 			fn(Position{Rank: rank, File: file}, piece)
 		}
+	}
+}
+
+// checkGameEnd checks if the game has ended.
+// If the active player has no moves they have lost.
+func (b *Board) checkGameEnd() EndStateType {
+	activePlayerHasMove := false
+	b.forEachPiece(
+		b.GameboardState,
+		func(position Position, piece *Piece) {
+			if !activePlayerHasMove &&
+				piece != nil &&
+				piece.Color == b.GetActivePlayer() {
+				for _, moveList := range piece.AvailableMoves {
+					if len(moveList) != 0 {
+						activePlayerHasMove = true
+					}
+				}
+			}
+		},
+	)
+
+	activePlayerIsInCheck := !anyPosition(
+		b.GetActivePlayer(),
+		b.GameboardState,
+		predicateAttackingEnemyKing(
+			b.GetActivePlayer(),
+			b.GameboardState,
+			b.getAvailableMoves()),
+	)
+
+	switch {
+	case !activePlayerHasMove && activePlayerIsInCheck:
+		return EndStateCheckmate
+	case !activePlayerHasMove && !activePlayerIsInCheck:
+		return EndStateStalemate
+	default:
+		return EndStateNone
 	}
 }

@@ -156,7 +156,12 @@ func TestIllegalCheckStateFilter(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			illegalCheckStateFilter := IllegalCheckStateFilter{}
+			illegalCheckStateFilter := IllegalCheckStateFilter{
+				TurnState: &TurnState{
+					Active:    BLACK,
+					TurnOrder: []Color{WHITE, BLACK},
+				},
+			}
 			isLegalState := illegalCheckStateFilter.IsLegalState(tc.color, tc.state, tc.availableMoveMap)
 			assert.Equal(t, tc.expectedIsLegalState, isLegalState)
 		})
