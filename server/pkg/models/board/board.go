@@ -497,7 +497,8 @@ func (b *Board) updateMoves() {
 	// Update the available moves for each piece.
 	possibleMoves := b.generatePossibleMoves(b.GameboardState)
 	filtered := b.filterAvailableMoveMap(b.GameboardState, possibleMoves, b.legalMoveFilterPredicate)
-	filtered = b.filterAvailableMoveMap(b.GameboardState, filtered, b.legalGamebaordStatePredicate)
+	filtered = b.filterAvailableMoveMap(b.GameboardState, filtered, b.legalCastlePredicate)
+	filtered = b.filterAvailableMoveMap(b.GameboardState, filtered, b.legalGameboardStatePredicate)
 
 	b.setAvailableMoves(possibleMoves, b.GameboardState)
 }
@@ -594,8 +595,67 @@ func (b *Board) legalMoveFilterPredicate(piece *Piece, move Move, state Gameboar
 	return b.IsLegalMove(move, state)
 }
 
-// legalGamebaordStatePredicate returns true if the provided move results in a legal board state.
-func (b *Board) legalGamebaordStatePredicate(piece *Piece, move Move, state GameboardState) bool {
+// legalCastlePredicate returns true if the provided castle move doesn't move through check.
+func (b *Board) legalCastlePredicate(piece *Piece, move Move, state GameboardState) bool {
+	// move the castling king to the adjecent square that is moved through during a castle
+	var intermediateMove Move
+	switch move.MoveType {
+	case QUEENSIDE_CASTLE:
+		switch piece.Color {
+		case WHITE:
+			intermediateMove = Move{
+				Source:      move.Source,
+				Destination: Position{Rank: 0, File: 3},
+				MoveType:    NORMAL,
+			}
+		case BLACK:
+			intermediateMove = Move{
+				Source:      move.Source,
+				Destination: Position{Rank: 7, File: 3},
+				MoveType:    NORMAL,
+			}
+		default:
+			return true
+		}
+	case KINGSIDE_CASTLE:
+		switch piece.Color {
+		case WHITE:
+			intermediateMove = Move{
+				Source:      move.Source,
+				Destination: Position{Rank: 0, File: 5},
+				MoveType:    NORMAL,
+			}
+		case BLACK:
+			intermediateMove = Move{
+				Source:      move.Source,
+				Destination: Position{Rank: 0, File: 6},
+				MoveType:    NORMAL,
+			}
+		default:
+			return true
+		}
+	default:
+		return true
+	}
+
+	// validate the king is not in check in this position
+	copiedState := CopyGameboardState(state)
+	copiedState, err := b.ApplyMove(intermediateMove, copiedState)
+	if err != nil {
+		return false
+	}
+
+	potentialNextTurnMoves := b.filterAvailableMoveMap(
+		copiedState,
+		b.generatePossibleMoves(copiedState),
+		b.legalMoveFilterPredicate,
+	)
+
+	return b.IsLegalState(piece.Color, copiedState, potentialNextTurnMoves)
+}
+
+// legalGameboardStatePredicate returns true if the provided move results in a legal board state.
+func (b *Board) legalGameboardStatePredicate(piece *Piece, move Move, state GameboardState) bool {
 	copiedState := CopyGameboardState(state)
 	copiedState, err := b.ApplyMove(move, copiedState)
 	if err != nil {
@@ -639,13 +699,10 @@ func (b *Board) checkGameEnd() EndStateType {
 		},
 	)
 
-	activePlayerIsInCheck := !anyPosition(
+	activePlayerIsInCheck := isColorInCheck(
 		b.GetActivePlayer(),
 		b.GameboardState,
-		predicateAttackingEnemyKing(
-			b.GetActivePlayer(),
-			b.GameboardState,
-			b.getAvailableMoves()),
+		b.getAvailableMoves(),
 	)
 
 	switch {
@@ -656,4 +713,17 @@ func (b *Board) checkGameEnd() EndStateType {
 	default:
 		return EndStateNone
 	}
+}
+
+// isColorInCheck returns true if the provided color is in check.
+func isColorInCheck(color Color, state GameboardState, availableMoveMap AvailableMoveMap) bool {
+	return !anyPosition(
+		color,
+		state,
+		predicateAttackingEnemyKing(
+			color,
+			state,
+			availableMoveMap,
+		),
+	)
 }
