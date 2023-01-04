@@ -17,8 +17,8 @@ type Room struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`
 
-	Players     []uuid.UUID `json:"players"`
-	PlayerLimit int         `json:"player_limit"`
+	Players     map[uuid.UUID]string `json:"players"`
+	PlayerLimit int                  `json:"player_limit"`
 
 	GameID *uuid.UUID `json:"game_id"`
 
@@ -34,9 +34,9 @@ func (r *Room) GetID() uuid.UUID {
 
 // RoomUpdate represents a change in a Room's state.
 type RoomUpdate struct {
-	ID      *uuid.UUID   `json:"id,omitempty"`
-	Players *[]uuid.UUID `json:"players,omitempty"`
-	GameID  *uuid.UUID   `json:"game_id,omitempty"`
+	ID      *uuid.UUID           `json:"id,omitempty"`
+	Players map[uuid.UUID]string `json:"players,omitempty"`
+	GameID  *uuid.UUID           `json:"game_id,omitempty"`
 }
 
 // getSnapshot returns a RoomUpdate that is a snapshot of the Room.
@@ -46,7 +46,7 @@ func (r *Room) getSnapshot() RoomUpdate {
 
 	return RoomUpdate{
 		ID:      &r.ID,
-		Players: &r.Players,
+		Players: r.Players,
 		GameID:  r.GameID,
 	}
 }

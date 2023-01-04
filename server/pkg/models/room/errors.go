@@ -17,3 +17,7 @@ var errNameTooLong = errortypes.New(errortypes.BadRequest, fmt.Sprintf("Player e
 var errDuplicatePlayer = func(playerID string) errortypes.TypedError {
 	return errortypes.New(errortypes.BadRequest, fmt.Sprintf("Room error: duplicate player %s", playerID))
 }
+
+var errPlayerNotInRoom = func(playerID string) errortypes.TypedError {
+	return errortypes.New(errortypes.NotFound, fmt.Sprintf("Room error: player not in room %s", playerID))
+}

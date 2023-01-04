@@ -131,7 +131,7 @@ func TestRoomPost(t *testing.T) {
 			"{\"room_name\":\"test\"}",
 			[]string{
 				"\"name\":\"test\"",
-				"\"players\":[]",
+				"\"players\":{}",
 				"\"game_id\":null",
 			},
 			200,
@@ -303,7 +303,11 @@ func TestRoomAddPlayer(t *testing.T) {
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", testEntities1.room1.Name),
 				fmt.Sprintf("\"id\":\"%s\"", testEntities1.room1.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", testEntities1.player1.GetID()),
+				fmt.Sprintf(
+					"\"players\":{\"%s\":\"%s\"}",
+					testEntities1.player1.GetID(),
+					testEntities1.player1.DisplayName,
+				),
 				"\"game_id\":null",
 			},
 			200,
@@ -390,7 +394,11 @@ func TestRoomRemovePlayer(t *testing.T) {
 			[]string{
 				fmt.Sprintf("\"name\":\"%s\"", testEntities1.room1.Name),
 				fmt.Sprintf("\"id\":\"%s\"", testEntities1.room1.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", testEntities1.player2.GetID()),
+				fmt.Sprintf(
+					"\"players\":{\"%s\":\"%s\"}",
+					testEntities1.player2.GetID(),
+					testEntities1.player2.DisplayName,
+				),
 				"\"game_id\":null",
 			},
 			200,
@@ -399,13 +407,8 @@ func TestRoomRemovePlayer(t *testing.T) {
 			"Valid room ID and invalid playerID.",
 			testEntities2.room1.ID.String(),
 			fmt.Sprintf("{\"player_id\":\"%s\"}", uuid.New()),
-			[]string{
-				fmt.Sprintf("\"name\":\"%s\"", testEntities2.room1.Name),
-				fmt.Sprintf("\"id\":\"%s\"", testEntities2.room1.GetID()),
-				fmt.Sprintf("\"players\":[\"%s\"]", testEntities2.player1.GetID()),
-				"\"game_id\":null",
-			},
-			200,
+			[]string{"player not in room"},
+			404,
 		},
 		{
 			"Invalid body.",

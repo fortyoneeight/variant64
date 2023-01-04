@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/variant64/server/pkg/models"
 	"github.com/variant64/server/pkg/models/game"
+	"github.com/variant64/server/pkg/models/player"
 )
 
 var roomUpdateBus = models.NewUpdateBus[RoomUpdate]()
@@ -28,7 +29,7 @@ func (r *RequestNewRoom) PerformAction() (*Room, error) {
 	room := &Room{
 		ID:          uuid.New(),
 		Name:        r.Name,
-		Players:     make([]uuid.UUID, 0),
+		Players:     make(map[uuid.UUID]string, 0),
 		PlayerLimit: PLAYER_LIMIT_DEFAULT,
 		mux:         &sync.RWMutex{},
 	}
@@ -103,12 +104,17 @@ func (r *RequestJoinRoom) PerformAction() (*Room, error) {
 		return nil, errPlayerLimit
 	}
 
-	for _, p := range room.Players {
-		if p == r.PlayerID {
-			return nil, errDuplicatePlayer(r.PlayerID.String())
-		}
+	if _, ok := room.Players[r.PlayerID]; ok {
+		return nil, errDuplicatePlayer(r.PlayerID.String())
 	}
-	room.Players = append(room.Players, r.PlayerID)
+
+	playerEntity, err := (&player.RequestGetPlayer{
+		PlayerID: r.PlayerID,
+	}).PerformAction()
+
+	if err == nil {
+		room.Players[r.PlayerID] = playerEntity.DisplayName
+	}
 
 	room.updateHandler.Publish(
 		models.UpdateMessage[RoomUpdate]{
@@ -116,7 +122,7 @@ func (r *RequestJoinRoom) PerformAction() (*Room, error) {
 			Type:    models.UpdateType_DELTA,
 			Data: RoomUpdate{
 				ID:      &r.RoomID,
-				Players: &room.Players,
+				Players: room.Players,
 			},
 		},
 	)
@@ -140,11 +146,11 @@ func (r *RequestLeaveRoom) PerformAction() (*Room, error) {
 	room.mux.Lock()
 	defer room.mux.Unlock()
 
-	for i, p := range room.Players {
-		if p == r.PlayerID {
-			room.Players = append(room.Players[:i], room.Players[i+1:]...)
-		}
+	if _, ok := room.Players[r.PlayerID]; !ok {
+		return nil, errPlayerNotInRoom(r.PlayerID.String())
 	}
+
+	delete(room.Players, r.PlayerID)
 
 	room.updateHandler.Publish(
 		models.UpdateMessage[RoomUpdate]{
@@ -152,7 +158,7 @@ func (r *RequestLeaveRoom) PerformAction() (*Room, error) {
 			Type:    models.UpdateType_DELTA,
 			Data: RoomUpdate{
 				ID:      &r.RoomID,
-				Players: &room.Players,
+				Players: room.Players,
 			},
 		},
 	)
@@ -176,8 +182,13 @@ func (r *RequestStartGame) PerformAction() (*game.Game, error) {
 	room.mux.Lock()
 	defer room.mux.Unlock()
 
+	players := make([]uuid.UUID, 0, len(room.Players))
+	for playerID := range room.Players {
+		players = append(players, playerID)
+	}
+
 	gameEntity, err := (&game.RequestNewGame{
-		PlayerOrder:     room.Players,
+		PlayerOrder:     players,
 		PlayerTimeMilis: r.PlayerTimeMilis,
 	}).PerformAction()
 	if err != nil || gameEntity == nil {
@@ -200,7 +211,7 @@ func (r *RequestStartGame) PerformAction() (*game.Game, error) {
 			Type:    models.UpdateType_DELTA,
 			Data: RoomUpdate{
 				ID:      &r.RoomID,
-				Players: &room.Players,
+				Players: room.Players,
 				GameID:  room.GameID,
 			},
 		},

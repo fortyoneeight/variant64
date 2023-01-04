@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/variant64/server/pkg/models/player"
 )
 
 func TestRequestJoinRoom(t *testing.T) {
@@ -20,15 +21,30 @@ func TestRequestJoinRoom(t *testing.T) {
 	room3, err := newRoomRequest3.PerformAction()
 	assert.Nil(t, err)
 
-	playerID1 := uuid.New()
-	playerID2 := uuid.New()
-	playerID3 := uuid.New()
+	player1, err := (&player.RequestNewPlayer{
+		DisplayName: "name1",
+	}).PerformAction()
+	assert.Nil(t, err)
+
+	player2, err := (&player.RequestNewPlayer{
+		DisplayName: "name2",
+	}).PerformAction()
+	assert.Nil(t, err)
+
+	player3, err := (&player.RequestNewPlayer{
+		DisplayName: "name3",
+	}).PerformAction()
+	assert.Nil(t, err)
+
+	playerID1 := player1.ID
+	playerID2 := player2.ID
+	playerID3 := player3.ID
 
 	testcases := []struct {
 		name                  string
 		room                  *Room
 		requests              []*RequestJoinRoom
-		expectedPlayers       []uuid.UUID
+		expectedPlayers       map[uuid.UUID]string
 		expectedRequestErrors []error
 	}{
 		{
@@ -38,7 +54,9 @@ func TestRequestJoinRoom(t *testing.T) {
 				{RoomID: room1.GetID(), PlayerID: playerID1},
 			},
 			expectedRequestErrors: []error{nil, nil, nil},
-			expectedPlayers:       []uuid.UUID{playerID1},
+			expectedPlayers: map[uuid.UUID]string{
+				playerID1: "name1",
+			},
 		},
 		{
 			name: "Add multiple players.",
@@ -48,7 +66,10 @@ func TestRequestJoinRoom(t *testing.T) {
 				{RoomID: room2.GetID(), PlayerID: playerID2},
 			},
 			expectedRequestErrors: []error{nil, nil, nil},
-			expectedPlayers:       []uuid.UUID{playerID1, playerID2},
+			expectedPlayers: map[uuid.UUID]string{
+				playerID1: "name1",
+				playerID2: "name2",
+			},
 		},
 		{
 			name: "Add too many players.",
@@ -59,7 +80,10 @@ func TestRequestJoinRoom(t *testing.T) {
 				{RoomID: room3.GetID(), PlayerID: playerID3},
 			},
 			expectedRequestErrors: []error{nil, nil, errPlayerLimit},
-			expectedPlayers:       []uuid.UUID{playerID1, playerID2},
+			expectedPlayers: map[uuid.UUID]string{
+				playerID1: "name1",
+				playerID2: "name2",
+			},
 		},
 	}
 
@@ -88,16 +112,26 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 	room3, err := newRoomRequest3.PerformAction()
 	assert.Nil(t, err)
 
-	playerID1 := uuid.New()
-	playerID2 := uuid.New()
+	player1, err := (&player.RequestNewPlayer{
+		DisplayName: "name1",
+	}).PerformAction()
+	assert.Nil(t, err)
+
+	player2, err := (&player.RequestNewPlayer{
+		DisplayName: "name2",
+	}).PerformAction()
+	assert.Nil(t, err)
+
+	playerID1 := player1.ID
+	playerID2 := player2.ID
 
 	testcases := []struct {
 		name                  string
 		room                  *Room
 		addRequests           []*RequestJoinRoom
 		removeRequests        []*RequestLeaveRoom
-		expectedPlayersBefore []uuid.UUID
-		expectedPlayersAfter  []uuid.UUID
+		expectedPlayersBefore map[uuid.UUID]string
+		expectedPlayersAfter  map[uuid.UUID]string
 	}{
 		{
 			name: "Remove one player.",
@@ -108,8 +142,10 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 			removeRequests: []*RequestLeaveRoom{
 				{RoomID: room1.GetID(), PlayerID: playerID1},
 			},
-			expectedPlayersBefore: []uuid.UUID{playerID1},
-			expectedPlayersAfter:  []uuid.UUID{},
+			expectedPlayersBefore: map[uuid.UUID]string{
+				playerID1: "name1",
+			},
+			expectedPlayersAfter: map[uuid.UUID]string{},
 		},
 		{
 			name: "Remove one player with remaining.",
@@ -121,8 +157,13 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 			removeRequests: []*RequestLeaveRoom{
 				{RoomID: room2.GetID(), PlayerID: playerID1},
 			},
-			expectedPlayersBefore: []uuid.UUID{playerID1, playerID2},
-			expectedPlayersAfter:  []uuid.UUID{playerID2},
+			expectedPlayersBefore: map[uuid.UUID]string{
+				playerID1: "name1",
+				playerID2: "name2",
+			},
+			expectedPlayersAfter: map[uuid.UUID]string{
+				playerID2: "name2",
+			},
 		},
 		{
 			name: "Remove multiple players.",
@@ -135,8 +176,11 @@ func TestRequestRoomRemovePlayer(t *testing.T) {
 				{RoomID: room3.GetID(), PlayerID: playerID1},
 				{RoomID: room3.GetID(), PlayerID: playerID2},
 			},
-			expectedPlayersBefore: []uuid.UUID{playerID1, playerID2},
-			expectedPlayersAfter:  []uuid.UUID{},
+			expectedPlayersBefore: map[uuid.UUID]string{
+				playerID1: "name1",
+				playerID2: "name2",
+			},
+			expectedPlayersAfter: map[uuid.UUID]string{},
 		},
 	}
 
@@ -163,21 +207,26 @@ func TestRequestRoomStartGame(t *testing.T) {
 	room, err := (&RequestNewRoom{Name: "name"}).PerformAction()
 	assert.Nil(t, err)
 
-	request := &RequestJoinRoom{
-		RoomID:   room.GetID(),
-		PlayerID: uuid.New(),
-	}
-
-	room, err = request.PerformAction()
-
+	player1, err := (&player.RequestNewPlayer{
+		DisplayName: "name1",
+	}).PerformAction()
 	assert.Nil(t, err)
 
-	request = &RequestJoinRoom{
-		RoomID:   room.GetID(),
-		PlayerID: uuid.New(),
-	}
+	player2, err := (&player.RequestNewPlayer{
+		DisplayName: "name2",
+	}).PerformAction()
+	assert.Nil(t, err)
 
-	room, err = request.PerformAction()
+	room, err = (&RequestJoinRoom{
+		RoomID:   room.GetID(),
+		PlayerID: player1.ID,
+	}).PerformAction()
+	assert.Nil(t, err)
+
+	room, err = (&RequestJoinRoom{
+		RoomID:   room.GetID(),
+		PlayerID: player2.ID,
+	}).PerformAction()
 	assert.Nil(t, err)
 
 	testcases := []struct {

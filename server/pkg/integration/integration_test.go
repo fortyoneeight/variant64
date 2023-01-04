@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/variant64/server/pkg/models"
+	"github.com/variant64/server/pkg/models/player"
 	"github.com/variant64/server/pkg/models/room"
 )
 
@@ -48,13 +49,23 @@ func TestIntegrationJoinRoomSubscription(t *testing.T) {
 				t.Error(err)
 			}
 
-			newRoom, err = (&room.RequestJoinRoom{RoomID: newRoom.ID, PlayerID: uuid.New()}).PerformAction()
+			newPlayer, err := (&player.RequestNewPlayer{
+				DisplayName: fmt.Sprint("player_", i),
+			}).PerformAction()
 			if err != nil {
 				t.Error(err)
 			}
 
-			(&room.RequestLeaveRoom{RoomID: newRoom.ID, PlayerID: newRoom.Players[0]}).PerformAction()
-			assert.Nil(t, err)
+			newRoom, err = (&room.RequestJoinRoom{RoomID: newRoom.ID, PlayerID: newPlayer.ID}).PerformAction()
+			if err != nil {
+				t.Error(err)
+			}
+
+			newRoom, err = (&room.RequestLeaveRoom{RoomID: newRoom.ID, PlayerID: newPlayer.ID}).PerformAction()
+			if err != nil {
+				t.Error(err)
+			}
+
 			tc.room = newRoom
 
 			assert.Equal(t, len(mockWriter.SentMessages), 3)
