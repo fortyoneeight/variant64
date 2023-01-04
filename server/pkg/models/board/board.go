@@ -118,6 +118,7 @@ const (
 	QUEENSIDE_CASTLE
 	KINGSIDE_CASTLE
 	PROMOTION
+	PROMOTION_CAPTURE
 	EN_PASSANT
 )
 
@@ -139,6 +140,8 @@ func (m MoveType) String() string {
 		return "kingside_castle"
 	case PROMOTION:
 		return "promotion"
+	case PROMOTION_CAPTURE:
+		return "promotion_capture"
 	case EN_PASSANT:
 		return "en_passant"
 	}
@@ -342,6 +345,7 @@ func NewBuilder() *Builder {
 			&SinglePieceMoveApplicator{},
 			&KingsideCastleMoveApplicator{},
 			&QueensideCastleMoveApplicator{},
+			&PromotionMoveApplicator{Bounds: bounds},
 		),
 		moveFilter: NewMoveFilter(
 			&FilterOutOfBounds{Bounds: bounds},
@@ -354,6 +358,8 @@ func NewBuilder() *Builder {
 			&FilterIllegalQueensideCastle{
 				CastlingState: castlingState,
 			},
+			&FilterIllegalPromotion{},
+			&FilterIllegalPromotionCapture{},
 		),
 		illegalStateFilter: NewIllegalStateFilter(
 			&IllegalCheckStateFilter{

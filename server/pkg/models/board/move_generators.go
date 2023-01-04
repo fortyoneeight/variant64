@@ -36,6 +36,41 @@ func (g *SingleDiagonalCaputureMoveGenerator) GenerateMoves(source Position) Mov
 	}
 }
 
+// PromotionMoveGenerator generates PROMOTION moves of one square in a single direction.
+type PromotionMoveGenerator struct {
+	direction Direction
+}
+
+func (g *PromotionMoveGenerator) GenerateMoves(source Position) MoveMap {
+	return map[MoveType][]Position{
+		PROMOTION: {
+			StepInDirection(source, g.direction),
+		},
+	}
+}
+
+// PromotionCaptureMoveGenerator generates PROMOTION_CAPTURE moves of one square
+// in each of the forward two diagonal directions.
+type PromotionCaptureMoveGenerator struct {
+	color Color
+}
+
+func (g *PromotionCaptureMoveGenerator) GenerateMoves(source Position) MoveMap {
+	var rankDirection int
+	if g.color == WHITE {
+		rankDirection = 1
+	} else {
+		rankDirection = -1
+	}
+
+	return map[MoveType][]Position{
+		PROMOTION_CAPTURE: {
+			{Rank: source.Rank + rankDirection, File: source.File - 1},
+			{Rank: source.Rank + rankDirection, File: source.File + 1},
+		},
+	}
+}
+
 // DoublePushMoveGenerator generates PAWN_DOUBLE_PUSH moves of two squares
 // in a single direction.
 type DoublePushMoveGenerator struct {

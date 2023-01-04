@@ -159,3 +159,80 @@ func (f *FilterIllegalQueensideCastle) IsLegalMove(move Move, state GameboardSta
 		return true
 	}
 }
+
+// FilterIllegalPromotion disallows illegal promotions.
+type FilterIllegalPromotion struct {
+	bounds Bounds
+}
+
+func (f *FilterIllegalPromotion) IsLegalMove(move Move, state GameboardState) bool {
+	switch move.MoveType {
+	case PROMOTION:
+		piece := state[move.Source.Rank][move.Source.File]
+		if piece == nil {
+			return false
+		}
+		if piece.PieceType != PAWN {
+			return false
+		}
+
+		switch piece.Color {
+		case WHITE:
+			return move.Source.Rank == 6 &&
+				move.Destination.Rank == 7 &&
+				move.Source.File == move.Destination.File
+		case BLACK:
+			return move.Source.Rank == 1 &&
+				move.Destination.Rank == 0 &&
+				move.Source.File == move.Destination.File
+		default:
+			return false
+		}
+	default:
+		return true
+	}
+}
+
+// FilterIllegalPromotionCapture disallows illegal promotion captures.
+type FilterIllegalPromotionCapture struct {
+	bounds Bounds
+}
+
+func (f *FilterIllegalPromotionCapture) IsLegalMove(move Move, state GameboardState) bool {
+	switch move.MoveType {
+	case PROMOTION_CAPTURE:
+		piece := state[move.Source.Rank][move.Source.File]
+		if piece == nil {
+			return false
+		}
+		if piece.PieceType != PAWN {
+			return false
+		}
+
+		capturedPiece := state[move.Destination.Rank][move.Destination.File]
+		if capturedPiece == nil {
+			return false
+		}
+		if capturedPiece.Color == piece.Color {
+			return false
+		}
+
+		// check for diagonal movement
+		if move.Source.File != move.Destination.File-1 &&
+			move.Source.File != move.Destination.File+1 {
+			return false
+		}
+
+		switch piece.Color {
+		case WHITE:
+			return move.Source.Rank == f.bounds.RankCount-2 &&
+				move.Destination.Rank == f.bounds.RankCount-1
+		case BLACK:
+			return move.Source.Rank == 1 && move.Destination.Rank == 0
+		default:
+			return false
+		}
+	default:
+		return true
+	}
+}

@@ -21,6 +21,7 @@ func NewClassicBoard() *board.Board {
 				&board.SinglePieceMoveApplicator{},
 				&board.KingsideCastleMoveApplicator{},
 				&board.QueensideCastleMoveApplicator{},
+				&board.PromotionMoveApplicator{Bounds: bounds},
 			),
 		),
 		board.WithMoveFilter(
@@ -35,6 +36,8 @@ func NewClassicBoard() *board.Board {
 				&board.FilterIllegalQueensideCastle{
 					CastlingState: castlingState,
 				},
+				&board.FilterIllegalPromotion{},
+				&board.FilterIllegalPromotionCapture{},
 			),
 		),
 		board.WithGameboardState(

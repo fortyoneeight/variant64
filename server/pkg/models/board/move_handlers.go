@@ -40,7 +40,7 @@ func (h *MoveApplicator) ApplyMove(move Move, state GameboardState) (GameboardSt
 	return stateCopy, nil
 }
 
-// SinglePieceMoveApplicator applies a single piece movement to a StateMap.
+// SinglePieceMoveApplicator applies a single piece movement to a GameboardState.
 type SinglePieceMoveApplicator struct{}
 
 func (h *SinglePieceMoveApplicator) GetTypesToHandle() map[MoveType]bool {
@@ -69,7 +69,7 @@ func (h *SinglePieceMoveApplicator) ApplyMove(move Move, state GameboardState) e
 	return nil
 }
 
-// KingsideCastleMoveApplicator applies a kingside castle to a StateMap.
+// KingsideCastleMoveApplicator applies a kingside castle to a GameboardState.
 type KingsideCastleMoveApplicator struct{}
 
 func (h *KingsideCastleMoveApplicator) GetTypesToHandle() map[MoveType]bool {
@@ -120,7 +120,7 @@ func (h *KingsideCastleMoveApplicator) ApplyMove(move Move, state GameboardState
 	return nil
 }
 
-// QueensideCastleMoveApplicator applies a queenside castle to a StateMap.
+// QueensideCastleMoveApplicator applies a queenside castle to a GameboardState.
 type QueensideCastleMoveApplicator struct{}
 
 func (h *QueensideCastleMoveApplicator) GetTypesToHandle() map[MoveType]bool {
@@ -166,6 +166,39 @@ func (h *QueensideCastleMoveApplicator) ApplyMove(move Move, state GameboardStat
 		state[7][3] = state[7][0]
 		state[7][0] = nil
 	}
+
+	return nil
+}
+
+// PromotionMoveApplicator applies a promotion to a GameboardState.
+type PromotionMoveApplicator struct {
+	Bounds
+}
+
+func (a *PromotionMoveApplicator) GetTypesToHandle() map[MoveType]bool {
+	return map[MoveType]bool{
+		PROMOTION:         true,
+		PROMOTION_CAPTURE: true,
+	}
+}
+
+func (a *PromotionMoveApplicator) ApplyMove(move Move, state GameboardState) error {
+	if _, ok := a.GetTypesToHandle()[move.MoveType]; !ok {
+		return errCannotHandleMoveType(move.MoveType)
+	}
+
+	// Check pawn is present.
+	pawnPiece := state[move.Source.Rank][move.Source.File]
+	if pawnPiece == nil {
+		return errSourcePieceNotFound
+	}
+
+	// Set the promoted pawn to be a queen.
+	state[move.Source.Rank][move.Source.File] = nil
+	state[move.Destination.Rank][move.Destination.File] = NewQueen(
+		pawnPiece.Color,
+		a.Bounds,
+	)
 
 	return nil
 }
