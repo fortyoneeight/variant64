@@ -29,7 +29,6 @@ export default function GameplayButtons() {
 
   const handleStartClick = () => {
     homepageService.startRoom(room.id, defaultClockMillis).then((gameResponse) => {
-      homepageService.subscribeToGameUpdates(gameResponse.id);
       setGame({ ...game, ...gameResponse });
     });
   };

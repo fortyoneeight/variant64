@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom
 import { useRecoilState } from 'recoil';
 import { playerState } from './store/atoms';
 import { Gamepage, Homepage, Onboarding } from './components/pages';
+import Subscription from './components/features/Subscription/Subscription';
 
 function Header() {
   return (
@@ -32,6 +33,7 @@ export default function Routing() {
     <>
       <BrowserRouter>
         <Header />
+        <Subscription />
         <Routes>
           <Route path="/" element={<Onboarding />} />
           <Route path="/home" element={<PrivateRoute />}>
