@@ -326,8 +326,8 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *timer.Timer) {
 
 // getSnapshot returns a snapshot of the game state.
 func (g *Game) getSnapshot() GameUpdate {
-	g.mux.Lock()
-	defer g.mux.Unlock()
+	g.mux.RLock()
+	defer g.mux.RUnlock()
 
 	return GameUpdate{
 		GameID:       g.ID,

@@ -9,7 +9,7 @@ import (
 
 const (
 	PLAYER_LIMIT_DEFAULT = 2
-	NAME_MAX_LENGTH = 16
+	NAME_MAX_LENGTH      = 16
 )
 
 // Room represents a room in which Players can play and watch Games.
@@ -41,6 +41,9 @@ type RoomUpdate struct {
 
 // getSnapshot returns a RoomUpdate that is a snapshot of the Room.
 func (r *Room) getSnapshot() RoomUpdate {
+	r.mux.RLock()
+	defer r.mux.RUnlock()
+
 	return RoomUpdate{
 		ID:      &r.ID,
 		Players: &r.Players,

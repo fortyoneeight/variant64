@@ -201,6 +201,7 @@ func (r *RequestStartGame) PerformAction() (*game.Game, error) {
 			Data: RoomUpdate{
 				ID:      &r.RoomID,
 				Players: &room.Players,
+				GameID:  room.GameID,
 			},
 		},
 	)
@@ -226,9 +227,6 @@ func (c *CommandRoomSubscribe) PerformAction() error {
 	if err != nil {
 		return err
 	}
-
-	room.mux.RLock()
-	defer room.mux.RUnlock()
 
 	// Subscribe to updates.
 	models.SubscribeWithSnapshot(roomUpdateBus, c.RoomID, MessageChannel, room.getSnapshot(), c.EventWriter)

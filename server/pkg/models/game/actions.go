@@ -225,9 +225,6 @@ func (c *CommandGameSubscribe) PerformAction() error {
 		return err
 	}
 
-	game.mux.RLock()
-	defer game.mux.RUnlock()
-
 	// Subscribe to updates.
 	return models.SubscribeWithSnapshot(gameUpdateBus, c.GameID, MessageChannel, game.getSnapshot(), c.EventWriter)
 }
