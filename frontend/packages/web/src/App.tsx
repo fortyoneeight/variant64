@@ -4,6 +4,8 @@ import { RecoilRoot } from 'recoil';
 import { ServicesContext } from './store/context';
 import { RoomAPIRoutesConfig, HttpService, WebSocketService } from './services';
 import { GlobalStyles } from './GlobalStyles.styled';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const { REACT_APP_BE_SERVER, REACT_APP_DEVELOPMENT_PROXY } = process.env;
 const proxyUrl = REACT_APP_DEVELOPMENT_PROXY ? REACT_APP_DEVELOPMENT_PROXY : '';
@@ -23,13 +25,15 @@ function App() {
     <>
       <GlobalStyles />
       <RecoilRoot>
-        <ServicesContext.Provider
-          value={{ roomHttpService: roomHttpService, roomWebSocketService: roomWebSocketService }}
-        >
-          <div className="appBody">
-            <Routing />
-          </div>
-        </ServicesContext.Provider>
+        <DndProvider backend={HTML5Backend}>
+          <ServicesContext.Provider
+            value={{ roomHttpService: roomHttpService, roomWebSocketService: roomWebSocketService }}
+          >
+            <div className="appBody">
+              <Routing />
+            </div>
+          </ServicesContext.Provider>
+        </DndProvider>
       </RecoilRoot>
     </>
   );

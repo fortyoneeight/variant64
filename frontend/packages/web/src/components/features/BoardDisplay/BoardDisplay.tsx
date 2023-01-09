@@ -1,7 +1,8 @@
 import React from 'react';
 import { Board } from '../../../models';
-import { pieceImages } from '../../../assets/pieceImages';
-import { GameboardGrid, GridCell, PieceImage } from './BoardDisplay.styled';
+import { GameboardGrid } from './BoardDisplay.styled';
+import Piece from './Piece';
+import Square from './Square';
 
 export default function BoardDisplay({ board }: { board: Board }) {
   return (
@@ -10,22 +11,13 @@ export default function BoardDisplay({ board }: { board: Board }) {
         return [...Array(board.size.width)].map((cell: any, j: any) => {
           const color = (i % 2) + (j % 2) === 1 ? 'white' : '#549e4c';
           return (
-            <GridCell key={i + '' + j} style={{ backgroundColor: color }}>
+            <Square key={i + j} i={i} j={j} color={color}>
               {board.cells.map((piece: any, k: any) => {
                 if (piece.x === i && piece.y === j) {
-                  return (
-                    <PieceImage
-                      key={k}
-                      src={
-                        pieceImages[piece.name as keyof typeof pieceImages][
-                          (piece.player == 'player1' ? 'white' : 'black')!
-                        ]
-                      }
-                    />
-                  );
+                  return <Piece key={k} piece={piece}></Piece>;
                 }
               })}
-            </GridCell>
+            </Square>
           );
         });
       })}
