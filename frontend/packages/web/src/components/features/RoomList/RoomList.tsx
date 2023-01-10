@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import { playerState, roomState, roomsState } from '../../../store/atoms';
+import { playerState, roomState, roomsState, roomSubState } from '../../../store/atoms';
 import { HomepageService } from '../../pages/hompage-service';
 import { ServicesContext } from '../../../store/context';
 import { WhiteButton } from '../../atoms';
@@ -11,6 +11,7 @@ import { Room } from '../../../models';
 export default function RoomList() {
   const [player, _] = useRecoilState(playerState);
   const [room, setRoom] = useRecoilState(roomState);
+  const [roomSub, setRoomSub] = useRecoilState(roomSubState);
   const [rooms, setRooms] = useRecoilState(roomsState);
 
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function RoomList() {
   const handleJoinClick = (r: Room) => {
     homepageService.joinRoom(r.id, player.id).then((roomResponse) => {
       setRoom({ ...room, ...roomResponse });
+      setRoomSub(roomResponse.id);
       navigate('/room/' + r.id);
     });
   };
@@ -39,7 +41,7 @@ export default function RoomList() {
         {rooms.map((r) => {
           return (
             <WhiteButton key={r.id} onClick={() => handleJoinClick(r)}>
-              {r.name} --- Players: {r.players.length} / 2
+              {r.name} --- Players: {Object.keys(r.players).length} / 2
             </WhiteButton>
           );
         })}

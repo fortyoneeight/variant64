@@ -3,25 +3,25 @@ import { Room } from '../../models';
 export const mockdataRooms: Array<Room> = [
   {
     id: '1',
-    players: [],
+    players: {},
     name: "Henry's Room",
     game_id: '1',
   },
   {
     id: '2',
-    players: [],
+    players: {},
     name: "Izak's Room",
     game_id: '1',
   },
   {
     id: '3',
-    players: [],
+    players: {},
     name: "Jarron's Room",
     game_id: '1',
   },
   {
     id: '4',
-    players: [],
+    players: {},
     name: "Ben's Room",
     game_id: '1',
   },

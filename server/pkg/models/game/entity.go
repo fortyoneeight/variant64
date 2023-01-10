@@ -47,7 +47,7 @@ type Game struct {
 
 // GameUpdate represents a change in a Game's state.
 type GameUpdate struct {
-	GameID uuid.UUID `json:"game_id"`
+	ID uuid.UUID `json:"id"`
 
 	ActivePlayer *uuid.UUID           `json:"active_player,omitempty"`
 	Clocks       *map[uuid.UUID]int64 `json:"clocks,omitempty"`
@@ -95,7 +95,7 @@ func (g *Game) start() error {
 			Channel: MessageChannel,
 			Type:    models.UpdateType_DELTA,
 			Data: GameUpdate{
-				GameID:       g.ID,
+				ID:           g.ID,
 				ActivePlayer: &g.ActivePlayer,
 				State:        &g.State,
 				BoardState:   nil,
@@ -150,7 +150,7 @@ func (g *Game) declareLoser(playerID uuid.UUID) error {
 			Channel: MessageChannel,
 			Type:    models.UpdateType_DELTA,
 			Data: GameUpdate{
-				GameID:  g.ID,
+				ID:      g.ID,
 				Winners: &g.Winners,
 				Losers:  &g.Losers,
 				Drawn:   &g.Drawn,
@@ -192,7 +192,7 @@ func (g *Game) approveDraw(playerID uuid.UUID) error {
 					Channel: MessageChannel,
 					Type:    models.UpdateType_DELTA,
 					Data: GameUpdate{
-						GameID:  g.ID,
+						ID:      g.ID,
 						Winners: &g.Winners,
 						Losers:  &g.Losers,
 						Drawn:   &g.Drawn,
@@ -206,7 +206,7 @@ func (g *Game) approveDraw(playerID uuid.UUID) error {
 					Channel: MessageChannel,
 					Type:    models.UpdateType_DELTA,
 					Data: GameUpdate{
-						GameID:  g.ID,
+						ID:      g.ID,
 						Winners: &g.Winners,
 						Losers:  &g.Losers,
 						Drawn:   &g.Drawn,
@@ -241,7 +241,7 @@ func (g *Game) rejectDraw() error {
 			Channel: MessageChannel,
 			Type:    models.UpdateType_DELTA,
 			Data: GameUpdate{
-				GameID:       g.ID,
+				ID:           g.ID,
 				ApprovedDraw: &g.ApprovedDraw,
 			},
 		},
@@ -276,7 +276,7 @@ func (g *Game) makeMove(playerID uuid.UUID, move board.Move) error {
 			Channel: MessageChannel,
 			Type:    models.UpdateType_DELTA,
 			Data: GameUpdate{
-				GameID: g.ID,
+				ID: g.ID,
 			},
 		},
 	)
@@ -313,7 +313,7 @@ func (g *Game) handleTimerUpdate(playerID uuid.UUID, t *timer.Timer) {
 					Channel: MessageChannel,
 					Type:    models.UpdateType_DELTA,
 					Data: GameUpdate{
-						GameID: g.ID,
+						ID:     g.ID,
 						Clocks: &map[uuid.UUID]int64{playerID: val},
 					},
 				},
@@ -330,7 +330,7 @@ func (g *Game) getSnapshot() GameUpdate {
 	defer g.mux.RUnlock()
 
 	return GameUpdate{
-		GameID:       g.ID,
+		ID:           g.ID,
 		ActivePlayer: &g.ActivePlayer,
 		Clocks:       &g.Clocks,
 		Winners:      &g.Winners,

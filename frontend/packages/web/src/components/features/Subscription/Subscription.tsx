@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { Game } from '../../../models';
-import { gameState, roomState, roomSubState, gameSubState } from '../../../store/atoms';
+import { roomSubState, gameSubState, roomState, gameState } from '../../../store/atoms';
 import { ServicesContext } from '../../../store/context';
 import { HomepageService } from '../../pages/hompage-service';
 
@@ -13,51 +13,45 @@ export default function Subscription() {
   );
 
   const [room, setRoom] = useRecoilState(roomState);
-  const [roomSub, setRoomSub] = useRecoilState(roomSubState);
-
   const [game, setGame] = useRecoilState(gameState);
+  const [roomSub, setRoomSub] = useRecoilState(roomSubState);
   const [gameSub, setGameSub] = useRecoilState(gameSubState);
-
-  const handleRoomMessage = (data: any) => {
-    setRoom({ ...room, ...data.data });
-    if (data.data.game_id) {
-      setGame({ id: data.data.game_id } as Game);
-    }
-  };
-
-  const handleGameMessage = (data: any) => {
-    setGame({ ...game, ...data.data });
-  };
-
-  const callback = (data: any) => {
-    console.log('[COMPONENT_DATA]', data);
-    switch (data.channel) {
-      case 'room':
-        handleRoomMessage(data);
-        break;
-      case 'game':
-        handleGameMessage(data);
-        break;
-    }
-  };
+  const [messageState, setMessageState]: any = useState('');
 
   useEffect(() => {
-    if (room.id && roomSub === '') {
-      setRoomSub(room.id);
-      homepageService.subscribeToRoomUpdates(room.id);
+    if (roomSub && roomSub !== '') {
+      homepageService.subscribeToRoomUpdates(roomSub);
     }
-  }, [room, roomSub]);
+  }, [roomSub]);
 
   useEffect(() => {
-    if (game.id && gameSub === '') {
-      setGameSub(game.id);
-      homepageService.subscribeToGameUpdates(game.id);
+    if (gameSub && gameSub !== '') {
+      homepageService.subscribeToGameUpdates(gameSub);
     }
-  }, [game, gameSub]);
+  }, [gameSub]);
 
   useEffect(() => {
-    homepageService.registerCallback(callback);
+    homepageService.registerCallback((data: any) => {
+      setMessageState(data);
+    });
   }, []);
+
+  useEffect(() => {
+    if (messageState !== '') {
+      console.log('[COMPONENT_DATA]', messageState);
+      switch (messageState.channel) {
+        case 'room':
+          setRoom({ ...room, ...messageState.data });
+          if (messageState.data.game_id) {
+            setGameSub(messageState.data.game_id);
+          }
+          break;
+        case 'game':
+          setGame({ ...game, ...(messageState.data as Game) });
+          break;
+      }
+    }
+  }, [messageState]);
 
   return <></>;
 }

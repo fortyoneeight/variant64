@@ -7,14 +7,13 @@ import { PlayerInfoCard, PlayerInfoContainer } from './PlayerInfo.styled';
 import { pieceImages } from '../../../assets/pieceImages';
 
 export default function PlayerInfo() {
-  const [game, setGame] = useRecoilState(gameState);
   const [room, setRoom] = useRecoilState(roomState);
 
   const PlayerCard = (props: any) => {
     return (
       <PlayerInfoCard>
         <p>
-          Temp
+          {props.name}
           <br />
           10:00{' '}
         </p>
@@ -24,8 +23,8 @@ export default function PlayerInfo() {
   };
   return (
     <PlayerInfoContainer>
-      {room.players.map((player, i) => {
-        return <PlayerCard key={i} id={i} />;
+      {Object.values(room.players).map((player, i) => {
+        return <PlayerCard key={i} id={i} name={player} />;
       })}
     </PlayerInfoContainer>
   );
